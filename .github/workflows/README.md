@@ -19,16 +19,16 @@ This directory contains CI/CD workflows for the Scoundroid project.
    - Builds debug APK
    - Uploads APK as artifact (7-day retention)
 
-### Format (`format.yml`)
-**Triggers:** Manual dispatch, Push to claude/** branches
+### Format Check (`format.yml`)
+**Triggers:** Pull Requests to main/master/develop, Push to claude/** branches
 
-**Purpose:** Auto-formats Kotlin code using ktlint and commits changes
+**Purpose:** Validates Kotlin code formatting using ktlint
 
 **Jobs:**
-1. **format**
-   - Runs `./gradlew ktlintFormat`
-   - Commits formatted code if changes detected
-   - Pushes changes back to branch
+1. **format-check**
+   - Runs `./gradlew ktlintCheck`
+   - Fails if code is not properly formatted
+   - Uploads ktlint report on failure
 
 ## Local Commands
 
@@ -56,4 +56,4 @@ This directory contains CI/CD workflows for the Scoundroid project.
 
 - **ktlint**: Configured in `app/build.gradle.kts` and `.editorconfig`
 - **Android Lint**: Configured in `app/build.gradle.kts` lint block
-- **JDK Version**: Java 17 (required for Android SDK 36)
+- **JDK Version**: Java 17 (required for Android SDK 35)
