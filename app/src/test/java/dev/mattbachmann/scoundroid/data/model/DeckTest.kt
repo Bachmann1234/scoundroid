@@ -136,8 +136,8 @@ class DeckTest {
 
         // Both decks should have same cards (regardless of order)
         assertEquals(
-            deck.cards.sorted().map { it.displayName },
-            shuffled.cards.sorted().map { it.displayName },
+            deck.cards.map { it.displayName }.sorted(),
+            shuffled.cards.map { it.displayName }.sorted(),
         )
     }
 
