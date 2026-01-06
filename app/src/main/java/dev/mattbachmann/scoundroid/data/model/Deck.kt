@@ -15,7 +15,6 @@ package dev.mattbachmann.scoundroid.data.model
  * @property cards The list of cards in the deck
  */
 data class Deck(val cards: List<Card>) {
-
     companion object {
         /**
          * Creates a new standard Scoundrel deck with 44 cards.
@@ -34,10 +33,11 @@ data class Deck(val cards: List<Card>) {
             }
 
             // Add Diamonds 2-10 only - Weapons
-            val numberedRanks = listOf(
-                Rank.TWO, Rank.THREE, Rank.FOUR, Rank.FIVE, Rank.SIX,
-                Rank.SEVEN, Rank.EIGHT, Rank.NINE, Rank.TEN
-            )
+            val numberedRanks =
+                listOf(
+                    Rank.TWO, Rank.THREE, Rank.FOUR, Rank.FIVE, Rank.SIX,
+                    Rank.SEVEN, Rank.EIGHT, Rank.NINE, Rank.TEN,
+                )
             numberedRanks.forEach { rank ->
                 cards.add(Card(Suit.DIAMONDS, rank))
             }

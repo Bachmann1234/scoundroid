@@ -9,5 +9,5 @@ package dev.mattbachmann.scoundroid.data.model
 enum class CardType {
     MONSTER,
     WEAPON,
-    POTION
+    POTION,
 }

@@ -8,7 +8,7 @@ package dev.mattbachmann.scoundroid.data.model
  */
 data class Card(
     val suit: Suit,
-    val rank: Rank
+    val rank: Rank,
 ) {
     /**
      * The type of card determined by its suit:
@@ -17,11 +17,12 @@ data class Card(
      * - Hearts: Potion
      */
     val type: CardType
-        get() = when (suit) {
-            Suit.CLUBS, Suit.SPADES -> CardType.MONSTER
-            Suit.DIAMONDS -> CardType.WEAPON
-            Suit.HEARTS -> CardType.POTION
-        }
+        get() =
+            when (suit) {
+                Suit.CLUBS, Suit.SPADES -> CardType.MONSTER
+                Suit.DIAMONDS -> CardType.WEAPON
+                Suit.HEARTS -> CardType.POTION
+            }
 
     /**
      * The numeric value of the card.

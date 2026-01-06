@@ -18,7 +18,7 @@ data class GameState(
     val equippedWeapon: Card?,
     val discardPile: List<Card>,
     val canAvoidRoom: Boolean,
-    val lastRoomAvoided: Boolean
+    val lastRoomAvoided: Boolean,
 ) {
     companion object {
         const val MAX_HEALTH = 20
@@ -36,7 +36,7 @@ data class GameState(
                 equippedWeapon = null,
                 discardPile = emptyList(),
                 canAvoidRoom = true,
-                lastRoomAvoided = false
+                lastRoomAvoided = false,
             )
         }
     }
@@ -49,17 +49,18 @@ data class GameState(
         val cardsNeeded = if (currentRoom == null) ROOM_SIZE else ROOM_SIZE - 1
         val (drawnCards, remainingDeck) = deck.draw(cardsNeeded)
 
-        val newRoom = if (currentRoom != null) {
-            currentRoom + drawnCards
-        } else {
-            drawnCards
-        }
+        val newRoom =
+            if (currentRoom != null) {
+                currentRoom + drawnCards
+            } else {
+                drawnCards
+            }
 
         return copy(
             deck = remainingDeck,
             currentRoom = newRoom,
             canAvoidRoom = if (lastRoomAvoided) false else true,
-            lastRoomAvoided = false
+            lastRoomAvoided = false,
         )
     }
 
@@ -79,7 +80,7 @@ data class GameState(
             deck = newDeck,
             currentRoom = null,
             canAvoidRoom = false,
-            lastRoomAvoided = true
+            lastRoomAvoided = true,
         )
     }
 
@@ -97,7 +98,7 @@ data class GameState(
         require(unselectedCards.size == 1) { "Must leave exactly 1 card" }
 
         return copy(
-            currentRoom = unselectedCards
+            currentRoom = unselectedCards,
         )
     }
 
