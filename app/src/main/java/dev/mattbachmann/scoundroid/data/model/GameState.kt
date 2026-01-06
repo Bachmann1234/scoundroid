@@ -59,8 +59,8 @@ data class GameState(
         return copy(
             deck = remainingDeck,
             currentRoom = newRoom,
-            canAvoidRoom = if (lastRoomAvoided) false else true,
-            lastRoomAvoided = false,
+            canAvoidRoom = true,
+            lastRoomAvoided = if (currentRoom != null) false else lastRoomAvoided,
         )
     }
 
@@ -70,7 +70,7 @@ data class GameState(
      */
     fun avoidRoom(): GameState {
         require(currentRoom != null) { "No room to avoid" }
-        require(canAvoidRoom) { "Cannot avoid room twice in a row" }
+        require(!lastRoomAvoided) { "Cannot avoid room twice in a row" }
 
         // Move room cards to bottom of deck
         val newDeckCards = deck.cards + currentRoom
