@@ -4,7 +4,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class RankTest {
-
     @Test
     fun `numbered ranks should have correct values`() {
         assertEquals(2, Rank.TWO.value)

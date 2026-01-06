@@ -4,7 +4,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class SuitTest {
-
     @Test
     fun `Clubs should have correct symbol`() {
         assertEquals("♣", Suit.CLUBS.symbol)

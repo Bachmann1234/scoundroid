@@ -6,7 +6,6 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class DeckTest {
-
     @Test
     fun `deck should have exactly 44 cards`() {
         val deck = Deck.create()
@@ -44,7 +43,7 @@ class DeckTest {
         Rank.entries.forEach { rank ->
             assertTrue(
                 clubs.any { it.rank == rank },
-                "Deck should contain $rank of Clubs"
+                "Deck should contain $rank of Clubs",
             )
         }
     }
@@ -59,7 +58,7 @@ class DeckTest {
         Rank.entries.forEach { rank ->
             assertTrue(
                 spades.any { it.rank == rank },
-                "Deck should contain $rank of Spades"
+                "Deck should contain $rank of Spades",
             )
         }
     }
@@ -71,14 +70,15 @@ class DeckTest {
         assertEquals(9, diamonds.size)
 
         // Should have 2-10
-        val expectedRanks = listOf(
-            Rank.TWO, Rank.THREE, Rank.FOUR, Rank.FIVE, Rank.SIX,
-            Rank.SEVEN, Rank.EIGHT, Rank.NINE, Rank.TEN
-        )
+        val expectedRanks =
+            listOf(
+                Rank.TWO, Rank.THREE, Rank.FOUR, Rank.FIVE, Rank.SIX,
+                Rank.SEVEN, Rank.EIGHT, Rank.NINE, Rank.TEN,
+            )
         expectedRanks.forEach { rank ->
             assertTrue(
                 diamonds.any { it.rank == rank },
-                "Deck should contain $rank of Diamonds"
+                "Deck should contain $rank of Diamonds",
             )
         }
 
@@ -96,14 +96,15 @@ class DeckTest {
         assertEquals(9, hearts.size)
 
         // Should have 2-10
-        val expectedRanks = listOf(
-            Rank.TWO, Rank.THREE, Rank.FOUR, Rank.FIVE, Rank.SIX,
-            Rank.SEVEN, Rank.EIGHT, Rank.NINE, Rank.TEN
-        )
+        val expectedRanks =
+            listOf(
+                Rank.TWO, Rank.THREE, Rank.FOUR, Rank.FIVE, Rank.SIX,
+                Rank.SEVEN, Rank.EIGHT, Rank.NINE, Rank.TEN,
+            )
         expectedRanks.forEach { rank ->
             assertTrue(
                 hearts.any { it.rank == rank },
-                "Deck should contain $rank of Hearts"
+                "Deck should contain $rank of Hearts",
             )
         }
 
@@ -136,7 +137,7 @@ class DeckTest {
         // Both decks should have same cards (regardless of order)
         assertEquals(
             deck.cards.sorted().map { it.displayName },
-            shuffled.cards.sorted().map { it.displayName }
+            shuffled.cards.sorted().map { it.displayName },
         )
     }
 
@@ -147,9 +148,10 @@ class DeckTest {
 
         // Very unlikely (1 in 44! chance) that order is identical after shuffle
         // Check if at least one card is in a different position
-        val orderChanged = deck.cards.indices.any { i ->
-            deck.cards[i] != shuffled.cards[i]
-        }
+        val orderChanged =
+            deck.cards.indices.any { i ->
+                deck.cards[i] != shuffled.cards[i]
+            }
         assertTrue(orderChanged, "Shuffle should change card order")
     }
 
@@ -180,12 +182,13 @@ class DeckTest {
 
     @Test
     fun `drawn cards should be from top of deck`() {
-        val originalCards = listOf(
-            Card(Suit.CLUBS, Rank.TWO),
-            Card(Suit.SPADES, Rank.FIVE),
-            Card(Suit.HEARTS, Rank.TEN),
-            Card(Suit.DIAMONDS, Rank.SEVEN)
-        )
+        val originalCards =
+            listOf(
+                Card(Suit.CLUBS, Rank.TWO),
+                Card(Suit.SPADES, Rank.FIVE),
+                Card(Suit.HEARTS, Rank.TEN),
+                Card(Suit.DIAMONDS, Rank.SEVEN),
+            )
         val deck = Deck(originalCards)
         val (drawn, _) = deck.draw(2)
 
