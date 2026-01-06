@@ -7,12 +7,12 @@ plugins {
 
 android {
     namespace = "dev.mattbachmann.scoundroid"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "dev.mattbachmann.scoundroid"
-        minSdk = 35
-        targetSdk = 35
+        minSdk = 24
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 
