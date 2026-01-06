@@ -9,7 +9,7 @@
 ✅ **Project Setup**
 - Android project with correct structure
 - Package: `dev.mattbachmann.scoundroid`
-- Target SDK: 36 (Pixel 10 Pro Fold)
+- Target SDK: 35 (Android 15 / Pixel 10 Pro Fold)
 - Jetpack Compose configured with Material3
 - Comprehensive testing dependencies (JUnit, Kotlin Test, Turbine, MockK)
 
