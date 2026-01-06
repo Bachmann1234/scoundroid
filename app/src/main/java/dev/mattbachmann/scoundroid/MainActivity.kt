@@ -15,22 +15,23 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import dev.mattbachmann.scoundroid.ui.theme.ScoundroidTheme
+import dev.mattbachmann.scoundroid.ui.theme.scoundroidTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            ScoundroidTheme {
+            scoundroidTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Surface(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(innerPadding),
-                        color = MaterialTheme.colorScheme.background
+                        modifier =
+                            Modifier
+                                .fillMaxSize()
+                                .padding(innerPadding),
+                        color = MaterialTheme.colorScheme.background,
                     ) {
-                        WelcomeScreen()
+                        welcomeScreen()
                     }
                 }
             }
@@ -39,22 +40,22 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun WelcomeScreen() {
+fun welcomeScreen() {
     Box(
         modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Text(
             text = "Scoundroid",
-            style = MaterialTheme.typography.headlineLarge
+            style = MaterialTheme.typography.headlineLarge,
         )
     }
 }
 
 @Preview(showBackground = true)
 @Composable
-fun WelcomeScreenPreview() {
-    ScoundroidTheme {
-        WelcomeScreen()
+fun welcomeScreenPreview() {
+    scoundroidTheme {
+        welcomeScreen()
     }
 }

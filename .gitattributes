@@ -1,0 +1,24 @@
+# Auto-detect text files and normalize line endings to LF
+* text=auto eol=lf
+
+# Explicitly declare text files
+*.java text
+*.kt text
+*.kts text
+*.xml text
+*.gradle text
+*.properties text
+*.md text
+*.yml text
+*.yaml text
+*.json text
+
+# Declare files that should not be normalized
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.apk binary
+*.so binary
+*.jar binary

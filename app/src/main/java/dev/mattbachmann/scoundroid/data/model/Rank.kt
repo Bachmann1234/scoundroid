@@ -17,5 +17,5 @@ enum class Rank(val value: Int, val displayName: String) {
     JACK(11, "J"),
     QUEEN(12, "Q"),
     KING(13, "K"),
-    ACE(14, "A")
+    ACE(14, "A"),
 }

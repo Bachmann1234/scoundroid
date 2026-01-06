@@ -11,5 +11,5 @@ enum class Suit(val symbol: String) {
     CLUBS("♣"),
     SPADES("♠"),
     DIAMONDS("♦"),
-    HEARTS("♥")
+    HEARTS("♥"),
 }

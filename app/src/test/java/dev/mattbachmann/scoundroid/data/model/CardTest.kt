@@ -4,7 +4,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class CardTest {
-
     @Test
     fun `card with Clubs suit should be Monster type`() {
         val card = Card(Suit.CLUBS, Rank.FIVE)

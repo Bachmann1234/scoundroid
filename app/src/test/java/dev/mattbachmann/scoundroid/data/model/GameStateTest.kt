@@ -7,7 +7,6 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class GameStateTest {
-
     @Test
     fun `new game should start with full deck`() {
         val gameState = GameState.newGame()
@@ -49,21 +48,23 @@ class GameStateTest {
 
     @Test
     fun `drawing room from deck with less than 4 cards should use all remaining cards`() {
-        val smallDeck = Deck(
-            listOf(
-                Card(Suit.CLUBS, Rank.TWO),
-                Card(Suit.SPADES, Rank.THREE)
+        val smallDeck =
+            Deck(
+                listOf(
+                    Card(Suit.CLUBS, Rank.TWO),
+                    Card(Suit.SPADES, Rank.THREE),
+                ),
             )
-        )
-        val gameState = GameState(
-            deck = smallDeck,
-            health = 20,
-            currentRoom = null,
-            equippedWeapon = null,
-            discardPile = emptyList(),
-            canAvoidRoom = true,
-            lastRoomAvoided = false
-        )
+        val gameState =
+            GameState(
+                deck = smallDeck,
+                health = 20,
+                currentRoom = null,
+                equippedWeapon = null,
+                discardPile = emptyList(),
+                canAvoidRoom = true,
+                lastRoomAvoided = false,
+            )
         val newState = gameState.drawRoom()
 
         assertEquals(2, newState.currentRoom?.size ?: 0)
@@ -103,19 +104,21 @@ class GameStateTest {
 
     @Test
     fun `cannot avoid room twice in a row`() {
-        val gameState = GameState.newGame()
-            .drawRoom()
-            .avoidRoom()
+        val gameState =
+            GameState.newGame()
+                .drawRoom()
+                .avoidRoom()
 
         assertFalse(gameState.canAvoidRoom)
     }
 
     @Test
     fun `processing room should restore room avoidance ability`() {
-        val gameState = GameState.newGame()
-            .drawRoom()
-            .avoidRoom()
-            .drawRoom()
+        val gameState =
+            GameState.newGame()
+                .drawRoom()
+                .avoidRoom()
+                .drawRoom()
 
         // After drawing a new room (which means we didn't avoid), we should be able to avoid again
         assertTrue(gameState.canAvoidRoom)
@@ -192,15 +195,16 @@ class GameStateTest {
     @Test
     fun `game should be won when deck is empty and health above 0`() {
         val emptyDeck = Deck(emptyList())
-        val gameState = GameState(
-            deck = emptyDeck,
-            health = 10,
-            currentRoom = null,
-            equippedWeapon = null,
-            discardPile = emptyList(),
-            canAvoidRoom = true,
-            lastRoomAvoided = false
-        )
+        val gameState =
+            GameState(
+                deck = emptyDeck,
+                health = 10,
+                currentRoom = null,
+                equippedWeapon = null,
+                discardPile = emptyList(),
+                canAvoidRoom = true,
+                lastRoomAvoided = false,
+            )
 
         assertTrue(gameState.isGameWon)
     }
@@ -217,9 +221,10 @@ class GameStateTest {
         val weapon1 = Card(Suit.DIAMONDS, Rank.FIVE)
         val weapon2 = Card(Suit.DIAMONDS, Rank.SEVEN)
 
-        val gameState = GameState.newGame()
-            .equipWeapon(weapon1)
-            .equipWeapon(weapon2)
+        val gameState =
+            GameState.newGame()
+                .equipWeapon(weapon1)
+                .equipWeapon(weapon2)
 
         assertEquals(weapon2, gameState.equippedWeapon)
     }
