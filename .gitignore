@@ -75,3 +75,8 @@ vcs.xml
 *~
 *.swp
 *.bak
+
+# Lint and formatting reports
+**/build/reports/ktlint/
+**/build/reports/lint-results*.html
+**/build/reports/lint-results*.xml

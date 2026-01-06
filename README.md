@@ -43,9 +43,30 @@ See [`plans/`](plans/) directory for detailed planning documents and progress tr
 # Run tests
 ./gradlew test
 
+# Check code formatting
+./gradlew ktlintCheck
+
+# Auto-format code
+./gradlew ktlintFormat
+
+# Run Android Lint
+./gradlew lint
+
 # Install on device
 ./gradlew installDebug
 ```
+
+## CI/CD
+
+[![CI](https://github.com/Bachmann1234/scoundroid/actions/workflows/ci.yml/badge.svg)](https://github.com/Bachmann1234/scoundroid/actions/workflows/ci.yml)
+
+Automated workflows run on every push:
+- **Tests**: Unit tests with JUnit and Kotlin Test
+- **Formatting**: ktlint checks for Kotlin style
+- **Linting**: Android Lint for code quality
+- **Build**: Assembles debug APK
+
+See [`.github/workflows/README.md`](.github/workflows/README.md) for details.
 
 ## Project Structure
 
