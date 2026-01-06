@@ -25,7 +25,7 @@ Original game rules: See [`docs/Scoundrel.pdf`](docs/Scoundrel.pdf) or [online](
 - **UI**: Jetpack Compose with Material3
 - **Architecture**: MVI (Model-View-Intent)
 - **Persistence**: Room Database
-- **Min SDK**: 24 (Android 7.0) / **Target SDK**: 36 (Android latest)
+- **Min SDK**: 26 (Android 8.0) / **Target SDK**: 36 (Android latest)
 - **Target Device**: Pixel 10 Pro Fold
 
 ## Project Status
