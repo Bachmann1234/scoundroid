@@ -203,8 +203,8 @@ data class GameState(
                 lastCardProcessed = potion,
             )
         } else {
-            // Second potion this turn: no effect (but still track it was processed)
-            copy(lastCardProcessed = potion)
+            // Second potion this turn: no effect, don't update lastCardProcessed
+            copy(usedPotionThisTurn = true)
         }
     }
 

@@ -64,15 +64,16 @@
   - Potion flag resets on new turn
   - Second potion discarded without effect
 
-- ✅ **Scoring System** (17 tests)
+- ✅ **Scoring System** (20 tests)
   - Winning score = remaining health
   - Special case: health=20 after potion = 20 + potion value
   - Losing score = negative sum of remaining monsters
   - All edge cases covered
+  - Bug fix: second potion in same turn doesn't affect scoring
 
 **Test Summary:**
-- **64 new tests** written following TDD (Red-Green-Refactor)
-- **122 total tests** (Phase 1: 57 + Phase 2: 64 + example: 1)
+- **65 new tests** written following TDD (Red-Green-Refactor)
+- **123 total tests** (Phase 1: 57 + Phase 2: 65 + example: 1)
 - All tests passing ✅
 - 100% TDD methodology followed
 
@@ -81,10 +82,10 @@
 - `WeaponStateTest.kt` - 14 comprehensive tests
 - `CombatTest.kt` - 16 combat mechanic tests
 - `PotionTest.kt` - 15 potion mechanic tests
-- `ScoringTest.kt` - 17 scoring tests (including special health=20 case)
+- `ScoringTest.kt` - 20 scoring tests (including special health=20 case and bug fixes)
 
 **Files Updated:**
-- `GameState.kt` - Added combat, potion, scoring logic, and lastPotionValue tracking
+- `GameState.kt` - Added combat, potion, scoring logic, and lastCardProcessed tracking
 - `GameStateTest.kt` - Updated for new properties
 
 ## What's NOT Done Yet
@@ -142,7 +143,7 @@ When ready for the next session:
 - Add basic help/rules display
 - Test on device
 
-### Next Session: `./gradlew test` should show 122 passing tests before starting UI work!
+### Next Session: `./gradlew test` should show 123 passing tests before starting UI work!
 
 ## Quick Commands for Next Session
 
@@ -211,4 +212,4 @@ When you're ready to continue:
 2. Check [`05-testing-strategy.md`](05-testing-strategy.md) for ViewModel testing strategy
 3. Say "Let's do Phase 3" or "Build the UI"
 
-**Current Status**: Phases 1 & 2 complete! All core game logic implemented with 122 passing tests. Ready for UI/ViewModel layer! 🚀
+**Current Status**: Phases 1 & 2 complete! All core game logic implemented with 123 passing tests. Ready for UI/ViewModel layer! 🚀

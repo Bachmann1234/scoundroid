@@ -400,4 +400,32 @@ class ScoringTest {
         val score = game.calculateScore()
         assertEquals(20, score, "Score should be 20 because last card was weapon, not potion")
     }
+
+    @Test
+    fun `BUG FIX - second potion in same turn should not affect scoring`() {
+        val emptyDeck = Deck(emptyList())
+        var game =
+            GameState.newGame().copy(
+                deck = emptyDeck,
+                health = 15,
+            )
+
+        // Use first potion to reach 20
+        val potion1 = Card(Suit.HEARTS, Rank.FIVE) // 5♥
+        game = game.usePotion(potion1)
+        assertEquals(20, game.health)
+
+        // Use second potion in SAME turn (should be discarded, no effect)
+        val potion2 = Card(Suit.HEARTS, Rank.SEVEN) // 7♥
+        game = game.usePotion(potion2)
+        assertEquals(20, game.health)
+
+        // Score should be 20 + 5 = 25 (first potion), NOT 20 + 7 = 27 (second potion)
+        val score = game.calculateScore()
+        assertEquals(
+            25,
+            score,
+            "Score should use first potion value (5), not discarded second potion (7)",
+        )
+    }
 }
