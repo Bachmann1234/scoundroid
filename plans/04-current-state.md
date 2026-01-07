@@ -64,14 +64,15 @@
   - Potion flag resets on new turn
   - Second potion discarded without effect
 
-- ✅ **Scoring System** (13 tests)
+- ✅ **Scoring System** (17 tests)
   - Winning score = remaining health
+  - Special case: health=20 after potion = 20 + potion value
   - Losing score = negative sum of remaining monsters
   - All edge cases covered
 
 **Test Summary:**
-- **58 new tests** written following TDD (Red-Green-Refactor)
-- **116 total tests** (Phase 1: 55 + Phase 2: 58 + example: 1)
+- **62 new tests** written following TDD (Red-Green-Refactor)
+- **120 total tests** (Phase 1: 57 + Phase 2: 62 + example: 1)
 - All tests passing ✅
 - 100% TDD methodology followed
 
@@ -80,10 +81,10 @@
 - `WeaponStateTest.kt` - 14 comprehensive tests
 - `CombatTest.kt` - 16 combat mechanic tests
 - `PotionTest.kt` - 15 potion mechanic tests
-- `ScoringTest.kt` - 13 scoring tests
+- `ScoringTest.kt` - 17 scoring tests (including special health=20 case)
 
 **Files Updated:**
-- `GameState.kt` - Added combat, potion, and scoring logic
+- `GameState.kt` - Added combat, potion, scoring logic, and lastPotionValue tracking
 - `GameStateTest.kt` - Updated for new properties
 
 ## What's NOT Done Yet
@@ -199,7 +200,9 @@ When ready for the next session:
 - `test/data/model/DeckTest.kt` (14 tests)
 - `test/data/model/GameStateTest.kt` (24 tests)
 
-**Total: 55 tests, all following TDD methodology**
+**Total: 57 tests, all following TDD methodology**
+
+**Note:** Phase 1 test count was originally documented as 55 but actual count is 57 (CardTest had 10 tests, not 9; DeckTest had 16, not 14).
 
 ## Ready for Phase 3?
 

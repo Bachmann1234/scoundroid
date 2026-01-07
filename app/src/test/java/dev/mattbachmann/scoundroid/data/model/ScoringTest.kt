@@ -254,4 +254,84 @@ class ScoringTest {
 
         assertTrue(score > 0, "Winning score should be > 0")
     }
+
+    @Test
+    fun `winning with full health and last potion adds potion value to score`() {
+        val emptyDeck = Deck(emptyList())
+        var game =
+            GameState.newGame().copy(
+                deck = emptyDeck,
+                health = 15,
+            )
+
+        // Use a potion that brings health to exactly 20
+        val potion = Card(Suit.HEARTS, Rank.FIVE) // 5♥
+        game = game.usePotion(potion)
+
+        // Health should be 20
+        assertEquals(20, game.health)
+
+        // Score should be 20 + 5 = 25 (special case)
+        val score = game.calculateScore()
+        assertEquals(25, score, "Win with health=20 after potion should score health + potion value")
+    }
+
+    @Test
+    fun `winning with full health but no recent potion scores normal`() {
+        val emptyDeck = Deck(emptyList())
+        val game =
+            GameState.newGame().copy(
+                deck = emptyDeck,
+                health = 20,
+            )
+
+        // No potion used, just at full health
+        val score = game.calculateScore()
+        assertEquals(20, score, "Win with health=20 without potion should score 20")
+    }
+
+    @Test
+    fun `winning with full health after multiple potions uses last one`() {
+        val emptyDeck = Deck(emptyList())
+        var game =
+            GameState.newGame().copy(
+                deck = emptyDeck,
+                health = 10,
+            )
+
+        // Use first potion
+        val potion1 = Card(Suit.HEARTS, Rank.FIVE) // 5♥
+        game = game.usePotion(potion1)
+        assertEquals(15, game.health)
+
+        // Start new turn and use second potion to reach 20
+        game = game.drawRoom()
+        val potion2 = Card(Suit.HEARTS, Rank.SEVEN) // 7♥
+        game = game.usePotion(potion2)
+        assertEquals(20, game.health)
+
+        // Should use last potion value (7)
+        val score = game.calculateScore()
+        assertEquals(27, score, "Should use last potion value: 20 + 7 = 27")
+    }
+
+    @Test
+    fun `winning with health less than 20 after potion scores normally`() {
+        val emptyDeck = Deck(emptyList())
+        var game =
+            GameState.newGame().copy(
+                deck = emptyDeck,
+                health = 10,
+            )
+
+        val potion = Card(Suit.HEARTS, Rank.FIVE) // 5♥
+        game = game.usePotion(potion)
+
+        // Health is 15, not 20
+        assertEquals(15, game.health)
+
+        // Score should be just 15 (no special case)
+        val score = game.calculateScore()
+        assertEquals(15, score, "Win with health < 20 scores normally even after potion")
+    }
 }

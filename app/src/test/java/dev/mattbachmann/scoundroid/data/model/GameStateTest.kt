@@ -66,6 +66,7 @@ class GameStateTest {
                 canAvoidRoom = true,
                 lastRoomAvoided = false,
                 usedPotionThisTurn = false,
+                lastPotionValue = null,
             )
         val newState = gameState.drawRoom()
 
@@ -208,6 +209,7 @@ class GameStateTest {
                 canAvoidRoom = true,
                 lastRoomAvoided = false,
                 usedPotionThisTurn = false,
+                lastPotionValue = null,
             )
 
         assertTrue(gameState.isGameWon)

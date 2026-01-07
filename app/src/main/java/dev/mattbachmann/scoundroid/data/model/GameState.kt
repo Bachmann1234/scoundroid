@@ -12,6 +12,7 @@ package dev.mattbachmann.scoundroid.data.model
  * @property canAvoidRoom Whether the player can avoid the current/next room
  * @property lastRoomAvoided Whether the last room was avoided (for tracking consecutive avoidance)
  * @property usedPotionThisTurn Whether a potion has been used this turn (only 1 per turn allowed)
+ * @property lastPotionValue The value of the last potion used (for special scoring at health=20)
  */
 data class GameState(
     val deck: Deck,
@@ -23,6 +24,7 @@ data class GameState(
     val canAvoidRoom: Boolean,
     val lastRoomAvoided: Boolean,
     val usedPotionThisTurn: Boolean,
+    val lastPotionValue: Int?,
 ) {
     companion object {
         const val MAX_HEALTH = 20
@@ -43,6 +45,7 @@ data class GameState(
                 canAvoidRoom = true,
                 lastRoomAvoided = false,
                 usedPotionThisTurn = false,
+                lastPotionValue = null,
             )
         }
     }
@@ -180,6 +183,7 @@ data class GameState(
      * - Potions restore health by their value
      * - Health is capped at MAX_HEALTH (20)
      * - Second potion in same turn is discarded without effect
+     * - Tracks last potion value for special scoring
      *
      * @param potion The potion card to use
      * @return New game state after using (or discarding) the potion
@@ -192,6 +196,7 @@ data class GameState(
             copy(
                 health = (health + potion.value).coerceAtMost(MAX_HEALTH),
                 usedPotionThisTurn = true,
+                lastPotionValue = potion.value,
             )
         } else {
             // Second potion this turn: no effect
@@ -211,6 +216,7 @@ data class GameState(
      *
      * Scoring rules:
      * - **Winning** (health > 0): score = remaining health
+     * - **Special case**: If health = 20 AND last potion used, score = 20 + potion value
      * - **Losing** (health = 0): score = 0 - sum of remaining monsters in deck
      *
      * @return The current score
@@ -218,7 +224,12 @@ data class GameState(
     fun calculateScore(): Int {
         return if (health > 0) {
             // Winning: score = remaining health
-            health
+            if (health == MAX_HEALTH && lastPotionValue != null) {
+                // Special case: full health after potion
+                health + lastPotionValue
+            } else {
+                health
+            }
         } else {
             // Losing: score = negative sum of remaining monsters
             val remainingMonsterDamage =
