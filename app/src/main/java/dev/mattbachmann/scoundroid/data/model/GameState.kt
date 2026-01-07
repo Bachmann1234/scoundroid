@@ -8,7 +8,6 @@ package dev.mattbachmann.scoundroid.data.model
  * @property currentRoom The cards currently in the room (4 cards when drawn, 1 after selection)
  * @property equippedWeapon The currently equipped weapon card, if any
  * @property discardPile Cards that have been discarded
- * @property canAvoidRoom Whether the player can avoid the current/next room
  * @property lastRoomAvoided Whether the last room was avoided (for tracking consecutive avoidance)
  */
 data class GameState(
@@ -17,7 +16,6 @@ data class GameState(
     val currentRoom: List<Card>?,
     val equippedWeapon: Card?,
     val discardPile: List<Card>,
-    val canAvoidRoom: Boolean,
     val lastRoomAvoided: Boolean,
 ) {
     companion object {
@@ -35,7 +33,6 @@ data class GameState(
                 currentRoom = null,
                 equippedWeapon = null,
                 discardPile = emptyList(),
-                canAvoidRoom = true,
                 lastRoomAvoided = false,
             )
         }
@@ -59,14 +56,13 @@ data class GameState(
         return copy(
             deck = remainingDeck,
             currentRoom = newRoom,
-            canAvoidRoom = true,
             lastRoomAvoided = if (currentRoom != null) false else lastRoomAvoided,
         )
     }
 
     /**
      * Avoids the current room, moving all cards to the bottom of the deck.
-     * Can only be done if canAvoidRoom is true.
+     * Cannot be done if the last room was also avoided.
      */
     fun avoidRoom(): GameState {
         require(currentRoom != null) { "No room to avoid" }
@@ -79,7 +75,6 @@ data class GameState(
         return copy(
             deck = newDeck,
             currentRoom = null,
-            canAvoidRoom = false,
             lastRoomAvoided = true,
         )
     }

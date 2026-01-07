@@ -32,12 +32,6 @@ class GameStateTest {
     }
 
     @Test
-    fun `new game should allow room avoidance`() {
-        val gameState = GameState.newGame()
-        assertTrue(gameState.canAvoidRoom)
-    }
-
-    @Test
     fun `drawing room should create room with 4 cards`() {
         val gameState = GameState.newGame()
         val newState = gameState.drawRoom()
@@ -62,7 +56,6 @@ class GameStateTest {
                 currentRoom = null,
                 equippedWeapon = null,
                 discardPile = emptyList(),
-                canAvoidRoom = true,
                 lastRoomAvoided = false,
             )
         val newState = gameState.drawRoom()
@@ -87,14 +80,6 @@ class GameStateTest {
     }
 
     @Test
-    fun `avoiding room should set canAvoidRoom to false`() {
-        val gameState = GameState.newGame().drawRoom()
-        val newState = gameState.avoidRoom()
-
-        assertFalse(newState.canAvoidRoom)
-    }
-
-    @Test
     fun `avoiding room should set lastRoomAvoided to true`() {
         val gameState = GameState.newGame().drawRoom()
         val newState = gameState.avoidRoom()
@@ -109,19 +94,19 @@ class GameStateTest {
                 .drawRoom()
                 .avoidRoom()
 
-        assertFalse(gameState.canAvoidRoom)
+        assertTrue(gameState.lastRoomAvoided)
     }
 
     @Test
     fun `processing room should restore room avoidance ability`() {
-        val gameState =
-            GameState.newGame()
-                .drawRoom()
-                .avoidRoom()
-                .drawRoom()
+        val state1 = GameState.newGame().drawRoom()
+        val state2 = state1.avoidRoom()
+        val state3 = state2.drawRoom()
+        val state4 = state3.selectCards(state3.currentRoom!!.take(3))
+        val gameState = state4.drawRoom()
 
-        // After drawing a new room (which means we didn't avoid), we should be able to avoid again
-        assertTrue(gameState.canAvoidRoom)
+        // After avoiding a room, then processing the next room, we should be able to avoid again
+        assertFalse(gameState.lastRoomAvoided)
     }
 
     @Test
@@ -202,7 +187,6 @@ class GameStateTest {
                 currentRoom = null,
                 equippedWeapon = null,
                 discardPile = emptyList(),
-                canAvoidRoom = true,
                 lastRoomAvoided = false,
             )
 
