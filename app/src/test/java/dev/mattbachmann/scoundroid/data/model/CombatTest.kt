@@ -49,10 +49,11 @@ class CombatTest {
     @Test
     fun `weapon combat reduces damage`() {
         val weapon = Card(Suit.DIAMONDS, Rank.FIVE) // 5♦
-        val game = GameState.newGame().copy(
-            health = 20,
-            weaponState = WeaponState(weapon),
-        )
+        val game =
+            GameState.newGame().copy(
+                health = 20,
+                weaponState = WeaponState(weapon),
+            )
 
         val monster = Card(Suit.SPADES, Rank.SEVEN) // 7♠ (damage 7)
         val afterCombat = game.fightMonster(monster)
@@ -64,10 +65,11 @@ class CombatTest {
     @Test
     fun `weapon can completely negate damage`() {
         val weapon = Card(Suit.DIAMONDS, Rank.TEN) // 10♦
-        val game = GameState.newGame().copy(
-            health = 20,
-            weaponState = WeaponState(weapon),
-        )
+        val game =
+            GameState.newGame().copy(
+                health = 20,
+                weaponState = WeaponState(weapon),
+            )
 
         val monster = Card(Suit.SPADES, Rank.SEVEN) // 7♠ (damage 7)
         val afterCombat = game.fightMonster(monster)
@@ -79,10 +81,11 @@ class CombatTest {
     @Test
     fun `weapon exactly neutralizes monster deals zero damage`() {
         val weapon = Card(Suit.DIAMONDS, Rank.SEVEN) // 7♦
-        val game = GameState.newGame().copy(
-            health = 20,
-            weaponState = WeaponState(weapon),
-        )
+        val game =
+            GameState.newGame().copy(
+                health = 20,
+                weaponState = WeaponState(weapon),
+            )
 
         val monster = Card(Suit.CLUBS, Rank.SEVEN) // 7♣ (damage 7)
         val afterCombat = game.fightMonster(monster)
@@ -94,10 +97,11 @@ class CombatTest {
     @Test
     fun `weapon degrades after combat`() {
         val weapon = Card(Suit.DIAMONDS, Rank.FIVE) // 5♦
-        val game = GameState.newGame().copy(
-            health = 20,
-            weaponState = WeaponState(weapon),
-        )
+        val game =
+            GameState.newGame().copy(
+                health = 20,
+                weaponState = WeaponState(weapon),
+            )
 
         val monster = Card(Suit.SPADES, Rank.TEN) // 10♠
         val afterCombat = game.fightMonster(monster)
@@ -110,10 +114,11 @@ class CombatTest {
     fun `degraded weapon cannot defeat stronger monster - barehanded damage`() {
         val weapon = Card(Suit.DIAMONDS, Rank.FIVE) // 5♦
         val weaponState = WeaponState(weapon, maxMonsterValue = 6)
-        val game = GameState.newGame().copy(
-            health = 20,
-            weaponState = weaponState,
-        )
+        val game =
+            GameState.newGame().copy(
+                health = 20,
+                weaponState = weaponState,
+            )
 
         val monster = Card(Suit.SPADES, Rank.TEN) // 10♠ (stronger than weapon can handle)
         val afterCombat = game.fightMonster(monster)
@@ -128,10 +133,11 @@ class CombatTest {
     fun `degraded weapon can defeat weaker monster - reduced damage`() {
         val weapon = Card(Suit.DIAMONDS, Rank.FIVE) // 5♦
         val weaponState = WeaponState(weapon, maxMonsterValue = 8)
-        val game = GameState.newGame().copy(
-            health = 20,
-            weaponState = weaponState,
-        )
+        val game =
+            GameState.newGame().copy(
+                health = 20,
+                weaponState = weaponState,
+            )
 
         val monster = Card(Suit.SPADES, Rank.SIX) // 6♠ (within weapon range)
         val afterCombat = game.fightMonster(monster)
@@ -144,11 +150,12 @@ class CombatTest {
     @Test
     fun `monster is added to defeated monsters pile`() {
         val weapon = Card(Suit.DIAMONDS, Rank.FIVE) // 5♦
-        val game = GameState.newGame().copy(
-            health = 20,
-            weaponState = WeaponState(weapon),
-            defeatedMonsters = emptyList(),
-        )
+        val game =
+            GameState.newGame().copy(
+                health = 20,
+                weaponState = WeaponState(weapon),
+                defeatedMonsters = emptyList(),
+            )
 
         val monster = Card(Suit.SPADES, Rank.SEVEN) // 7♠
         val afterCombat = game.fightMonster(monster)
@@ -160,11 +167,12 @@ class CombatTest {
     @Test
     fun `multiple monsters accumulate in defeated pile`() {
         val weapon = Card(Suit.DIAMONDS, Rank.FIVE) // 5♦
-        var game = GameState.newGame().copy(
-            health = 20,
-            weaponState = WeaponState(weapon),
-            defeatedMonsters = emptyList(),
-        )
+        var game =
+            GameState.newGame().copy(
+                health = 20,
+                weaponState = WeaponState(weapon),
+                defeatedMonsters = emptyList(),
+            )
 
         val monster1 = Card(Suit.SPADES, Rank.SEVEN) // 7♠
         game = game.fightMonster(monster1)
@@ -181,11 +189,12 @@ class CombatTest {
 
     @Test
     fun `barehanded monster goes to defeated pile`() {
-        val game = GameState.newGame().copy(
-            health = 20,
-            weaponState = null,
-            defeatedMonsters = emptyList(),
-        )
+        val game =
+            GameState.newGame().copy(
+                health = 20,
+                weaponState = null,
+                defeatedMonsters = emptyList(),
+            )
 
         val monster = Card(Suit.SPADES, Rank.SEVEN) // 7♠
         val afterCombat = game.fightMonster(monster)
@@ -196,10 +205,11 @@ class CombatTest {
 
     @Test
     fun `combat with no weapon equipped is barehanded`() {
-        val game = GameState.newGame().copy(
-            health = 20,
-            weaponState = null,
-        )
+        val game =
+            GameState.newGame().copy(
+                health = 20,
+                weaponState = null,
+            )
 
         val monster = Card(Suit.SPADES, Rank.NINE) // 9♠
         val afterCombat = game.fightMonster(monster)
@@ -211,10 +221,11 @@ class CombatTest {
     @Test
     fun `weapon combat with Ace monster`() {
         val weapon = Card(Suit.DIAMONDS, Rank.TEN) // 10♦
-        val game = GameState.newGame().copy(
-            health = 20,
-            weaponState = WeaponState(weapon),
-        )
+        val game =
+            GameState.newGame().copy(
+                health = 20,
+                weaponState = WeaponState(weapon),
+            )
 
         val aceMonster = Card(Suit.SPADES, Rank.ACE) // A♠ (damage 14)
         val afterCombat = game.fightMonster(aceMonster)
@@ -227,10 +238,11 @@ class CombatTest {
     @Test
     fun `sequential combat with weapon degradation`() {
         val weapon = Card(Suit.DIAMONDS, Rank.FIVE) // 5♦
-        var game = GameState.newGame().copy(
-            health = 20,
-            weaponState = WeaponState(weapon),
-        )
+        var game =
+            GameState.newGame().copy(
+                health = 20,
+                weaponState = WeaponState(weapon),
+            )
 
         // Fight Queen (12) - weapon works
         game = game.fightMonster(Card(Suit.SPADES, Rank.QUEEN))

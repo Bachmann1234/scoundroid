@@ -68,7 +68,8 @@ data class GameState(
             currentRoom = newRoom,
             canAvoidRoom = true,
             lastRoomAvoided = if (currentRoom != null) false else lastRoomAvoided,
-            usedPotionThisTurn = false, // New turn = can use potion again
+            // New turn = can use potion again
+            usedPotionThisTurn = false,
         )
     }
 

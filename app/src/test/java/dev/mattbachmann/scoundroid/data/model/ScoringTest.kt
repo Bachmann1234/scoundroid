@@ -16,10 +16,11 @@ class ScoringTest {
     @Test
     fun `winning score is remaining health`() {
         val emptyDeck = Deck(emptyList())
-        val game = GameState.newGame().copy(
-            deck = emptyDeck,
-            health = 15,
-        )
+        val game =
+            GameState.newGame().copy(
+                deck = emptyDeck,
+                health = 15,
+            )
 
         val score = game.calculateScore()
 
@@ -29,10 +30,11 @@ class ScoringTest {
     @Test
     fun `winning with full health scores 20`() {
         val emptyDeck = Deck(emptyList())
-        val game = GameState.newGame().copy(
-            deck = emptyDeck,
-            health = 20,
-        )
+        val game =
+            GameState.newGame().copy(
+                deck = emptyDeck,
+                health = 20,
+            )
 
         val score = game.calculateScore()
 
@@ -42,10 +44,11 @@ class ScoringTest {
     @Test
     fun `winning with 1 health scores 1`() {
         val emptyDeck = Deck(emptyList())
-        val game = GameState.newGame().copy(
-            deck = emptyDeck,
-            health = 1,
-        )
+        val game =
+            GameState.newGame().copy(
+                deck = emptyDeck,
+                health = 1,
+            )
 
         val score = game.calculateScore()
 
@@ -54,16 +57,21 @@ class ScoringTest {
 
     @Test
     fun `losing score is negative sum of remaining monsters`() {
-        val remainingCards = listOf(
-            Card(Suit.SPADES, Rank.SEVEN), // 7
-            Card(Suit.CLUBS, Rank.FIVE), // 5
-            Card(Suit.SPADES, Rank.TEN), // 10
-        )
+        val remainingCards =
+            listOf(
+                // 7
+                Card(Suit.SPADES, Rank.SEVEN),
+                // 5
+                Card(Suit.CLUBS, Rank.FIVE),
+                // 10
+                Card(Suit.SPADES, Rank.TEN),
+            )
         val deck = Deck(remainingCards)
-        val game = GameState.newGame().copy(
-            deck = deck,
-            health = 0,
-        )
+        val game =
+            GameState.newGame().copy(
+                deck = deck,
+                health = 0,
+            )
 
         val score = game.calculateScore()
 
@@ -73,17 +81,23 @@ class ScoringTest {
 
     @Test
     fun `losing with many monsters is very negative`() {
-        val monsters = listOf(
-            Card(Suit.SPADES, Rank.KING), // 13
-            Card(Suit.CLUBS, Rank.QUEEN), // 12
-            Card(Suit.SPADES, Rank.JACK), // 11
-            Card(Suit.CLUBS, Rank.TEN), // 10
-        )
+        val monsters =
+            listOf(
+                // 13
+                Card(Suit.SPADES, Rank.KING),
+                // 12
+                Card(Suit.CLUBS, Rank.QUEEN),
+                // 11
+                Card(Suit.SPADES, Rank.JACK),
+                // 10
+                Card(Suit.CLUBS, Rank.TEN),
+            )
         val deck = Deck(monsters)
-        val game = GameState.newGame().copy(
-            deck = deck,
-            health = 0,
-        )
+        val game =
+            GameState.newGame().copy(
+                deck = deck,
+                health = 0,
+            )
 
         val score = game.calculateScore()
 
@@ -93,17 +107,23 @@ class ScoringTest {
 
     @Test
     fun `losing score ignores non-monster cards`() {
-        val remainingCards = listOf(
-            Card(Suit.SPADES, Rank.SEVEN), // 7 (monster)
-            Card(Suit.DIAMONDS, Rank.FIVE), // 5 (weapon - ignore)
-            Card(Suit.HEARTS, Rank.THREE), // 3 (potion - ignore)
-            Card(Suit.CLUBS, Rank.TEN), // 10 (monster)
-        )
+        val remainingCards =
+            listOf(
+                // 7 (monster)
+                Card(Suit.SPADES, Rank.SEVEN),
+                // 5 (weapon - ignore)
+                Card(Suit.DIAMONDS, Rank.FIVE),
+                // 3 (potion - ignore)
+                Card(Suit.HEARTS, Rank.THREE),
+                // 10 (monster)
+                Card(Suit.CLUBS, Rank.TEN),
+            )
         val deck = Deck(remainingCards)
-        val game = GameState.newGame().copy(
-            deck = deck,
-            health = 0,
-        )
+        val game =
+            GameState.newGame().copy(
+                deck = deck,
+                health = 0,
+            )
 
         val score = game.calculateScore()
 
@@ -114,10 +134,11 @@ class ScoringTest {
     @Test
     fun `losing with no remaining cards scores 0`() {
         val emptyDeck = Deck(emptyList())
-        val game = GameState.newGame().copy(
-            deck = emptyDeck,
-            health = 0,
-        )
+        val game =
+            GameState.newGame().copy(
+                deck = emptyDeck,
+                health = 0,
+            )
 
         val score = game.calculateScore()
 
@@ -127,16 +148,18 @@ class ScoringTest {
     @Test
     fun `can calculate score at any time`() {
         // Mid-game score
-        val partialDeck = Deck(
-            listOf(
-                Card(Suit.SPADES, Rank.FIVE),
-                Card(Suit.CLUBS, Rank.SEVEN),
-            ),
-        )
-        val game = GameState.newGame().copy(
-            deck = partialDeck,
-            health = 10,
-        )
+        val partialDeck =
+            Deck(
+                listOf(
+                    Card(Suit.SPADES, Rank.FIVE),
+                    Card(Suit.CLUBS, Rank.SEVEN),
+                ),
+            )
+        val game =
+            GameState.newGame().copy(
+                deck = partialDeck,
+                health = 10,
+            )
 
         // Can calculate score even if game isn't over
         val score = game.calculateScore()
@@ -150,10 +173,11 @@ class ScoringTest {
     fun `losing score with one Ace monster`() {
         val aceMonster = listOf(Card(Suit.SPADES, Rank.ACE)) // 14
         val deck = Deck(aceMonster)
-        val game = GameState.newGame().copy(
-            deck = deck,
-            health = 0,
-        )
+        val game =
+            GameState.newGame().copy(
+                deck = deck,
+                health = 0,
+            )
 
         val score = game.calculateScore()
 
@@ -165,10 +189,11 @@ class ScoringTest {
         val emptyDeck = Deck(emptyList())
 
         for (health in 1..20) {
-            val game = GameState.newGame().copy(
-                deck = emptyDeck,
-                health = health,
-            )
+            val game =
+                GameState.newGame().copy(
+                    deck = emptyDeck,
+                    health = health,
+                )
 
             assertEquals(health, game.calculateScore(), "Health $health should score $health")
         }
@@ -179,16 +204,21 @@ class ScoringTest {
         // Create a deck with only monsters
         val monsters =
             listOf(
-                Card(Suit.SPADES, Rank.TWO), // 2
-                Card(Suit.CLUBS, Rank.THREE), // 3
-                Card(Suit.SPADES, Rank.FOUR), // 4
-                Card(Suit.CLUBS, Rank.FIVE), // 5
+                // 2
+                Card(Suit.SPADES, Rank.TWO),
+                // 3
+                Card(Suit.CLUBS, Rank.THREE),
+                // 4
+                Card(Suit.SPADES, Rank.FOUR),
+                // 5
+                Card(Suit.CLUBS, Rank.FIVE),
             )
         val deck = Deck(monsters)
-        val game = GameState.newGame().copy(
-            deck = deck,
-            health = 0,
-        )
+        val game =
+            GameState.newGame().copy(
+                deck = deck,
+                health = 0,
+            )
 
         val score = game.calculateScore()
 
@@ -200,10 +230,11 @@ class ScoringTest {
     fun `score is negative when losing`() {
         val monsters = listOf(Card(Suit.SPADES, Rank.TWO))
         val deck = Deck(monsters)
-        val game = GameState.newGame().copy(
-            deck = deck,
-            health = 0,
-        )
+        val game =
+            GameState.newGame().copy(
+                deck = deck,
+                health = 0,
+            )
 
         val score = game.calculateScore()
 
@@ -213,10 +244,11 @@ class ScoringTest {
     @Test
     fun `score is positive when winning`() {
         val emptyDeck = Deck(emptyList())
-        val game = GameState.newGame().copy(
-            deck = emptyDeck,
-            health = 5,
-        )
+        val game =
+            GameState.newGame().copy(
+                deck = emptyDeck,
+                health = 5,
+            )
 
         val score = game.calculateScore()
 

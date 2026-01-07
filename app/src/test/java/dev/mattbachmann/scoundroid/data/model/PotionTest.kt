@@ -48,10 +48,11 @@ class PotionTest {
 
     @Test
     fun `first potion in turn sets usedPotionThisTurn flag`() {
-        val game = GameState.newGame().copy(
-            health = 10,
-            usedPotionThisTurn = false,
-        )
+        val game =
+            GameState.newGame().copy(
+                health = 10,
+                usedPotionThisTurn = false,
+            )
         val potion = Card(Suit.HEARTS, Rank.FIVE) // 5♥
 
         val afterPotion = game.usePotion(potion)
@@ -61,10 +62,12 @@ class PotionTest {
 
     @Test
     fun `second potion in turn is discarded without effect`() {
-        val game = GameState.newGame().copy(
-            health = 10,
-            usedPotionThisTurn = true, // Already used a potion this turn
-        )
+        val game =
+            GameState.newGame().copy(
+                health = 10,
+                // Already used a potion this turn
+                usedPotionThisTurn = true,
+            )
         val potion = Card(Suit.HEARTS, Rank.FIVE) // 5♥
 
         val afterPotion = game.usePotion(potion)
@@ -75,10 +78,11 @@ class PotionTest {
 
     @Test
     fun `second potion with different value still has no effect`() {
-        val game = GameState.newGame().copy(
-            health = 5,
-            usedPotionThisTurn = true,
-        )
+        val game =
+            GameState.newGame().copy(
+                health = 5,
+                usedPotionThisTurn = true,
+            )
         val bigPotion = Card(Suit.HEARTS, Rank.TEN) // 10♥ (would restore 10)
 
         val afterPotion = game.usePotion(bigPotion)
@@ -88,10 +92,12 @@ class PotionTest {
 
     @Test
     fun `new turn resets potion flag`() {
-        val game = GameState.newGame().copy(
-            health = 10,
-            usedPotionThisTurn = true, // Used potion in previous turn
-        )
+        val game =
+            GameState.newGame().copy(
+                health = 10,
+                // Used potion in previous turn
+                usedPotionThisTurn = true,
+            )
 
         val newTurn = game.drawRoom()
 
