@@ -37,7 +37,7 @@ class PotionTest {
     }
 
     @Test
-    fun `using potion at full health does nothing`() {
+    fun `using potion at full health keeps health at 20`() {
         val game = GameState.newGame().copy(health = 20)
         val potion = Card(Suit.HEARTS, Rank.FIVE) // 5♥
 

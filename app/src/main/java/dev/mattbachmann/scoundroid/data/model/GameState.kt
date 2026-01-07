@@ -12,7 +12,7 @@ package dev.mattbachmann.scoundroid.data.model
  * @property canAvoidRoom Whether the player can avoid the current/next room
  * @property lastRoomAvoided Whether the last room was avoided (for tracking consecutive avoidance)
  * @property usedPotionThisTurn Whether a potion has been used this turn (only 1 per turn allowed)
- * @property lastPotionValue The value of the last potion used (for special scoring at health=20)
+ * @property lastCardProcessed The last card processed (monster/weapon/potion) for special scoring
  */
 data class GameState(
     val deck: Deck,
@@ -24,7 +24,7 @@ data class GameState(
     val canAvoidRoom: Boolean,
     val lastRoomAvoided: Boolean,
     val usedPotionThisTurn: Boolean,
-    val lastPotionValue: Int?,
+    val lastCardProcessed: Card?,
 ) {
     companion object {
         const val MAX_HEALTH = 20
@@ -45,7 +45,7 @@ data class GameState(
                 canAvoidRoom = true,
                 lastRoomAvoided = false,
                 usedPotionThisTurn = false,
-                lastPotionValue = null,
+                lastCardProcessed = null,
             )
         }
     }
@@ -138,7 +138,10 @@ data class GameState(
      */
     fun equipWeapon(weapon: Card): GameState {
         require(weapon.type == CardType.WEAPON) { "Can only equip weapon cards" }
-        return copy(weaponState = WeaponState(weapon))
+        return copy(
+            weaponState = WeaponState(weapon),
+            lastCardProcessed = weapon,
+        )
     }
 
     /**
@@ -172,6 +175,7 @@ data class GameState(
             health = (health - damage).coerceAtLeast(0),
             weaponState = newWeaponState,
             defeatedMonsters = defeatedMonsters + monster,
+            lastCardProcessed = monster,
         )
     }
 
@@ -183,7 +187,7 @@ data class GameState(
      * - Potions restore health by their value
      * - Health is capped at MAX_HEALTH (20)
      * - Second potion in same turn is discarded without effect
-     * - Tracks last potion value for special scoring
+     * - Tracks last card processed for special scoring
      *
      * @param potion The potion card to use
      * @return New game state after using (or discarding) the potion
@@ -196,11 +200,11 @@ data class GameState(
             copy(
                 health = (health + potion.value).coerceAtMost(MAX_HEALTH),
                 usedPotionThisTurn = true,
-                lastPotionValue = potion.value,
+                lastCardProcessed = potion,
             )
         } else {
-            // Second potion this turn: no effect
-            this
+            // Second potion this turn: no effect (but still track it was processed)
+            copy(lastCardProcessed = potion)
         }
     }
 
@@ -216,7 +220,8 @@ data class GameState(
      *
      * Scoring rules:
      * - **Winning** (health > 0): score = remaining health
-     * - **Special case**: If health = 20 AND last potion used, score = 20 + potion value
+     * - **Special case**: If health = 20 AND last card processed was a potion,
+     *   score = 20 + potion value
      * - **Losing** (health = 0): score = 0 - sum of remaining monsters in deck
      *
      * @return The current score
@@ -224,9 +229,12 @@ data class GameState(
     fun calculateScore(): Int {
         return if (health > 0) {
             // Winning: score = remaining health
-            if (health == MAX_HEALTH && lastPotionValue != null) {
-                // Special case: full health after potion
-                health + lastPotionValue
+            if (health == MAX_HEALTH &&
+                lastCardProcessed != null &&
+                lastCardProcessed.type == CardType.POTION
+            ) {
+                // Special case: full health AND last card was a potion
+                health + lastCardProcessed.value
             } else {
                 health
             }

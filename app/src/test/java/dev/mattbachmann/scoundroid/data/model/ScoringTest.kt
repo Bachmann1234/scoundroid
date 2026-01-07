@@ -9,8 +9,13 @@ import kotlin.test.assertTrue
  *
  * Scoring rules:
  * - **Win**: Survive entire dungeon → score = remaining health
- * - **Win with full health**: health = 20 → score = 20 (special case)
+ * - **Win with full health**:
+ *   - health = 20 without last card being a potion → score = 20
+ *   - health = 20 AND last card was a potion → score = 20 + potion value (special case)
  * - **Lose**: Health reaches 0 → score = 0 - sum of remaining monsters (negative)
+ *
+ * Important: The special case ONLY applies if the very last card processed in the game
+ * was a health potion. Using a potion earlier in the game does not count.
  */
 class ScoringTest {
     @Test
@@ -291,7 +296,7 @@ class ScoringTest {
     }
 
     @Test
-    fun `winning with full health after multiple potions uses last one`() {
+    fun `winning with full health after multiple potions uses last card if potion`() {
         val emptyDeck = Deck(emptyList())
         var game =
             GameState.newGame().copy(
@@ -304,15 +309,15 @@ class ScoringTest {
         game = game.usePotion(potion1)
         assertEquals(15, game.health)
 
-        // Start new turn and use second potion to reach 20
+        // Start new turn and use second potion to reach 20 (this is the LAST card)
         game = game.drawRoom()
         val potion2 = Card(Suit.HEARTS, Rank.SEVEN) // 7♥
         game = game.usePotion(potion2)
         assertEquals(20, game.health)
 
-        // Should use last potion value (7)
+        // Should use last card's potion value (7) because last card was a potion
         val score = game.calculateScore()
-        assertEquals(27, score, "Should use last potion value: 20 + 7 = 27")
+        assertEquals(27, score, "Should use last card potion value: 20 + 7 = 27")
     }
 
     @Test
@@ -333,5 +338,66 @@ class ScoringTest {
         // Score should be just 15 (no special case)
         val score = game.calculateScore()
         assertEquals(15, score, "Win with health < 20 scores normally even after potion")
+    }
+
+    @Test
+    fun `EXPLOIT FIX - potion then monster does not apply potion bonus`() {
+        val emptyDeck = Deck(emptyList())
+        var game =
+            GameState.newGame().copy(
+                deck = emptyDeck,
+                health = 20,
+            )
+
+        // Use a potion at full health (no health gain, but sets flag)
+        val potion = Card(Suit.HEARTS, Rank.TEN) // 10♥
+        game = game.usePotion(potion)
+        assertEquals(20, game.health, "Health stays at 20")
+
+        // Then fight a monster (last card is now a monster, not potion)
+        val monster = Card(Suit.SPADES, Rank.TWO) // 2♠
+        game = game.fightMonster(monster)
+        assertEquals(18, game.health, "Health drops to 18 after barehanded combat")
+
+        // Then heal back to 20 with another potion
+        game = game.drawRoom() // New turn
+        val potion2 = Card(Suit.HEARTS, Rank.TWO) // 2♥
+        game = game.usePotion(potion2)
+        assertEquals(20, game.health, "Back to full health")
+
+        // Now fight another monster (last card = monster)
+        game = game.drawRoom()
+        val weapon = Card(Suit.DIAMONDS, Rank.TEN) // 10♦ weapon
+        game = game.equipWeapon(weapon)
+        val monster2 = Card(Suit.CLUBS, Rank.TWO) // 2♣
+        game = game.fightMonster(monster2)
+
+        // Score should be just 20, NOT 20 + 10 or 20 + 2
+        // because last card was a monster, not a potion
+        val score = game.calculateScore()
+        assertEquals(20, score, "Score should be 20, not include potion bonus because last card was monster")
+    }
+
+    @Test
+    fun `EXPLOIT FIX - potion then weapon does not apply potion bonus`() {
+        val emptyDeck = Deck(emptyList())
+        var game =
+            GameState.newGame().copy(
+                deck = emptyDeck,
+                health = 10,
+            )
+
+        // Use a potion to reach 20
+        val potion = Card(Suit.HEARTS, Rank.TEN) // 10♥
+        game = game.usePotion(potion)
+        assertEquals(20, game.health)
+
+        // Then equip a weapon (last card is now a weapon)
+        val weapon = Card(Suit.DIAMONDS, Rank.FIVE) // 5♦
+        game = game.equipWeapon(weapon)
+
+        // Score should be just 20, not 30, because last card was weapon
+        val score = game.calculateScore()
+        assertEquals(20, score, "Score should be 20 because last card was weapon, not potion")
     }
 }
