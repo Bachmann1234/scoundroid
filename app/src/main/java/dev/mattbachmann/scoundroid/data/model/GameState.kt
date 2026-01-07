@@ -6,19 +6,23 @@ package dev.mattbachmann.scoundroid.data.model
  * @property deck The remaining cards in the dungeon deck
  * @property health Current player health (0-20)
  * @property currentRoom The cards currently in the room (4 cards when drawn, 1 after selection)
- * @property equippedWeapon The currently equipped weapon card, if any
+ * @property weaponState The currently equipped weapon with degradation tracking, if any
+ * @property defeatedMonsters List of monsters defeated (weapon stack)
  * @property discardPile Cards that have been discarded
  * @property canAvoidRoom Whether the player can avoid the current/next room
  * @property lastRoomAvoided Whether the last room was avoided (for tracking consecutive avoidance)
+ * @property usedPotionThisTurn Whether a potion has been used this turn (only 1 per turn allowed)
  */
 data class GameState(
     val deck: Deck,
     val health: Int,
     val currentRoom: List<Card>?,
-    val equippedWeapon: Card?,
+    val weaponState: WeaponState?,
+    val defeatedMonsters: List<Card>,
     val discardPile: List<Card>,
     val canAvoidRoom: Boolean,
     val lastRoomAvoided: Boolean,
+    val usedPotionThisTurn: Boolean,
 ) {
     companion object {
         const val MAX_HEALTH = 20
@@ -33,10 +37,12 @@ data class GameState(
                 deck = Deck.create().shuffle(),
                 health = MAX_HEALTH,
                 currentRoom = null,
-                equippedWeapon = null,
+                weaponState = null,
+                defeatedMonsters = emptyList(),
                 discardPile = emptyList(),
                 canAvoidRoom = true,
                 lastRoomAvoided = false,
+                usedPotionThisTurn = false,
             )
         }
     }
@@ -44,6 +50,7 @@ data class GameState(
     /**
      * Draws a new room of cards from the deck.
      * If there's a card remaining from the previous room, it's included.
+     * Resets the potion flag (new turn = can use potion again).
      */
     fun drawRoom(): GameState {
         val cardsNeeded = if (currentRoom == null) ROOM_SIZE else ROOM_SIZE - 1
@@ -61,6 +68,7 @@ data class GameState(
             currentRoom = newRoom,
             canAvoidRoom = true,
             lastRoomAvoided = if (currentRoom != null) false else lastRoomAvoided,
+            usedPotionThisTurn = false, // New turn = can use potion again
         )
     }
 
@@ -122,10 +130,72 @@ data class GameState(
 
     /**
      * Equips a weapon, replacing any currently equipped weapon.
+     * The weapon starts with no degradation (can defeat any monster).
      */
     fun equipWeapon(weapon: Card): GameState {
         require(weapon.type == CardType.WEAPON) { "Can only equip weapon cards" }
-        return copy(equippedWeapon = weapon)
+        return copy(weaponState = WeaponState(weapon))
+    }
+
+    /**
+     * Fights a monster, applying damage and weapon degradation.
+     *
+     * Combat rules:
+     * - If no weapon or weapon can't defeat monster: barehanded (full damage)
+     * - If weapon can defeat monster: damage = max(0, monster - weapon), weapon degrades
+     * - Monster goes to defeated pile
+     *
+     * @param monster The monster to fight
+     * @return New game state after combat
+     */
+    fun fightMonster(monster: Card): GameState {
+        require(monster.type == CardType.MONSTER) { "Can only fight monster cards" }
+
+        val damage: Int
+        val newWeaponState: WeaponState?
+
+        if (weaponState != null && weaponState.canDefeat(monster)) {
+            // Weapon combat: reduced damage and weapon degrades
+            damage = (monster.value - weaponState.weapon.value).coerceAtLeast(0)
+            newWeaponState = weaponState.useOn(monster)
+        } else {
+            // Barehanded combat: full damage, weapon unchanged
+            damage = monster.value
+            newWeaponState = weaponState
+        }
+
+        return copy(
+            health = (health - damage).coerceAtLeast(0),
+            weaponState = newWeaponState,
+            defeatedMonsters = defeatedMonsters + monster,
+        )
+    }
+
+    /**
+     * Uses a potion to restore health.
+     *
+     * Potion rules:
+     * - Only the FIRST potion per turn can be used
+     * - Potions restore health by their value
+     * - Health is capped at MAX_HEALTH (20)
+     * - Second potion in same turn is discarded without effect
+     *
+     * @param potion The potion card to use
+     * @return New game state after using (or discarding) the potion
+     */
+    fun usePotion(potion: Card): GameState {
+        require(potion.type == CardType.POTION) { "Can only use potion cards" }
+
+        return if (!usedPotionThisTurn) {
+            // First potion this turn: restore health
+            copy(
+                health = (health + potion.value).coerceAtMost(MAX_HEALTH),
+                usedPotionThisTurn = true,
+            )
+        } else {
+            // Second potion this turn: no effect
+            this
+        }
     }
 
     /**
@@ -133,6 +203,29 @@ data class GameState(
      */
     fun discard(card: Card): GameState {
         return copy(discardPile = discardPile + card)
+    }
+
+    /**
+     * Calculates the current score.
+     *
+     * Scoring rules:
+     * - **Winning** (health > 0): score = remaining health
+     * - **Losing** (health = 0): score = 0 - sum of remaining monsters in deck
+     *
+     * @return The current score
+     */
+    fun calculateScore(): Int {
+        return if (health > 0) {
+            // Winning: score = remaining health
+            health
+        } else {
+            // Losing: score = negative sum of remaining monsters
+            val remainingMonsterDamage =
+                deck.cards
+                    .filter { it.type == CardType.MONSTER }
+                    .sumOf { it.value }
+            -remainingMonsterDamage
+        }
     }
 
     /**

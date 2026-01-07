@@ -28,7 +28,7 @@ class GameStateTest {
     @Test
     fun `new game should have no equipped weapon`() {
         val gameState = GameState.newGame()
-        assertNull(gameState.equippedWeapon)
+        assertNull(gameState.weaponState)
     }
 
     @Test
@@ -60,10 +60,12 @@ class GameStateTest {
                 deck = smallDeck,
                 health = 20,
                 currentRoom = null,
-                equippedWeapon = null,
+                weaponState = null,
+                defeatedMonsters = emptyList(),
                 discardPile = emptyList(),
                 canAvoidRoom = true,
                 lastRoomAvoided = false,
+                usedPotionThisTurn = false,
             )
         val newState = gameState.drawRoom()
 
@@ -200,10 +202,12 @@ class GameStateTest {
                 deck = emptyDeck,
                 health = 10,
                 currentRoom = null,
-                equippedWeapon = null,
+                weaponState = null,
+                defeatedMonsters = emptyList(),
                 discardPile = emptyList(),
                 canAvoidRoom = true,
                 lastRoomAvoided = false,
+                usedPotionThisTurn = false,
             )
 
         assertTrue(gameState.isGameWon)
@@ -226,6 +230,6 @@ class GameStateTest {
                 .equipWeapon(weapon1)
                 .equipWeapon(weapon2)
 
-        assertEquals(weapon2, gameState.equippedWeapon)
+        assertEquals(weapon2, gameState.weaponState?.weapon)
     }
 }
