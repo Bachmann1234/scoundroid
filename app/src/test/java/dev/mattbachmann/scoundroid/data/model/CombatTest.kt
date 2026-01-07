@@ -2,6 +2,7 @@ package dev.mattbachmann.scoundroid.data.model
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
@@ -265,11 +266,8 @@ class CombatTest {
         val game = GameState.newGame().copy(health = 20)
         val potion = Card(Suit.HEARTS, Rank.FIVE) // 5♥ (potion)
 
-        try {
+        assertFailsWith<IllegalArgumentException> {
             game.fightMonster(potion)
-            throw AssertionError("Should not be able to fight a potion")
-        } catch (e: IllegalArgumentException) {
-            // Expected
         }
     }
 }

@@ -2,6 +2,7 @@ package dev.mattbachmann.scoundroid.data.model
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
@@ -151,18 +152,12 @@ class PotionTest {
         val monster = Card(Suit.SPADES, Rank.FIVE) // 5♠ (monster)
         val weapon = Card(Suit.DIAMONDS, Rank.FIVE) // 5♦ (weapon)
 
-        try {
+        assertFailsWith<IllegalArgumentException> {
             game.usePotion(monster)
-            throw AssertionError("Should not be able to use monster as potion")
-        } catch (e: IllegalArgumentException) {
-            // Expected
         }
 
-        try {
+        assertFailsWith<IllegalArgumentException> {
             game.usePotion(weapon)
-            throw AssertionError("Should not be able to use weapon as potion")
-        } catch (e: IllegalArgumentException) {
-            // Expected
         }
     }
 
