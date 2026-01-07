@@ -211,6 +211,13 @@ data class GameState(
     }
 
     /**
+     * Clears the current room (after processing the last card).
+     */
+    fun clearRoom(): GameState {
+        return copy(currentRoom = null)
+    }
+
+    /**
      * Calculates the current score.
      *
      * Scoring rules:

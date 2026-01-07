@@ -25,7 +25,7 @@ private val lightColorScheme =
     )
 
 @Composable
-fun scoundroidTheme(
+fun ScoundroidTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit,
