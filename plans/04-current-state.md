@@ -1,8 +1,9 @@
 # Current State & Next Steps
 
-**Last Updated**: 2026-01-06
+**Last Updated**: 2026-01-06 (Session 2 complete)
 
 ## Phase 1: COMPLETE ✅
+## Phase 2: COMPLETE ✅
 
 ### What's Done
 
@@ -39,14 +40,59 @@
 - All game logic implemented test-first
 - Ready for Phase 2
 
+## Session 2 Completed (2026-01-06)
+
+**Phase 2: Combat & Game Mechanics - COMPLETE! 🎉**
+
+**Accomplishments:**
+- ✅ **Weapon Degradation System** (14 tests)
+  - Created `WeaponState.kt` with degradation tracking
+  - Weapons track max monster value defeated
+  - Sequential degradation works correctly
+  - Comprehensive edge case coverage
+
+- ✅ **Combat System** (16 tests)
+  - Barehanded combat (full damage)
+  - Weapon combat (reduced damage)
+  - Weapon can/cannot defeat logic
+  - Monster tracking in defeated pile
+  - Health updates work correctly
+
+- ✅ **Potion Mechanics** (15 tests)
+  - Health restoration capped at 20
+  - Only 1 potion per turn enforced
+  - Potion flag resets on new turn
+  - Second potion discarded without effect
+
+- ✅ **Scoring System** (20 tests)
+  - Winning score = remaining health
+  - Special case: health=20 after potion = 20 + potion value
+  - Losing score = negative sum of remaining monsters
+  - All edge cases covered
+  - Bug fix: second potion in same turn doesn't affect scoring
+
+**Test Summary:**
+- **65 new tests** written following TDD (Red-Green-Refactor)
+- **123 total tests** (Phase 1: 57 + Phase 2: 65 + example: 1)
+- All tests passing ✅
+- 100% TDD methodology followed
+
+**Files Created:**
+- `WeaponState.kt` - Weapon degradation tracking
+- `WeaponStateTest.kt` - 14 comprehensive tests
+- `CombatTest.kt` - 16 combat mechanic tests
+- `PotionTest.kt` - 15 potion mechanic tests
+- `ScoringTest.kt` - 20 scoring tests (including special health=20 case and bug fixes)
+
+**Files Updated:**
+- `GameState.kt` - Added combat, potion, scoring logic, and lastCardProcessed tracking
+- `GameStateTest.kt` - Updated for new properties
+
 ## What's NOT Done Yet
 
-❌ Combat system (weapon degradation, damage calculation)
-❌ Weapon state tracking (maxMonsterValue)
-❌ Potion mechanics (1 per turn limit)
-❌ Scoring logic (win/loss calculations)
 ❌ UI for gameplay (cards, room, controls)
-❌ Persistence (Room database)
+❌ ViewModel layer (Phase 3)
+❌ Persistence (Room database - Phase 4)
 
 ## Session 1 Completed (2026-01-06)
 
@@ -58,60 +104,46 @@
 - All tests follow Red-Green-Refactor cycle
 - Committed and pushed to `claude/review-repo-planning-kMFnO`
 
-## Recommended Next Session Tasks (Phase 2)
+## Recommended Next Session Tasks (Phase 3)
 
 **IMPORTANT**: Continue using Test-Driven Development (TDD). See [`05-testing-strategy.md`](05-testing-strategy.md).
 
-### Phase 2: Combat & Game Mechanics
+### Phase 3: UI & ViewModel Layer
 
 When ready for the next session:
 
-### 1. Weapon System (MOST CRITICAL - Complex Logic)
-**Goal**: Implement weapon degradation mechanic
+### 1. Game ViewModel (with TDD)
+**Goal**: Create ViewModel to manage game state for UI
 
-- **Write comprehensive weapon degradation tests**:
-  - New weapon can defeat any monster
-  - Weapon tracks max monster value defeated
-  - Defeating lower-value monster downgrades weapon
-  - Weapon remains equipped even if unusable
-  - Edge cases (exact matches, sequential degradation)
-- Create `WeaponState.kt` data class
-- Implement weapon degradation tracking
-- **Verify all tests pass**
+- **Write ViewModel tests first**:
+  - Game initialization
+  - Card processing (monsters, weapons, potions)
+  - Room drawing and selection
+  - State flow updates
+  - UI state mapping
+- Create `GameViewModel.kt`
+- Implement game logic orchestration
+- **Target: >80% test coverage**
 
-### 2. Combat System
-**Goal**: Implement all combat mechanics
+### 2. Basic UI Components
+**Goal**: Create card and room display components
 
-- **Write tests for barehanded combat** (full damage)
-- **Write tests for weapon combat** (damage = max(0, monster - weapon))
-- **Write tests for monster placement on weapon stack**
-- Implement combat logic in GameState
-- **Verify all tests pass**
+- Create card composable with type differentiation
+- Create room display layout
+- Create health/score display
+- Create weapon status indicator
+- Use Compose previews for visual testing
 
-### 3. Health & Potions
-**Goal**: Implement potion mechanics
+### 3. Game Screen
+**Goal**: Wire up full playable game screen
 
-- **Write tests for potion usage**:
-  - Adds value to health (capped at 20)
-  - Only first potion per turn is used
-  - Second potion discarded without effect
-  - Potion flag resets each turn
-- Implement potion logic
-- **Verify all tests pass**
+- Create `GameScreen.kt` composable
+- Connect ViewModel to UI
+- Implement card selection
+- Add basic help/rules display
+- Test on device
 
-### 4. Scoring System
-**Goal**: Implement win/loss score calculation
-
-- **Write tests for winning score** (remaining health)
-- **Write tests for losing score** (health - remaining monsters)
-- **Write tests for special cases** (health=20 + last potion)
-- Implement scoring logic
-- **Verify all tests pass**
-
-### 5. Run Full Test Suite
-- `./gradlew test`
-- **All tests must pass** before moving to Phase 3
-- Check coverage meets 100% target for game logic
+### Next Session: `./gradlew test` should show 123 passing tests before starting UI work!
 
 ## Quick Commands for Next Session
 
@@ -169,21 +201,15 @@ When ready for the next session:
 - `test/data/model/DeckTest.kt` (14 tests)
 - `test/data/model/GameStateTest.kt` (24 tests)
 
-**Total: 55 tests, all following TDD methodology**
+**Total: 57 tests, all following TDD methodology**
 
-## Files to Create in Next Session (Phase 2)
+**Note:** Phase 1 test count was originally documented as 55 but actual count is 57 (CardTest had 10 tests, not 9; DeckTest had 16, not 14).
 
-1. `data/model/WeaponState.kt` - Track weapon degradation
-2. `test/data/model/WeaponStateTest.kt` - Weapon tests
-3. `test/data/model/CombatTest.kt` - Combat logic tests
-4. `test/data/model/PotionTest.kt` - Potion mechanics tests
-5. `test/data/model/ScoringTest.kt` - Score calculation tests
-
-## Ready for Phase 2?
+## Ready for Phase 3?
 
 When you're ready to continue:
-1. Say "Let's do Phase 2"
-2. Or focus on a specific part (e.g., "Implement weapon degradation")
-3. Review the test strategy in [`05-testing-strategy.md`](05-testing-strategy.md)
+1. Review [`03-session-guide.md`](03-session-guide.md) for Phase 3 details
+2. Check [`05-testing-strategy.md`](05-testing-strategy.md) for ViewModel testing strategy
+3. Say "Let's do Phase 3" or "Build the UI"
 
-**Current Status**: Phase 1 complete, ready for Phase 2 combat system!
+**Current Status**: Phases 1 & 2 complete! All core game logic implemented with 123 passing tests. Ready for UI/ViewModel layer! 🚀
