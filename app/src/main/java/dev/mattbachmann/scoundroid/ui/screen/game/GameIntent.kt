@@ -23,19 +23,9 @@ sealed class GameIntent {
     data object AvoidRoom : GameIntent()
 
     /**
-     * Select 3 of the 4 cards in the room to process.
-     * @param selectedCards The 3 cards chosen from the room
+     * Select and process 3 cards from the room.
+     * This combines selection and processing into a single atomic operation.
+     * @param selectedCards The 3 cards chosen from the room to process
      */
-    data class SelectCards(val selectedCards: List<Card>) : GameIntent()
-
-    /**
-     * Process a single card (monster, weapon, or potion).
-     * @param card The card to process
-     */
-    data class ProcessCard(val card: Card) : GameIntent()
-
-    /**
-     * Clear the current room (after processing the last card).
-     */
-    data object ClearRoom : GameIntent()
+    data class ProcessSelectedCards(val selectedCards: List<Card>) : GameIntent()
 }

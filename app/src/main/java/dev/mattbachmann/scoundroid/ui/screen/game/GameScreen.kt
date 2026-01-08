@@ -92,21 +92,21 @@ fun GameScreen(
                 )
             } else {
                 // Active game
-                if (uiState.currentRoom != null) {
+                val currentRoom = uiState.currentRoom
+                if (currentRoom != null) {
                     // Show current room
-                    if (uiState.currentRoom!!.size == 1) {
+                    if (currentRoom.size == 1) {
                         // Single card remaining - show it but don't allow clicking
                         // This card becomes part of the next room
-                        // No action - can't process the leftover card
                         RoomDisplay(
-                            cards = uiState.currentRoom!!,
+                            cards = currentRoom,
                             selectedCards = emptySet(),
-                            onCardClick = { },
+                            onCardClick = null,
                         )
                     } else {
                         // Room of 4 - allow selection
                         RoomDisplay(
-                            cards = uiState.currentRoom!!,
+                            cards = currentRoom,
                             selectedCards = selectedCards,
                             onCardClick = { card ->
                                 selectedCards =
@@ -122,7 +122,7 @@ fun GameScreen(
                     }
 
                     // Room actions
-                    if (uiState.currentRoom!!.size == 4) {
+                    if (currentRoom.size == 4) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -143,11 +143,9 @@ fun GameScreen(
                             // Process selected cards button
                             Button(
                                 onClick = {
-                                    viewModel.onIntent(GameIntent.SelectCards(selectedCards.toList()))
-                                    // Process each selected card
-                                    selectedCards.forEach { card ->
-                                        viewModel.onIntent(GameIntent.ProcessCard(card))
-                                    }
+                                    viewModel.onIntent(
+                                        GameIntent.ProcessSelectedCards(selectedCards.toList()),
+                                    )
                                     selectedCards = emptySet()
                                 },
                                 enabled = selectedCards.size == 3,
@@ -161,7 +159,7 @@ fun GameScreen(
                                 Text("Process ${selectedCards.size}/3 Cards")
                             }
                         }
-                    } else if (uiState.currentRoom!!.size == 1) {
+                    } else if (currentRoom.size == 1) {
                         // 1 card remaining - show Draw Room button to continue
                         Text(
                             text = "This card stays for the next room",
