@@ -18,6 +18,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import dev.mattbachmann.scoundroid.data.model.Card
 import dev.mattbachmann.scoundroid.data.model.CardType
@@ -39,6 +40,8 @@ fun CardView(
     modifier: Modifier = Modifier,
     isSelected: Boolean = false,
     onClick: (() -> Unit)? = null,
+    cardWidth: Dp = 100.dp,
+    cardHeight: Dp = 140.dp,
 ) {
     val (backgroundColor, textColor, borderColor) =
         when (card.type) {
@@ -88,7 +91,7 @@ fun CardView(
     Card(
         modifier =
             modifier
-                .size(width = 100.dp, height = 140.dp)
+                .size(width = cardWidth, height = cardHeight)
                 .semantics { contentDescription = accessibilityDescription },
         colors =
             CardDefaults.cardColors(

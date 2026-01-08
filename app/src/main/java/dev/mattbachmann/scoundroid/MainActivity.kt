@@ -4,6 +4,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.mattbachmann.scoundroid.data.persistence.AppDatabase
 import dev.mattbachmann.scoundroid.data.repository.HighScoreRepository
@@ -19,11 +21,23 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+            val isExpanded = isExpandedScreen()
             ScoundroidTheme {
                 GameScreen(
                     viewModel = viewModel(factory = GameViewModelFactory(repository)),
+                    isExpandedScreen = isExpanded,
                 )
             }
         }
     }
+}
+
+/**
+ * Determines if the screen is expanded (tablet/unfolded) based on screen width.
+ * Uses 600dp as the breakpoint (standard Material Design compact/medium threshold).
+ */
+@Composable
+private fun isExpandedScreen(): Boolean {
+    val configuration = LocalConfiguration.current
+    return configuration.screenWidthDp >= 600
 }

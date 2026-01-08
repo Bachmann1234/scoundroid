@@ -32,9 +32,10 @@ fun GameStatusBar(
     weaponState: WeaponState?,
     defeatedMonstersCount: Int,
     modifier: Modifier = Modifier,
+    isExpanded: Boolean = false,
 ) {
     Card(
-        modifier = modifier.fillMaxWidth(),
+        modifier = if (isExpanded) modifier else modifier.fillMaxWidth(),
         colors =
             CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -44,22 +45,29 @@ fun GameStatusBar(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            // Health and Score
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
+            if (isExpanded) {
+                // Expanded mode: vertical sidebar layout - all items stacked vertically
                 StatusItem(label = "Health", value = "$health / 20")
                 StatusItem(label = "Score", value = "$score")
-            }
-
-            // Deck and Defeated Monsters
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
                 StatusItem(label = "Deck", value = "$deckSize cards")
                 StatusItem(label = "Defeated", value = "$defeatedMonstersCount")
+            } else {
+                // Compact mode: horizontal rows
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    StatusItem(label = "Health", value = "$health / 20")
+                    StatusItem(label = "Score", value = "$score")
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    StatusItem(label = "Deck", value = "$deckSize cards")
+                    StatusItem(label = "Defeated", value = "$defeatedMonstersCount")
+                }
             }
 
             // Weapon status
