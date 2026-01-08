@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -25,7 +26,7 @@ import dev.mattbachmann.scoundroid.ui.theme.ScoundroidTheme
 fun RoomDisplay(
     cards: List<Card>,
     selectedCards: Set<Card>,
-    onCardClick: (Card) -> Unit,
+    onCardClick: ((Card) -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -53,32 +54,32 @@ fun RoomDisplay(
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
                 ) {
                     CardView(
                         card = cards[0],
                         isSelected = cards[0] in selectedCards,
-                        onClick = { onCardClick(cards[0]) },
+                        onClick = onCardClick?.let { { it(cards[0]) } },
                     )
                     CardView(
                         card = cards[1],
                         isSelected = cards[1] in selectedCards,
-                        onClick = { onCardClick(cards[1]) },
+                        onClick = onCardClick?.let { { it(cards[1]) } },
                     )
                 }
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
                 ) {
                     CardView(
                         card = cards[2],
                         isSelected = cards[2] in selectedCards,
-                        onClick = { onCardClick(cards[2]) },
+                        onClick = onCardClick?.let { { it(cards[2]) } },
                     )
                     CardView(
                         card = cards[3],
                         isSelected = cards[3] in selectedCards,
-                        onClick = { onCardClick(cards[3]) },
+                        onClick = onCardClick?.let { { it(cards[3]) } },
                     )
                 }
             }
@@ -86,13 +87,13 @@ fun RoomDisplay(
             // Single card or other layouts
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
+                horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
             ) {
                 cards.forEach { card ->
                     CardView(
                         card = card,
                         isSelected = card in selectedCards,
-                        onClick = { onCardClick(card) },
+                        onClick = onCardClick?.let { { it(card) } },
                     )
                 }
             }

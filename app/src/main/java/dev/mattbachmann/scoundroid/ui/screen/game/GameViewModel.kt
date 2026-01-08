@@ -29,9 +29,7 @@ class GameViewModel : ViewModel() {
                 is GameIntent.NewGame -> handleNewGame()
                 is GameIntent.DrawRoom -> handleDrawRoom()
                 is GameIntent.AvoidRoom -> handleAvoidRoom()
-                is GameIntent.SelectCards -> handleSelectCards(intent.selectedCards)
-                is GameIntent.ProcessCard -> handleProcessCard(intent.card)
-                is GameIntent.ClearRoom -> handleClearRoom()
+                is GameIntent.ProcessSelectedCards -> handleProcessSelectedCards(intent.selectedCards)
             }
         }
     }
@@ -48,22 +46,21 @@ class GameViewModel : ViewModel() {
         updateGameState(gameState.value.avoidRoom())
     }
 
-    private fun handleClearRoom() {
-        updateGameState(gameState.value.clearRoom())
-    }
+    private fun handleProcessSelectedCards(selectedCards: List<dev.mattbachmann.scoundroid.data.model.Card>) {
+        // First, select the cards (leaves unselected card for next room)
+        var state = gameState.value.selectCards(selectedCards)
 
-    private fun handleSelectCards(selectedCards: List<dev.mattbachmann.scoundroid.data.model.Card>) {
-        updateGameState(gameState.value.selectCards(selectedCards))
-    }
+        // Then process each selected card
+        selectedCards.forEach { card ->
+            state =
+                when (card.type) {
+                    CardType.MONSTER -> state.fightMonster(card)
+                    CardType.WEAPON -> state.equipWeapon(card)
+                    CardType.POTION -> state.usePotion(card)
+                }
+        }
 
-    private fun handleProcessCard(card: dev.mattbachmann.scoundroid.data.model.Card) {
-        val newState =
-            when (card.type) {
-                CardType.MONSTER -> gameState.value.fightMonster(card)
-                CardType.WEAPON -> gameState.value.equipWeapon(card)
-                CardType.POTION -> gameState.value.usePotion(card)
-            }
-        updateGameState(newState)
+        updateGameState(state)
     }
 
     private fun updateGameState(newState: GameState) {

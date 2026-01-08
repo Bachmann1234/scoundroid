@@ -112,8 +112,8 @@ class GameViewModelTest {
                 val state = awaitItem()
                 val cardsToSelect = state.currentRoom!!.take(3)
 
-                // Select 3 cards, leaving 1
-                viewModel.onIntent(GameIntent.SelectCards(cardsToSelect))
+                // Select and process 3 cards, leaving 1
+                viewModel.onIntent(GameIntent.ProcessSelectedCards(cardsToSelect))
                 testDispatcher.scheduler.advanceUntilIdle()
                 awaitItem()
 
@@ -135,8 +135,6 @@ class GameViewModelTest {
 
             viewModel.onIntent(GameIntent.DrawRoom)
             testDispatcher.scheduler.advanceUntilIdle()
-
-            val initialDeckSize = 40 // 44 - 4 cards drawn
 
             viewModel.onIntent(GameIntent.AvoidRoom)
             testDispatcher.scheduler.advanceUntilIdle()
@@ -184,9 +182,9 @@ class GameViewModelTest {
                 val state = awaitItem()
                 assertTrue(state.canAvoidRoom)
 
-                // Select cards (process room)
+                // Select and process cards
                 val cardsToSelect = state.currentRoom!!.take(3)
-                viewModel.onIntent(GameIntent.SelectCards(cardsToSelect))
+                viewModel.onIntent(GameIntent.ProcessSelectedCards(cardsToSelect))
                 testDispatcher.scheduler.advanceUntilIdle()
                 awaitItem()
 
@@ -200,10 +198,10 @@ class GameViewModelTest {
             }
         }
 
-    // ========== Card Selection Tests ==========
+    // ========== Card Selection and Processing Tests ==========
 
     @Test
-    fun `selectCards intent selects 3 of 4 cards`() =
+    fun `processSelectedCards intent selects and processes 3 of 4 cards`() =
         runTest {
             val viewModel = GameViewModel()
 
@@ -214,7 +212,7 @@ class GameViewModelTest {
                 val state = awaitItem()
                 val cardsToSelect = state.currentRoom!!.take(3)
 
-                viewModel.onIntent(GameIntent.SelectCards(cardsToSelect))
+                viewModel.onIntent(GameIntent.ProcessSelectedCards(cardsToSelect))
                 testDispatcher.scheduler.advanceUntilIdle()
 
                 val newState = awaitItem()
@@ -222,75 +220,51 @@ class GameViewModelTest {
             }
         }
 
-    // ========== Card Processing Tests ==========
+    // ========== Card Processing Logic Tests (via GameState) ==========
 
     @Test
-    fun `processCard with monster reduces health`() =
+    fun `fighting monster reduces health`() =
         runTest {
-            val viewModel = GameViewModel()
             val monster = testMonster(10)
+            val initialState = GameState.newGame()
 
-            viewModel.onIntent(GameIntent.ProcessCard(monster))
-            testDispatcher.scheduler.advanceUntilIdle()
+            val newState = initialState.fightMonster(monster)
 
-            viewModel.uiState.test {
-                val state = awaitItem()
-                assertEquals(10, state.health) // 20 - 10 = 10
-            }
+            assertEquals(10, newState.health) // 20 - 10 = 10
         }
 
     @Test
-    fun `processCard with weapon equips it`() =
+    fun `equipping weapon updates weapon state`() =
         runTest {
-            val viewModel = GameViewModel()
             val weapon = testWeapon(5)
+            val initialState = GameState.newGame()
 
-            viewModel.onIntent(GameIntent.ProcessCard(weapon))
-            testDispatcher.scheduler.advanceUntilIdle()
+            val newState = initialState.equipWeapon(weapon)
 
-            viewModel.uiState.test {
-                val state = awaitItem()
-                assertNotNull(state.weaponState)
-                assertEquals(5, state.weaponState!!.weapon.value)
-            }
+            assertNotNull(newState.weaponState)
+            assertEquals(5, newState.weaponState!!.weapon.value)
         }
 
     @Test
-    fun `processCard with potion restores health`() =
+    fun `using potion restores health`() =
         runTest {
-            val viewModel = GameViewModel()
+            val potion = testPotion(7)
+            val initialState = GameState.newGame().fightMonster(testMonster(10)) // Take damage first
 
-            // First take damage
-            viewModel.onIntent(GameIntent.ProcessCard(testMonster(10)))
-            testDispatcher.scheduler.advanceUntilIdle()
+            val newState = initialState.usePotion(potion)
 
-            // Then use potion
-            viewModel.onIntent(GameIntent.ProcessCard(testPotion(7)))
-            testDispatcher.scheduler.advanceUntilIdle()
-
-            viewModel.uiState.test {
-                val state = awaitItem()
-                assertEquals(17, state.health) // 10 + 7 = 17
-            }
+            assertEquals(17, newState.health) // 10 + 7 = 17
         }
 
     @Test
-    fun `processCard with weapon reduces monster damage`() =
+    fun `weapon reduces monster damage`() =
         runTest {
-            val viewModel = GameViewModel()
+            val initialState =
+                GameState.newGame()
+                    .equipWeapon(testWeapon(5))
+                    .fightMonster(testMonster(8))
 
-            // Equip weapon first
-            viewModel.onIntent(GameIntent.ProcessCard(testWeapon(5)))
-            testDispatcher.scheduler.advanceUntilIdle()
-
-            // Fight monster
-            viewModel.onIntent(GameIntent.ProcessCard(testMonster(8)))
-            testDispatcher.scheduler.advanceUntilIdle()
-
-            viewModel.uiState.test {
-                val state = awaitItem()
-                assertEquals(17, state.health) // 20 - (8 - 5) = 17
-            }
+            assertEquals(17, initialState.health) // 20 - (8 - 5) = 17
         }
 
     // ========== Game Over Tests ==========
@@ -298,32 +272,19 @@ class GameViewModelTest {
     @Test
     fun `game over when health reaches 0`() =
         runTest {
-            val viewModel = GameViewModel()
+            val state =
+                GameState.newGame()
+                    .fightMonster(testMonster(14)) // 20 - 14 = 6
+                    .fightMonster(testMonster(6)) // 6 - 6 = 0
 
-            viewModel.uiState.test {
-                awaitItem() // Initial state
-
-                // Deal damage to reduce health
-                viewModel.onIntent(GameIntent.ProcessCard(testMonster(14))) // Ace
-                testDispatcher.scheduler.advanceUntilIdle()
-                awaitItem()
-
-                // Deal lethal damage (already at 6, need 6 more to reach 0)
-                viewModel.onIntent(GameIntent.ProcessCard(testMonster(6)))
-                testDispatcher.scheduler.advanceUntilIdle()
-
-                val state = awaitItem()
-                assertEquals(0, state.health)
-                assertTrue(state.isGameOver)
-                assertFalse(state.isGameWon)
-            }
+            assertEquals(0, state.health)
+            assertTrue(state.isGameOver)
+            assertFalse(state.isGameWon)
         }
 
     @Test
     fun `game won when deck is empty with health greater than 0`() =
         runTest {
-            // This test would require processing all 44 cards, which is impractical
-            // Instead, we'll test the logic by directly checking the state calculation
             val gameState =
                 GameState.newGame().copy(
                     deck = dev.mattbachmann.scoundroid.data.model.Deck(emptyList()),
@@ -339,16 +300,10 @@ class GameViewModelTest {
     @Test
     fun `score reflects current health when alive`() =
         runTest {
-            val viewModel = GameViewModel()
+            val state = GameState.newGame().fightMonster(testMonster(7))
 
-            viewModel.onIntent(GameIntent.ProcessCard(testMonster(7)))
-            testDispatcher.scheduler.advanceUntilIdle()
-
-            viewModel.uiState.test {
-                val state = awaitItem()
-                assertEquals(13, state.health)
-                assertEquals(13, state.score)
-            }
+            assertEquals(13, state.health)
+            assertEquals(13, state.calculateScore())
         }
 
     @Test
@@ -397,15 +352,9 @@ class GameViewModelTest {
     @Test
     fun `defeated monsters count increases when monster is defeated`() =
         runTest {
-            val viewModel = GameViewModel()
+            val state = GameState.newGame().fightMonster(testMonster(5))
 
-            viewModel.onIntent(GameIntent.ProcessCard(testMonster(5)))
-            testDispatcher.scheduler.advanceUntilIdle()
-
-            viewModel.uiState.test {
-                val state = awaitItem()
-                assertEquals(1, state.defeatedMonstersCount)
-            }
+            assertEquals(1, state.defeatedMonsters.size)
         }
 
     // ========== New Game Tests ==========
@@ -417,8 +366,6 @@ class GameViewModelTest {
 
             // Play some of the game
             viewModel.onIntent(GameIntent.DrawRoom)
-            testDispatcher.scheduler.advanceUntilIdle()
-            viewModel.onIntent(GameIntent.ProcessCard(testMonster(10)))
             testDispatcher.scheduler.advanceUntilIdle()
 
             // Start new game
@@ -440,58 +387,34 @@ class GameViewModelTest {
     @Test
     fun `weapon degradation is tracked correctly`() =
         runTest {
-            val viewModel = GameViewModel()
+            val state =
+                GameState.newGame()
+                    .equipWeapon(testWeapon(5))
+                    .fightMonster(testMonster(12))
 
-            // Equip weapon
-            viewModel.onIntent(GameIntent.ProcessCard(testWeapon(5)))
-            testDispatcher.scheduler.advanceUntilIdle()
-
-            // Fight high-value monster
-            viewModel.onIntent(GameIntent.ProcessCard(testMonster(12)))
-            testDispatcher.scheduler.advanceUntilIdle()
-
-            viewModel.uiState.test {
-                val state = awaitItem()
-                assertNotNull(state.weaponState)
-                assertEquals(12, state.weaponState!!.maxMonsterValue)
-            }
+            assertNotNull(state.weaponState)
+            assertEquals(12, state.weaponState!!.maxMonsterValue)
         }
 
     @Test
     fun `potion cannot exceed max health`() =
         runTest {
-            val viewModel = GameViewModel()
+            val state = GameState.newGame().usePotion(testPotion(10))
 
-            // Use potion at full health
-            viewModel.onIntent(GameIntent.ProcessCard(testPotion(10)))
-            testDispatcher.scheduler.advanceUntilIdle()
-
-            viewModel.uiState.test {
-                val state = awaitItem()
-                assertEquals(20, state.health) // Still 20, not 30
-            }
+            assertEquals(20, state.health) // Still 20, not 30
         }
 
     @Test
-    fun `only one potion per turn is applied`() =
+    fun `only first potion per room processing sequence is applied`() =
         runTest {
-            val viewModel = GameViewModel()
+            // This tests that when processing multiple cards without drawing a new room,
+            // only the first potion takes effect (usedPotionThisTurn flag)
+            val state =
+                GameState.newGame()
+                    .fightMonster(testMonster(10)) // Health: 10
+                    .usePotion(testPotion(5)) // Health: 15 (first potion applied)
+                    .usePotion(testPotion(5)) // Health: 15 (second potion ignored)
 
-            // Take damage first
-            viewModel.onIntent(GameIntent.ProcessCard(testMonster(10)))
-            testDispatcher.scheduler.advanceUntilIdle()
-
-            // Use first potion
-            viewModel.onIntent(GameIntent.ProcessCard(testPotion(5)))
-            testDispatcher.scheduler.advanceUntilIdle()
-
-            // Try to use second potion in same turn
-            viewModel.onIntent(GameIntent.ProcessCard(testPotion(5)))
-            testDispatcher.scheduler.advanceUntilIdle()
-
-            viewModel.uiState.test {
-                val state = awaitItem()
-                assertEquals(15, state.health) // 10 + 5 (first potion only), not 10 + 5 + 5
-            }
+            assertEquals(15, state.health) // 10 + 5 (first potion only), not 10 + 5 + 5
         }
 }

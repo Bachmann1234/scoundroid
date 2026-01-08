@@ -79,9 +79,8 @@ fun CardView(
             Suit.HEARTS -> "Hearts"
         }
     val selectedText = if (isSelected) ", selected" else ""
-    val clickableText = if (onClick != null) ". Click to select" else ""
     val accessibilityDescription =
-        "$typeName card, ${card.rank.displayName} of $suitName, value ${card.value}$selectedText$clickableText"
+        "$typeName card, ${card.rank.displayName} of $suitName, value ${card.value}$selectedText"
 
     val actualBorderWidth = if (isSelected) 4.dp else 2.dp
     val actualBorderColor = if (isSelected) Color(0xFFFFD700) else borderColor
