@@ -2,7 +2,9 @@ package dev.mattbachmann.scoundroid.ui.screen.game
 
 import app.cash.turbine.test
 import dev.mattbachmann.scoundroid.data.model.Card
+import dev.mattbachmann.scoundroid.data.model.CardType
 import dev.mattbachmann.scoundroid.data.model.GameState
+import dev.mattbachmann.scoundroid.data.model.LogEntry
 import dev.mattbachmann.scoundroid.data.model.Rank
 import dev.mattbachmann.scoundroid.data.model.Suit
 import dev.mattbachmann.scoundroid.data.repository.HighScoreRepository
@@ -16,6 +18,7 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
+import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -578,6 +581,241 @@ class GameViewModelTest {
 
                 val hiddenState = awaitItem()
                 assertFalse(hiddenState.showHelp)
+            }
+        }
+
+    // ========== Action Log Tests ==========
+
+    @Test
+    fun `ShowActionLog intent sets showActionLog to true`() =
+        runTest {
+            val viewModel = GameViewModel()
+
+            viewModel.uiState.test {
+                val initialState = awaitItem()
+                assertFalse(initialState.showActionLog)
+
+                viewModel.onIntent(GameIntent.ShowActionLog)
+                testDispatcher.scheduler.advanceUntilIdle()
+
+                val newState = awaitItem()
+                assertTrue(newState.showActionLog)
+            }
+        }
+
+    @Test
+    fun `HideActionLog intent sets showActionLog to false`() =
+        runTest {
+            val viewModel = GameViewModel()
+
+            viewModel.uiState.test {
+                awaitItem() // Initial state
+
+                viewModel.onIntent(GameIntent.ShowActionLog)
+                testDispatcher.scheduler.advanceUntilIdle()
+                val shownState = awaitItem()
+                assertTrue(shownState.showActionLog)
+
+                viewModel.onIntent(GameIntent.HideActionLog)
+                testDispatcher.scheduler.advanceUntilIdle()
+
+                val hiddenState = awaitItem()
+                assertFalse(hiddenState.showActionLog)
+            }
+        }
+
+    @Test
+    fun `new game adds GameStarted entry to log`() =
+        runTest {
+            val viewModel = GameViewModel()
+
+            viewModel.uiState.test {
+                val state = awaitItem()
+                assertEquals(1, state.actionLog.size)
+                assertTrue(state.actionLog[0] is LogEntry.GameStarted)
+            }
+        }
+
+    @Test
+    fun `drawRoom adds RoomDrawn entry to log`() =
+        runTest {
+            val viewModel = GameViewModel()
+
+            viewModel.uiState.test {
+                awaitItem() // Initial state (GameStarted)
+
+                viewModel.onIntent(GameIntent.DrawRoom)
+                testDispatcher.scheduler.advanceUntilIdle()
+
+                val state = awaitItem()
+                // Should have GameStarted + RoomDrawn
+                assertEquals(2, state.actionLog.size)
+                val lastEntry = state.actionLog.last()
+                assertTrue(lastEntry is LogEntry.RoomDrawn)
+                val roomDrawn = lastEntry as LogEntry.RoomDrawn
+                assertEquals(4, roomDrawn.cardsDrawn)
+                assertEquals(40, roomDrawn.deckSizeAfter)
+            }
+        }
+
+    @Test
+    fun `avoidRoom adds RoomAvoided entry to log`() =
+        runTest {
+            val viewModel = GameViewModel()
+
+            viewModel.uiState.test {
+                awaitItem() // Initial state
+
+                viewModel.onIntent(GameIntent.DrawRoom)
+                testDispatcher.scheduler.advanceUntilIdle()
+                awaitItem()
+
+                viewModel.onIntent(GameIntent.AvoidRoom)
+                testDispatcher.scheduler.advanceUntilIdle()
+
+                val state = awaitItem()
+                val lastEntry = state.actionLog.last()
+                assertTrue(lastEntry is LogEntry.RoomAvoided)
+                val roomAvoided = lastEntry as LogEntry.RoomAvoided
+                assertEquals(4, roomAvoided.cardsReturned)
+            }
+        }
+
+    @Test
+    fun `fighting monster barehanded creates log entry with full damage`() =
+        runTest {
+            val viewModel = GameViewModel()
+
+            viewModel.uiState.test {
+                skipItems(1) // Skip initial state
+
+                viewModel.onIntent(GameIntent.DrawRoom)
+                testDispatcher.scheduler.advanceUntilIdle()
+                val roomState = awaitItem()
+
+                // Ensure room is drawn
+                assertNotNull(roomState.currentRoom)
+                val room = roomState.currentRoom!!
+
+                // Find a monster in the room - skip test if none found
+                val monster = room.find { it.type == CardType.MONSTER }
+                assumeTrue(monster != null)
+
+                // Select 3 cards with monster FIRST to ensure barehanded fighting
+                // (weapons process in order, so monster first means no weapon equipped yet)
+                val otherCards = room.filter { it != monster }.take(2)
+                val cardsToSelect = listOf(monster!!) + otherCards
+                viewModel.onIntent(GameIntent.ProcessSelectedCards(cardsToSelect))
+                testDispatcher.scheduler.advanceUntilIdle()
+
+                val state = awaitItem()
+                // Find the MonsterFought entry for our specific monster
+                val monsterEntry =
+                    state.actionLog.filterIsInstance<LogEntry.MonsterFought>()
+                        .find { it.monster == monster }
+                assertNotNull(monsterEntry)
+                assertNull(monsterEntry!!.weaponUsed)
+                assertEquals(monster.value, monsterEntry.damageTaken)
+                assertEquals(0, monsterEntry.damageBlocked)
+                // Health after should be health before minus damage
+                assertEquals(monsterEntry.healthBefore - monster.value, monsterEntry.healthAfter)
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+
+    @Test
+    fun `equipping weapon creates log entry`() =
+        runTest {
+            val viewModel = GameViewModel()
+
+            viewModel.uiState.test {
+                skipItems(1) // Skip initial state
+
+                viewModel.onIntent(GameIntent.DrawRoom)
+                testDispatcher.scheduler.advanceUntilIdle()
+                val roomState = awaitItem()
+
+                assertNotNull(roomState.currentRoom)
+                val room = roomState.currentRoom!!
+
+                // Find a weapon in the room - skip test if none found
+                val weapon = room.find { it.type == CardType.WEAPON }
+                assumeTrue(weapon != null)
+
+                val cardsToSelect = room.take(3).toMutableList()
+                if (weapon !in cardsToSelect) {
+                    cardsToSelect[0] = weapon!!
+                }
+                viewModel.onIntent(GameIntent.ProcessSelectedCards(cardsToSelect))
+                testDispatcher.scheduler.advanceUntilIdle()
+
+                val state = awaitItem()
+                val weaponEntry = state.actionLog.filterIsInstance<LogEntry.WeaponEquipped>().firstOrNull()
+                assertNotNull(weaponEntry)
+                assertEquals(weapon, weaponEntry!!.weapon)
+                assertNull(weaponEntry.replacedWeapon)
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+
+    @Test
+    fun `using potion creates log entry`() =
+        runTest {
+            val viewModel = GameViewModel()
+
+            viewModel.uiState.test {
+                skipItems(1) // Skip initial state
+
+                viewModel.onIntent(GameIntent.DrawRoom)
+                testDispatcher.scheduler.advanceUntilIdle()
+                val roomState = awaitItem()
+
+                assertNotNull(roomState.currentRoom)
+                val room = roomState.currentRoom!!
+
+                // Find a potion in the room - skip test if none found
+                val potion = room.find { it.type == CardType.POTION }
+                assumeTrue(potion != null)
+
+                val cardsToSelect = room.take(3).toMutableList()
+                if (potion !in cardsToSelect) {
+                    cardsToSelect[0] = potion!!
+                }
+                viewModel.onIntent(GameIntent.ProcessSelectedCards(cardsToSelect))
+                testDispatcher.scheduler.advanceUntilIdle()
+
+                val state = awaitItem()
+                val potionEntry = state.actionLog.filterIsInstance<LogEntry.PotionUsed>().firstOrNull()
+                assertNotNull(potionEntry)
+                assertEquals(potion, potionEntry!!.potion)
+                assertFalse(potionEntry.wasDiscarded)
+                // healthAfter should be >= healthBefore (healing or capped)
+                assertTrue(potionEntry.healthAfter >= potionEntry.healthBefore)
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+
+    @Test
+    fun `NewGame intent clears log and adds GameStarted`() =
+        runTest {
+            val viewModel = GameViewModel()
+
+            viewModel.uiState.test {
+                awaitItem() // Initial state
+
+                // Play some of the game to build up log
+                viewModel.onIntent(GameIntent.DrawRoom)
+                testDispatcher.scheduler.advanceUntilIdle()
+                awaitItem()
+
+                // Start new game
+                viewModel.onIntent(GameIntent.NewGame)
+                testDispatcher.scheduler.advanceUntilIdle()
+
+                val state = awaitItem()
+                // Log should have only GameStarted
+                assertEquals(1, state.actionLog.size)
+                assertTrue(state.actionLog[0] is LogEntry.GameStarted)
             }
         }
 }
