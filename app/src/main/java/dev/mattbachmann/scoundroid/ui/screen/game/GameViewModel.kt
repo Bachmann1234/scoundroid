@@ -22,16 +22,17 @@ class GameViewModel(
     private val _gameState = MutableStateFlow(GameState.newGame())
     private val gameState: StateFlow<GameState> = _gameState.asStateFlow()
 
+    private val initialGameStarted = LogEntry.GameStarted(timestamp = System.currentTimeMillis())
     private val _uiState =
         MutableStateFlow(
             GameState.newGame()
                 .toUiState()
-                .copy(actionLog = listOf(LogEntry.GameStarted(timestamp = System.currentTimeMillis()))),
+                .copy(actionLog = listOf(initialGameStarted)),
         )
     val uiState: StateFlow<GameUiState> = _uiState.asStateFlow()
 
     private var highestScore: Int? = null
-    private val actionLogEntries = mutableListOf<LogEntry>(LogEntry.GameStarted(timestamp = System.currentTimeMillis()))
+    private val actionLogEntries = mutableListOf<LogEntry>(initialGameStarted)
 
     init {
         loadHighestScore()
