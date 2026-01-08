@@ -32,4 +32,6 @@ data class GameUiState(
     val highestScore: Int? = null,
     /** Whether the current score is a new high score */
     val isNewHighScore: Boolean = false,
+    /** Whether to show the help/rules screen */
+    val showHelp: Boolean = false,
 )

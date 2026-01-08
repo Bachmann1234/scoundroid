@@ -538,4 +538,46 @@ class GameViewModelTest {
                 assertEquals(18, state.highestScore)
             }
         }
+
+    // ========== Help Screen Tests ==========
+
+    @Test
+    fun `ShowHelp intent sets showHelp to true`() =
+        runTest {
+            val viewModel = GameViewModel()
+
+            viewModel.uiState.test {
+                val initialState = awaitItem()
+                assertFalse(initialState.showHelp)
+
+                viewModel.onIntent(GameIntent.ShowHelp)
+                testDispatcher.scheduler.advanceUntilIdle()
+
+                val newState = awaitItem()
+                assertTrue(newState.showHelp)
+            }
+        }
+
+    @Test
+    fun `HideHelp intent sets showHelp to false`() =
+        runTest {
+            val viewModel = GameViewModel()
+
+            viewModel.uiState.test {
+                awaitItem() // Initial state
+
+                // Show help first
+                viewModel.onIntent(GameIntent.ShowHelp)
+                testDispatcher.scheduler.advanceUntilIdle()
+                val shownState = awaitItem()
+                assertTrue(shownState.showHelp)
+
+                // Now hide it
+                viewModel.onIntent(GameIntent.HideHelp)
+                testDispatcher.scheduler.advanceUntilIdle()
+
+                val hiddenState = awaitItem()
+                assertFalse(hiddenState.showHelp)
+            }
+        }
 }

@@ -12,11 +12,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Help
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -32,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.mattbachmann.scoundroid.data.model.Card
 import dev.mattbachmann.scoundroid.ui.component.GameStatusBar
+import dev.mattbachmann.scoundroid.ui.component.HelpContent
 import dev.mattbachmann.scoundroid.ui.component.RoomDisplay
 import dev.mattbachmann.scoundroid.ui.theme.ScoundroidTheme
 
@@ -40,6 +48,7 @@ import dev.mattbachmann.scoundroid.ui.theme.ScoundroidTheme
  * Displays the current game state and handles user interactions.
  * Supports responsive layouts for foldable devices.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GameScreen(
     modifier: Modifier = Modifier,
@@ -49,6 +58,7 @@ fun GameScreen(
     val uiState by viewModel.uiState.collectAsState()
     var selectedCards by remember { mutableStateOf(setOf<Card>()) }
     var scoreSaved by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState()
 
     // Save score when game ends, reset flag when new game starts
     LaunchedEffect(uiState.isGameOver, uiState.isGameWon) {
@@ -57,6 +67,16 @@ fun GameScreen(
             scoreSaved = true
         } else if (!uiState.isGameOver && !uiState.isGameWon) {
             scoreSaved = false
+        }
+    }
+
+    // Help bottom sheet
+    if (uiState.showHelp) {
+        ModalBottomSheet(
+            onDismissRequest = { viewModel.onIntent(GameIntent.HideHelp) },
+            sheetState = sheetState,
+        ) {
+            HelpContent()
         }
     }
 
@@ -82,12 +102,25 @@ fun GameScreen(
                             .verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
-                    Text(
-                        text = "Scoundroid",
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = "Scoundroid",
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                        IconButton(onClick = { viewModel.onIntent(GameIntent.ShowHelp) }) {
+                            Icon(
+                                imageVector = Icons.Filled.Help,
+                                contentDescription = "Help",
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
+                        }
+                    }
                     GameStatusBar(
                         health = uiState.health,
                         score = uiState.score,
@@ -128,13 +161,26 @@ fun GameScreen(
                         .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(24.dp),
             ) {
-                // Title
-                Text(
-                    text = "Scoundroid",
-                    style = MaterialTheme.typography.displayMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                )
+                // Title with help button
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = "Scoundroid",
+                        style = MaterialTheme.typography.displayMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                    IconButton(onClick = { viewModel.onIntent(GameIntent.ShowHelp) }) {
+                        Icon(
+                            imageVector = Icons.Filled.Help,
+                            contentDescription = "Help",
+                            tint = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                }
 
                 // Game status
                 GameStatusBar(

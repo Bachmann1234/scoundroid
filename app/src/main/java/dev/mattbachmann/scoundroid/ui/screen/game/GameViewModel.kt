@@ -39,10 +39,12 @@ class GameViewModel(
     private suspend fun updateUiStateWithHighScore() {
         val currentScore = gameState.value.calculateScore()
         val isNewHigh = highScoreRepository?.isNewHighScore(currentScore) ?: false
+        val currentShowHelp = _uiState.value.showHelp
         _uiState.value =
             gameState.value.toUiState().copy(
                 highestScore = highestScore,
                 isNewHighScore = isNewHigh,
+                showHelp = currentShowHelp,
             )
     }
 
@@ -57,6 +59,8 @@ class GameViewModel(
                 is GameIntent.AvoidRoom -> handleAvoidRoom()
                 is GameIntent.ProcessSelectedCards -> handleProcessSelectedCards(intent.selectedCards)
                 is GameIntent.GameEnded -> handleGameEnded(intent.score, intent.won)
+                is GameIntent.ShowHelp -> handleShowHelp()
+                is GameIntent.HideHelp -> handleHideHelp()
             }
         }
     }
@@ -100,15 +104,25 @@ class GameViewModel(
         updateUiStateWithHighScore()
     }
 
+    private fun handleShowHelp() {
+        _uiState.value = _uiState.value.copy(showHelp = true)
+    }
+
+    private fun handleHideHelp() {
+        _uiState.value = _uiState.value.copy(showHelp = false)
+    }
+
     private fun updateGameState(newState: GameState) {
         _gameState.value = newState
         // Update UI state immediately with cached high score info
         // isNewHighScore: true if no scores exist OR current score beats highest
         val currentScore = newState.calculateScore()
+        val currentShowHelp = _uiState.value.showHelp
         _uiState.value =
             newState.toUiState().copy(
                 highestScore = highestScore,
                 isNewHighScore = highestScore?.let { currentScore > it } ?: (highScoreRepository != null),
+                showHelp = currentShowHelp,
             )
     }
 

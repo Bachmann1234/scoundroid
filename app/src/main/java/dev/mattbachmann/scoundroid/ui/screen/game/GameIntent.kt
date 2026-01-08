@@ -35,4 +35,14 @@ sealed class GameIntent {
      * @param won Whether the player won
      */
     data class GameEnded(val score: Int, val won: Boolean) : GameIntent()
+
+    /**
+     * Show the help/rules screen.
+     */
+    data object ShowHelp : GameIntent()
+
+    /**
+     * Hide the help/rules screen.
+     */
+    data object HideHelp : GameIntent()
 }

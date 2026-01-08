@@ -1,12 +1,13 @@
 # Current State & Next Steps
 
-**Last Updated**: 2026-01-08 (Session 5 complete)
+**Last Updated**: 2026-01-08 (Session 6 complete)
 
 ## Phase 1: COMPLETE ✅
 ## Phase 2: COMPLETE ✅
 ## Phase 3: COMPLETE ✅
 ## Phase 4 (Persistence): COMPLETE ✅
 ## Foldable Device Optimizations: COMPLETE ✅
+## Rules/Help Screen: COMPLETE ✅
 
 ### What's Done
 
@@ -257,8 +258,48 @@
 
 ## What's NOT Done Yet
 
-❌ Rules/help screen
-❌ Visual polish
+❌ Visual polish (optional)
+
+## Session 6 Completed (2026-01-08)
+
+**Rules/Help Screen - COMPLETE! 🎉**
+
+**Accomplishments:**
+
+- ✅ **Help Button in Title Bar**
+  - Added help icon button (?) next to title in both compact and expanded layouts
+  - Uses Material Icons Extended dependency
+
+- ✅ **ModalBottomSheet for Rules**
+  - Shows game rules when help button is tapped
+  - Dismissible by swiping down or tapping outside
+  - Uses Material3 ModalBottomSheet component
+
+- ✅ **HelpContent Composable**
+  - Created `ui/component/HelpContent.kt`
+  - Organized into clear sections: Goal, Card Types, Rooms, Combat, Scoring
+  - Credits original Scoundrel game by Zach Gage & Kurt Bieg
+
+- ✅ **MVI Integration**
+  - Added `ShowHelp` and `HideHelp` intents to GameIntent.kt
+  - Added `showHelp` field to GameUiState.kt
+  - ViewModel properly preserves showHelp state across game state changes
+
+**Test Summary:**
+- **2 new ViewModel tests** for ShowHelp/HideHelp intents
+- **175 total tests** passing ✅
+
+**Files Created:**
+- `ui/component/HelpContent.kt` - Rules content composable
+
+**Files Modified:**
+- `GameIntent.kt` - Added ShowHelp, HideHelp intents
+- `GameUiState.kt` - Added showHelp field
+- `GameViewModel.kt` - Added help intent handlers
+- `GameViewModelTest.kt` - Added 2 help tests
+- `GameScreen.kt` - Added help button and ModalBottomSheet
+- `build.gradle.kts` - Added material-icons-extended dependency
+- `libs.versions.toml` - Added material-icons-extended library
 
 ## Session 1 Completed (2026-01-06)
 
@@ -370,4 +411,4 @@ When you're ready to continue:
 2. Check [`05-testing-strategy.md`](05-testing-strategy.md) for persistence testing strategy
 3. Say "Let's do Phase 4" or "Add persistence"
 
-**Current Status**: Phases 1-4 & foldable optimizations complete! Game is fully playable with 173 passing tests. Supports both folded and unfolded modes on Pixel 10 Pro Fold! 📱
+**Current Status**: All features complete! Game is fully playable with rules/help screen, high scores, and foldable device support. 175 passing tests. Only optional visual polish remains.
