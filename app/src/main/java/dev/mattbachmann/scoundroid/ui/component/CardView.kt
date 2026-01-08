@@ -39,21 +39,24 @@ fun CardView(
 ) {
     val (backgroundColor, textColor, borderColor) =
         when (card.type) {
+            // Red
             CardType.MONSTER ->
                 Triple(
-                    Color(0xFFE57373), // Red
+                    Color(0xFFE57373),
                     Color.Black,
                     Color(0xFFD32F2F),
                 )
+            // Blue
             CardType.WEAPON ->
                 Triple(
-                    Color(0xFF64B5F6), // Blue
+                    Color(0xFF64B5F6),
                     Color.White,
                     Color(0xFF1976D2),
                 )
+            // Green
             CardType.POTION ->
                 Triple(
-                    Color(0xFF81C784), // Green
+                    Color(0xFF81C784),
                     Color.White,
                     Color(0xFF388E3C),
                 )

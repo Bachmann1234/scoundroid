@@ -97,10 +97,11 @@ fun GameScreen(
                     if (uiState.currentRoom!!.size == 1) {
                         // Single card remaining - show it but don't allow clicking
                         // This card becomes part of the next room
+                        // No action - can't process the leftover card
                         RoomDisplay(
                             cards = uiState.currentRoom!!,
                             selectedCards = emptySet(),
-                            onCardClick = { }, // No action - can't process the leftover card
+                            onCardClick = { },
                         )
                     } else {
                         // Room of 4 - allow selection
