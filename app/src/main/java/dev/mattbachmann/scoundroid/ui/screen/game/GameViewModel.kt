@@ -103,10 +103,12 @@ class GameViewModel(
     private fun updateGameState(newState: GameState) {
         _gameState.value = newState
         // Update UI state immediately with cached high score info
+        // isNewHighScore: true if no scores exist OR current score beats highest
+        val currentScore = newState.calculateScore()
         _uiState.value =
             newState.toUiState().copy(
                 highestScore = highestScore,
-                isNewHighScore = highestScore?.let { newState.calculateScore() > it } ?: false,
+                isNewHighScore = highestScore?.let { currentScore > it } ?: (highScoreRepository != null),
             )
     }
 

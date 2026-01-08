@@ -1,9 +1,13 @@
 package dev.mattbachmann.scoundroid.data.persistence
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "high_scores")
+@Entity(
+    tableName = "high_scores",
+    indices = [Index(value = ["score"])],
+)
 data class HighScore(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
