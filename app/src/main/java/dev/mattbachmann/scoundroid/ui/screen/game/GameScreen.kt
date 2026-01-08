@@ -46,17 +46,12 @@ fun GameScreen(
     var selectedCards by remember { mutableStateOf(setOf<Card>()) }
     var scoreSaved by remember { mutableStateOf(false) }
 
-    // Save score when game ends
+    // Save score when game ends, reset flag when new game starts
     LaunchedEffect(uiState.isGameOver, uiState.isGameWon) {
         if ((uiState.isGameOver || uiState.isGameWon) && !scoreSaved) {
             viewModel.onIntent(GameIntent.GameEnded(uiState.score, uiState.isGameWon))
             scoreSaved = true
-        }
-    }
-
-    // Reset scoreSaved when starting a new game
-    LaunchedEffect(uiState.deckSize) {
-        if (uiState.deckSize == 44 && !uiState.isGameOver && !uiState.isGameWon) {
+        } else if (!uiState.isGameOver && !uiState.isGameWon) {
             scoreSaved = false
         }
     }

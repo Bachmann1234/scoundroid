@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -110,7 +111,7 @@ class HighScoreRepositoryTest {
 
             val result = repository.isNewHighScore(20)
 
-            assertTrue(!result)
+            assertFalse(result)
         }
 
     @Test
@@ -120,7 +121,7 @@ class HighScoreRepositoryTest {
 
             val result = repository.isNewHighScore(15)
 
-            assertTrue(!result)
+            assertFalse(result)
         }
 
     @Test

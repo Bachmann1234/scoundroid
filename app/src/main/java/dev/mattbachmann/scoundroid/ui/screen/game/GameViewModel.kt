@@ -102,9 +102,12 @@ class GameViewModel(
 
     private fun updateGameState(newState: GameState) {
         _gameState.value = newState
-        viewModelScope.launch {
-            updateUiStateWithHighScore()
-        }
+        // Update UI state immediately with cached high score info
+        _uiState.value =
+            newState.toUiState().copy(
+                highestScore = highestScore,
+                isNewHighScore = highestScore?.let { newState.calculateScore() > it } ?: false,
+            )
     }
 
     /**

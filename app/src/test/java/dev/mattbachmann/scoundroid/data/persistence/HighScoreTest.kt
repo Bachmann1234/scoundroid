@@ -2,6 +2,7 @@ package dev.mattbachmann.scoundroid.data.persistence
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 
@@ -44,7 +45,7 @@ class HighScoreTest {
         val wonGame = HighScore(score = 15, won = true)
         val lostGame = HighScore(score = -20, won = false)
         assertTrue(wonGame.won)
-        assertTrue(!lostGame.won)
+        assertFalse(lostGame.won)
     }
 
     @Test

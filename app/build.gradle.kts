@@ -136,7 +136,7 @@ dependencies {
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
     ksp(libs.room.compiler)
-    testImplementation(libs.room.testing)
+    androidTestImplementation(libs.room.testing)
 
     // Testing
     testImplementation(libs.junit)
