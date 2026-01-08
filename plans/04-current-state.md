@@ -1,11 +1,12 @@
 # Current State & Next Steps
 
-**Last Updated**: 2026-01-07 (Session 4 complete)
+**Last Updated**: 2026-01-08 (Session 5 complete)
 
 ## Phase 1: COMPLETE ✅
 ## Phase 2: COMPLETE ✅
 ## Phase 3: COMPLETE ✅
-## Phase 4 (Persistence): IN PROGRESS ✅
+## Phase 4 (Persistence): COMPLETE ✅
+## Foldable Device Optimizations: COMPLETE ✅
 
 ### What's Done
 
@@ -208,9 +209,55 @@
 - `GameScreen.kt` - Added LaunchedEffect for saving scores, updated end screens
 - `MainActivity.kt` - Creates and injects repository
 
+## Session 5 Completed (2026-01-08)
+
+**Foldable Device Optimizations - COMPLETE! 🎉**
+
+**Accomplishments:**
+
+- ✅ **WindowSizeClass Integration**
+  - Added `material3-window-size-class` dependency
+  - MainActivity calculates and passes `WindowWidthSizeClass` to GameScreen
+  - App detects compact (folded) vs medium/expanded (unfolded) modes
+
+- ✅ **Responsive GameScreen Layout**
+  - Compact mode: Vertical stack layout (current behavior)
+  - Expanded mode: Horizontal split layout
+    - Left sidebar (200dp): Title + GameStatusBar
+    - Right area: Game content (cards + buttons)
+
+- ✅ **Responsive RoomDisplay**
+  - Compact mode: 2x2 grid for 4 cards
+  - Expanded mode: 1x4 horizontal row with larger cards (120x168dp)
+
+- ✅ **Configurable CardView**
+  - Added optional `cardWidth` and `cardHeight` parameters
+  - Default: 100x140dp (compact)
+  - Expanded: 120x168dp (larger for wider screens)
+
+- ✅ **Responsive GameStatusBar**
+  - Added `isExpanded` parameter
+  - Compact: Horizontal rows (Health/Score, Deck/Defeated)
+  - Expanded: Vertical sidebar layout (all items stacked)
+
+- ✅ **AndroidManifest Updates**
+  - Added `android:resizeableActivity="true"` for foldable support
+
+**Files Modified:**
+- `build.gradle.kts` - Added material3-window-size-class dependency
+- `MainActivity.kt` - Added WindowSizeClass calculation
+- `GameScreen.kt` - Added responsive layout with compact/expanded modes
+- `RoomDisplay.kt` - Added isExpanded parameter for 1x4 vs 2x2 layout
+- `CardView.kt` - Added configurable cardWidth/cardHeight parameters
+- `GameStatusBar.kt` - Added isExpanded parameter for sidebar layout
+- `AndroidManifest.xml` - Added resizeableActivity flag
+
+**Test Summary:**
+- **All 173 tests passing** ✅
+- No new tests needed (UI changes only)
+
 ## What's NOT Done Yet
 
-❌ Foldable device optimizations
 ❌ Rules/help screen
 ❌ Visual polish
 
@@ -324,4 +371,4 @@ When you're ready to continue:
 2. Check [`05-testing-strategy.md`](05-testing-strategy.md) for persistence testing strategy
 3. Say "Let's do Phase 4" or "Add persistence"
 
-**Current Status**: Phases 1, 2, 3 & high score persistence complete! Game is fully playable with 190+ passing tests. High scores are now saved and displayed! 🎮
+**Current Status**: Phases 1-4 & foldable optimizations complete! Game is fully playable with 173 passing tests. Supports both folded and unfolded modes on Pixel 10 Pro Fold! 📱

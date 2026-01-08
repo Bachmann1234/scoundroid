@@ -28,6 +28,7 @@ fun RoomDisplay(
     selectedCards: Set<Card>,
     onCardClick: ((Card) -> Unit)?,
     modifier: Modifier = Modifier,
+    isExpanded: Boolean = false,
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -47,40 +48,59 @@ fun RoomDisplay(
             )
         }
 
-        // Display cards in a grid (2x2 for 4 cards, single row for fewer)
+        // Display cards - 1x4 row for expanded mode, 2x2 grid for compact mode
         if (cards.size == 4) {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
+            if (isExpanded) {
+                // Expanded mode: all 4 cards in a single horizontal row
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
                 ) {
-                    CardView(
-                        card = cards[0],
-                        isSelected = cards[0] in selectedCards,
-                        onClick = onCardClick?.let { { it(cards[0]) } },
-                    )
-                    CardView(
-                        card = cards[1],
-                        isSelected = cards[1] in selectedCards,
-                        onClick = onCardClick?.let { { it(cards[1]) } },
-                    )
+                    cards.forEach { card ->
+                        CardView(
+                            card = card,
+                            isSelected = card in selectedCards,
+                            onClick = onCardClick?.let { { it(card) } },
+                            cardWidth = 120.dp,
+                            cardHeight = 168.dp,
+                        )
+                    }
                 }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+            } else {
+                // Compact mode: 2x2 grid
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    CardView(
-                        card = cards[2],
-                        isSelected = cards[2] in selectedCards,
-                        onClick = onCardClick?.let { { it(cards[2]) } },
-                    )
-                    CardView(
-                        card = cards[3],
-                        isSelected = cards[3] in selectedCards,
-                        onClick = onCardClick?.let { { it(cards[3]) } },
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+                    ) {
+                        CardView(
+                            card = cards[0],
+                            isSelected = cards[0] in selectedCards,
+                            onClick = onCardClick?.let { { it(cards[0]) } },
+                        )
+                        CardView(
+                            card = cards[1],
+                            isSelected = cards[1] in selectedCards,
+                            onClick = onCardClick?.let { { it(cards[1]) } },
+                        )
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+                    ) {
+                        CardView(
+                            card = cards[2],
+                            isSelected = cards[2] in selectedCards,
+                            onClick = onCardClick?.let { { it(cards[2]) } },
+                        )
+                        CardView(
+                            card = cards[3],
+                            isSelected = cards[3] in selectedCards,
+                            onClick = onCardClick?.let { { it(cards[3]) } },
+                        )
+                    }
                 }
             }
         } else {
@@ -94,6 +114,8 @@ fun RoomDisplay(
                         card = card,
                         isSelected = card in selectedCards,
                         onClick = onCardClick?.let { { it(card) } },
+                        cardWidth = if (isExpanded) 120.dp else 100.dp,
+                        cardHeight = if (isExpanded) 168.dp else 140.dp,
                     )
                 }
             }
