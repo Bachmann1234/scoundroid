@@ -28,4 +28,8 @@ data class GameUiState(
     val lastRoomAvoided: Boolean,
     /** Whether the player can avoid the current room */
     val canAvoidRoom: Boolean,
+    /** The highest score ever achieved, null if no scores saved yet */
+    val highestScore: Int? = null,
+    /** Whether the current score is a new high score */
+    val isNewHighScore: Boolean = false,
 )

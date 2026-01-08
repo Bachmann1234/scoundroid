@@ -1,10 +1,11 @@
 # Current State & Next Steps
 
-**Last Updated**: 2026-01-07 (Session 3 complete)
+**Last Updated**: 2026-01-07 (Session 4 complete)
 
 ## Phase 1: COMPLETE ✅
 ## Phase 2: COMPLETE ✅
 ## Phase 3: COMPLETE ✅
+## Phase 4 (Persistence): IN PROGRESS ✅
 
 ### What's Done
 
@@ -136,11 +137,82 @@
 
 **Game is now playable on device!**
 
+## Session 4 Completed (2026-01-07)
+
+**Phase 4: High Score Persistence - COMPLETE! 🎉**
+
+**Accomplishments:**
+
+- ✅ **Room Database Setup**
+  - Added Room dependencies with KSP annotation processor
+  - Created `AppDatabase.kt` with singleton pattern
+  - Configured packaging options for test dependencies
+
+- ✅ **HighScore Entity** (10 tests)
+  - `HighScore.kt` - Room entity with id, score, timestamp, won fields
+  - Auto-generated IDs
+  - Timestamp defaults to current time
+
+- ✅ **HighScoreDao** (10 instrumented tests)
+  - Insert, delete, deleteAll operations
+  - Get all scores ordered by score DESC
+  - Get top N scores with limit
+  - Get highest score
+  - Get score count
+  - Flow-based reactive queries
+
+- ✅ **HighScoreRepository** (12 tests)
+  - `HighScoreRepository.kt` - Clean abstraction over DAO
+  - saveScore, getTopScores, getAllScores
+  - getHighestScore, isNewHighScore
+  - clearAllScores, getScoreCount
+
+- ✅ **ViewModel Integration** (7 new tests)
+  - GameViewModel now accepts optional HighScoreRepository
+  - Loads highest score on init
+  - Tracks if current score is a new high score
+  - GameEnded intent saves scores automatically
+  - GameViewModelFactory for dependency injection
+
+- ✅ **UI Updates**
+  - GameOverScreen shows high score and "NEW HIGH SCORE!" message
+  - GameWonScreen shows high score and "NEW HIGH SCORE!" message
+  - GameScreen uses LaunchedEffect to save score when game ends
+  - MainActivity creates and injects repository
+
+**Test Summary:**
+- **10 unit tests** for HighScore entity
+- **10 instrumented tests** for HighScoreDao
+- **12 unit tests** for HighScoreRepository
+- **7 new ViewModel tests** for high score integration
+- **Total: 39 new tests**, all following TDD
+- **All tests passing** ✅
+
+**Files Created:**
+- `data/persistence/HighScore.kt` - Room entity
+- `data/persistence/HighScoreDao.kt` - Data access object
+- `data/persistence/AppDatabase.kt` - Room database
+- `data/repository/HighScoreRepository.kt` - Repository layer
+- `ui/screen/game/GameViewModelFactory.kt` - ViewModel factory
+- `test/data/persistence/HighScoreTest.kt` - Entity tests
+- `test/data/repository/HighScoreRepositoryTest.kt` - Repository tests
+- `androidTest/data/persistence/HighScoreDaoTest.kt` - DAO instrumented tests
+
+**Files Updated:**
+- `build.gradle.kts` - Added Room dependencies, KSP plugin, packaging options
+- `libs.versions.toml` - Added room-testing library
+- `GameIntent.kt` - Added GameEnded intent
+- `GameUiState.kt` - Added highestScore and isNewHighScore fields
+- `GameViewModel.kt` - Added repository integration and high score tracking
+- `GameViewModelTest.kt` - Added 7 high score tests
+- `GameScreen.kt` - Added LaunchedEffect for saving scores, updated end screens
+- `MainActivity.kt` - Creates and injects repository
+
 ## What's NOT Done Yet
 
-❌ Persistence (Room database - Phase 4)
 ❌ Foldable device optimizations
-❌ High score tracking
+❌ Rules/help screen
+❌ Visual polish
 
 ## Session 1 Completed (2026-01-06)
 
@@ -252,4 +324,4 @@ When you're ready to continue:
 2. Check [`05-testing-strategy.md`](05-testing-strategy.md) for persistence testing strategy
 3. Say "Let's do Phase 4" or "Add persistence"
 
-**Current Status**: Phases 1, 2 & 3 complete! Game is fully playable with 152+ passing tests. Ready for persistence and polish! 🎮
+**Current Status**: Phases 1, 2, 3 & high score persistence complete! Game is fully playable with 190+ passing tests. High scores are now saved and displayed! 🎮
