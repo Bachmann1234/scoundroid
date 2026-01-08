@@ -1,9 +1,10 @@
 # Current State & Next Steps
 
-**Last Updated**: 2026-01-06 (Session 2 complete)
+**Last Updated**: 2026-01-07 (Session 3 complete)
 
 ## Phase 1: COMPLETE ✅
 ## Phase 2: COMPLETE ✅
+## Phase 3: COMPLETE ✅
 
 ### What's Done
 
@@ -88,11 +89,58 @@
 - `GameState.kt` - Added combat, potion, scoring logic, and lastCardProcessed tracking
 - `GameStateTest.kt` - Updated for new properties
 
+## Session 3 Completed (2026-01-07)
+
+**Phase 3: UI & ViewModel Layer - COMPLETE! 🎉**
+
+**Accomplishments:**
+
+- ✅ **GameViewModel with MVI Pattern** (29 tests)
+  - `GameIntent.kt` - Sealed class for user actions (NewGame, DrawRoom, AvoidRoom, SelectCards, ProcessCard, ClearRoom)
+  - `GameUiState.kt` - UI state data class
+  - `GameViewModel.kt` - Full game state management
+  - Turbine-based Flow testing for state changes
+
+- ✅ **UI Components**
+  - `CardView.kt` - Card display with color coding (Red=Monster, Blue=Weapon, Green=Potion)
+  - `GameStatusBar.kt` - Health, score, deck size, weapon state display
+  - `RoomDisplay.kt` - 2x2 grid layout for room cards with selection
+
+- ✅ **GameScreen**
+  - Full game flow implementation
+  - Card selection (3 of 4)
+  - Room drawing and avoidance
+  - Game over/victory screens
+  - Bug fix: Leftover card stays for next room (not processed)
+
+**Test Summary:**
+- **29 new ViewModel tests** written following TDD
+- **152+ total tests** (Phase 1 + 2: 123 + Phase 3: 29)
+- All tests passing ✅
+
+**Files Created:**
+- `ui/component/CardView.kt` - Card display component
+- `ui/component/GameStatusBar.kt` - Status bar component
+- `ui/component/RoomDisplay.kt` - Room display component
+- `ui/screen/game/GameIntent.kt` - MVI intents
+- `ui/screen/game/GameUiState.kt` - UI state
+- `ui/screen/game/GameViewModel.kt` - ViewModel
+- `ui/screen/game/GameScreen.kt` - Main game screen
+- `test/ui/screen/game/GameViewModelTest.kt` - ViewModel tests
+
+**Files Updated:**
+- `MainActivity.kt` - Now uses GameScreen
+- `GameState.kt` - Added clearRoom() method
+- `Rank.kt` - Added fromValue() helper method
+- `ui/theme/Theme.kt` - Renamed to ScoundroidTheme
+
+**Game is now playable on device!**
+
 ## What's NOT Done Yet
 
-❌ UI for gameplay (cards, room, controls)
-❌ ViewModel layer (Phase 3)
 ❌ Persistence (Room database - Phase 4)
+❌ Foldable device optimizations
+❌ High score tracking
 
 ## Session 1 Completed (2026-01-06)
 
@@ -104,46 +152,38 @@
 - All tests follow Red-Green-Refactor cycle
 - Committed and pushed to `claude/review-repo-planning-kMFnO`
 
-## Recommended Next Session Tasks (Phase 3)
+## Recommended Next Session Tasks (Phase 4)
 
 **IMPORTANT**: Continue using Test-Driven Development (TDD). See [`05-testing-strategy.md`](05-testing-strategy.md).
 
-### Phase 3: UI & ViewModel Layer
+### Phase 4: Persistence & Polish
 
 When ready for the next session:
 
-### 1. Game ViewModel (with TDD)
-**Goal**: Create ViewModel to manage game state for UI
+### 1. Room Database for High Scores (with TDD)
+**Goal**: Persist high scores between sessions
 
-- **Write ViewModel tests first**:
-  - Game initialization
-  - Card processing (monsters, weapons, potions)
-  - Room drawing and selection
-  - State flow updates
-  - UI state mapping
-- Create `GameViewModel.kt`
-- Implement game logic orchestration
-- **Target: >80% test coverage**
+- Create Room database entities and DAOs
+- Implement high score repository
+- Add high score display to game over/victory screens
+- **Target: >90% test coverage**
 
-### 2. Basic UI Components
-**Goal**: Create card and room display components
+### 2. Foldable Device Optimizations
+**Goal**: Optimize for Pixel 10 Pro Fold
 
-- Create card composable with type differentiation
-- Create room display layout
-- Create health/score display
-- Create weapon status indicator
-- Use Compose previews for visual testing
+- Use WindowSizeClass for responsive layouts
+- Handle fold/unfold state transitions
+- Test on actual device
 
-### 3. Game Screen
-**Goal**: Wire up full playable game screen
+### 3. Polish & Quality of Life
+**Goal**: Final touches
 
-- Create `GameScreen.kt` composable
-- Connect ViewModel to UI
-- Implement card selection
-- Add basic help/rules display
-- Test on device
+- Add rules/help screen
+- Add visual feedback for card selection
+- Sound effects (optional)
+- Final testing and bug fixes
 
-### Next Session: `./gradlew test` should show 123 passing tests before starting UI work!
+### Next Session: `./gradlew test` should show 152+ passing tests!
 
 ## Quick Commands for Next Session
 
@@ -205,11 +245,11 @@ When ready for the next session:
 
 **Note:** Phase 1 test count was originally documented as 55 but actual count is 57 (CardTest had 10 tests, not 9; DeckTest had 16, not 14).
 
-## Ready for Phase 3?
+## Ready for Phase 4?
 
 When you're ready to continue:
-1. Review [`03-session-guide.md`](03-session-guide.md) for Phase 3 details
-2. Check [`05-testing-strategy.md`](05-testing-strategy.md) for ViewModel testing strategy
-3. Say "Let's do Phase 3" or "Build the UI"
+1. Review [`03-session-guide.md`](03-session-guide.md) for Phase 4 details
+2. Check [`05-testing-strategy.md`](05-testing-strategy.md) for persistence testing strategy
+3. Say "Let's do Phase 4" or "Add persistence"
 
-**Current Status**: Phases 1 & 2 complete! All core game logic implemented with 123 passing tests. Ready for UI/ViewModel layer! 🚀
+**Current Status**: Phases 1, 2 & 3 complete! Game is fully playable with 152+ passing tests. Ready for persistence and polish! 🎮

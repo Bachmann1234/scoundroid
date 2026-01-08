@@ -18,4 +18,18 @@ enum class Rank(val value: Int, val displayName: String) {
     QUEEN(12, "Q"),
     KING(13, "K"),
     ACE(14, "A"),
+    ;
+
+    companion object {
+        /**
+         * Returns the Rank for a given value.
+         * @param value The numeric value (2-14)
+         * @return The corresponding Rank
+         * @throws IllegalArgumentException if value is not in range 2-14
+         */
+        fun fromValue(value: Int): Rank {
+            return entries.find { it.value == value }
+                ?: throw IllegalArgumentException("Invalid rank value: $value")
+        }
+    }
 }
