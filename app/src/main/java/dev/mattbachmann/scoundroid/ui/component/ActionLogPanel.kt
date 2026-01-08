@@ -10,11 +10,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -60,15 +61,18 @@ fun ActionLogPanel(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         } else {
+            val reversedLog = actionLog.reversed()
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                items(actionLog.reversed()) { entry ->
+                itemsIndexed(reversedLog) { index, entry ->
                     LogEntryRow(entry = entry)
-                    HorizontalDivider(
-                        modifier = Modifier.padding(top = 8.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant,
-                    )
+                    if (index < reversedLog.lastIndex) {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(top = 8.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant,
+                        )
+                    }
                 }
             }
         }
@@ -88,14 +92,14 @@ private fun LogEntryRow(entry: LogEntry) {
                 )
             is LogEntry.RoomDrawn ->
                 LogEntryDisplay(
-                    icon = Icons.Default.Refresh,
+                    icon = Icons.Default.Layers,
                     iconColor = MaterialTheme.colorScheme.tertiary,
                     title = "Room Drawn",
                     description = "Drew ${entry.cardsDrawn} cards (${entry.deckSizeAfter} remaining)",
                 )
             is LogEntry.RoomAvoided ->
                 LogEntryDisplay(
-                    icon = Icons.Default.Refresh,
+                    icon = Icons.AutoMirrored.Filled.ArrowBack,
                     iconColor = MaterialTheme.colorScheme.secondary,
                     title = "Room Avoided",
                     description = "${entry.cardsReturned} cards sent to bottom of deck",

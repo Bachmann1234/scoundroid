@@ -13,8 +13,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Help
-import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.automirrored.filled.Help
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -39,6 +39,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.mattbachmann.scoundroid.data.model.Card
+import dev.mattbachmann.scoundroid.ui.component.ActionLogPanel
 import dev.mattbachmann.scoundroid.ui.component.GameStatusBar
 import dev.mattbachmann.scoundroid.ui.component.HelpContent
 import dev.mattbachmann.scoundroid.ui.component.RoomDisplay
@@ -87,7 +88,7 @@ fun GameScreen(
             onDismissRequest = { viewModel.onIntent(GameIntent.HideActionLog) },
             sheetState = rememberModalBottomSheetState(),
         ) {
-            dev.mattbachmann.scoundroid.ui.component.ActionLogPanel(actionLog = uiState.actionLog)
+            ActionLogPanel(actionLog = uiState.actionLog)
         }
     }
 
@@ -127,14 +128,14 @@ fun GameScreen(
                         Row {
                             IconButton(onClick = { viewModel.onIntent(GameIntent.ShowActionLog) }) {
                                 Icon(
-                                    imageVector = Icons.Filled.Refresh,
+                                    imageVector = Icons.AutoMirrored.Filled.List,
                                     contentDescription = "Action Log",
                                     tint = MaterialTheme.colorScheme.primary,
                                 )
                             }
                             IconButton(onClick = { viewModel.onIntent(GameIntent.ShowHelp) }) {
                                 Icon(
-                                    imageVector = Icons.Filled.Help,
+                                    imageVector = Icons.AutoMirrored.Filled.Help,
                                     contentDescription = "Help",
                                     tint = MaterialTheme.colorScheme.primary,
                                 )
@@ -196,14 +197,14 @@ fun GameScreen(
                     Row {
                         IconButton(onClick = { viewModel.onIntent(GameIntent.ShowActionLog) }) {
                             Icon(
-                                imageVector = Icons.Filled.Refresh,
+                                imageVector = Icons.AutoMirrored.Filled.List,
                                 contentDescription = "Action Log",
                                 tint = MaterialTheme.colorScheme.primary,
                             )
                         }
                         IconButton(onClick = { viewModel.onIntent(GameIntent.ShowHelp) }) {
                             Icon(
-                                imageVector = Icons.Filled.Help,
+                                imageVector = Icons.AutoMirrored.Filled.Help,
                                 contentDescription = "Help",
                                 tint = MaterialTheme.colorScheme.primary,
                             )

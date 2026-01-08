@@ -24,19 +24,9 @@ class GameViewModel(
 
     private val _uiState =
         MutableStateFlow(
-            GameUiState(
-                health = 20,
-                deckSize = 44,
-                currentRoom = null,
-                weaponState = null,
-                defeatedMonstersCount = 0,
-                score = 20,
-                isGameOver = false,
-                isGameWon = false,
-                lastRoomAvoided = false,
-                canAvoidRoom = false,
-                actionLog = listOf(LogEntry.GameStarted(timestamp = System.currentTimeMillis())),
-            ),
+            GameState.newGame()
+                .toUiState()
+                .copy(actionLog = listOf(LogEntry.GameStarted(timestamp = System.currentTimeMillis()))),
         )
     val uiState: StateFlow<GameUiState> = _uiState.asStateFlow()
 
@@ -97,7 +87,10 @@ class GameViewModel(
     private fun handleDrawRoom() {
         val stateBefore = gameState.value
         val stateAfter = stateBefore.drawRoom()
-        val cardsDrawn = if (stateBefore.currentRoom == null) 4 else 3
+        // Calculate actual cards drawn based on room size change
+        val roomSizeBefore = stateBefore.currentRoom?.size ?: 0
+        val roomSizeAfter = stateAfter.currentRoom?.size ?: 0
+        val cardsDrawn = roomSizeAfter - roomSizeBefore
         actionLogEntries.add(
             LogEntry.RoomDrawn(
                 timestamp = System.currentTimeMillis(),

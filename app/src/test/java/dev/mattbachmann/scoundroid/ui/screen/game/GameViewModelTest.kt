@@ -18,6 +18,7 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
+import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -696,29 +697,28 @@ class GameViewModelTest {
                 assertNotNull(roomState.currentRoom)
                 val room = roomState.currentRoom!!
 
-                // Find a monster in the room
+                // Find a monster in the room - skip test if none found
                 val monster = room.find { it.type == CardType.MONSTER }
-                if (monster != null) {
-                    // Select 3 cards including the monster
-                    val cardsToSelect = room.take(3).toMutableList()
-                    if (monster !in cardsToSelect) {
-                        cardsToSelect[0] = monster
-                    }
-                    viewModel.onIntent(GameIntent.ProcessSelectedCards(cardsToSelect))
-                    testDispatcher.scheduler.advanceUntilIdle()
+                assumeTrue(monster != null)
 
-                    val state = awaitItem()
-                    // Find the MonsterFought entry for our specific monster
-                    val monsterEntry =
-                        state.actionLog.filterIsInstance<LogEntry.MonsterFought>()
-                            .find { it.monster == monster }
-                    assertNotNull(monsterEntry)
-                    assertNull(monsterEntry!!.weaponUsed)
-                    assertEquals(monster.value, monsterEntry.damageTaken)
-                    assertEquals(0, monsterEntry.damageBlocked)
-                    // Health after should be health before minus damage
-                    assertEquals(monsterEntry.healthBefore - monster.value, monsterEntry.healthAfter)
-                }
+                // Select 3 cards with monster FIRST to ensure barehanded fighting
+                // (weapons process in order, so monster first means no weapon equipped yet)
+                val otherCards = room.filter { it != monster }.take(2)
+                val cardsToSelect = listOf(monster!!) + otherCards
+                viewModel.onIntent(GameIntent.ProcessSelectedCards(cardsToSelect))
+                testDispatcher.scheduler.advanceUntilIdle()
+
+                val state = awaitItem()
+                // Find the MonsterFought entry for our specific monster
+                val monsterEntry =
+                    state.actionLog.filterIsInstance<LogEntry.MonsterFought>()
+                        .find { it.monster == monster }
+                assertNotNull(monsterEntry)
+                assertNull(monsterEntry!!.weaponUsed)
+                assertEquals(monster.value, monsterEntry.damageTaken)
+                assertEquals(0, monsterEntry.damageBlocked)
+                // Health after should be health before minus damage
+                assertEquals(monsterEntry.healthBefore - monster.value, monsterEntry.healthAfter)
                 cancelAndIgnoreRemainingEvents()
             }
         }
@@ -738,22 +738,22 @@ class GameViewModelTest {
                 assertNotNull(roomState.currentRoom)
                 val room = roomState.currentRoom!!
 
-                // Find a weapon in the room
+                // Find a weapon in the room - skip test if none found
                 val weapon = room.find { it.type == CardType.WEAPON }
-                if (weapon != null) {
-                    val cardsToSelect = room.take(3).toMutableList()
-                    if (weapon !in cardsToSelect) {
-                        cardsToSelect[0] = weapon
-                    }
-                    viewModel.onIntent(GameIntent.ProcessSelectedCards(cardsToSelect))
-                    testDispatcher.scheduler.advanceUntilIdle()
+                assumeTrue(weapon != null)
 
-                    val state = awaitItem()
-                    val weaponEntry = state.actionLog.filterIsInstance<LogEntry.WeaponEquipped>().firstOrNull()
-                    assertNotNull(weaponEntry)
-                    assertEquals(weapon, weaponEntry!!.weapon)
-                    assertNull(weaponEntry.replacedWeapon)
+                val cardsToSelect = room.take(3).toMutableList()
+                if (weapon !in cardsToSelect) {
+                    cardsToSelect[0] = weapon!!
                 }
+                viewModel.onIntent(GameIntent.ProcessSelectedCards(cardsToSelect))
+                testDispatcher.scheduler.advanceUntilIdle()
+
+                val state = awaitItem()
+                val weaponEntry = state.actionLog.filterIsInstance<LogEntry.WeaponEquipped>().firstOrNull()
+                assertNotNull(weaponEntry)
+                assertEquals(weapon, weaponEntry!!.weapon)
+                assertNull(weaponEntry.replacedWeapon)
                 cancelAndIgnoreRemainingEvents()
             }
         }
@@ -773,24 +773,24 @@ class GameViewModelTest {
                 assertNotNull(roomState.currentRoom)
                 val room = roomState.currentRoom!!
 
-                // Find a potion in the room
+                // Find a potion in the room - skip test if none found
                 val potion = room.find { it.type == CardType.POTION }
-                if (potion != null) {
-                    val cardsToSelect = room.take(3).toMutableList()
-                    if (potion !in cardsToSelect) {
-                        cardsToSelect[0] = potion
-                    }
-                    viewModel.onIntent(GameIntent.ProcessSelectedCards(cardsToSelect))
-                    testDispatcher.scheduler.advanceUntilIdle()
+                assumeTrue(potion != null)
 
-                    val state = awaitItem()
-                    val potionEntry = state.actionLog.filterIsInstance<LogEntry.PotionUsed>().firstOrNull()
-                    assertNotNull(potionEntry)
-                    assertEquals(potion, potionEntry!!.potion)
-                    assertFalse(potionEntry.wasDiscarded)
-                    // healthAfter should be >= healthBefore (healing or capped)
-                    assertTrue(potionEntry.healthAfter >= potionEntry.healthBefore)
+                val cardsToSelect = room.take(3).toMutableList()
+                if (potion !in cardsToSelect) {
+                    cardsToSelect[0] = potion!!
                 }
+                viewModel.onIntent(GameIntent.ProcessSelectedCards(cardsToSelect))
+                testDispatcher.scheduler.advanceUntilIdle()
+
+                val state = awaitItem()
+                val potionEntry = state.actionLog.filterIsInstance<LogEntry.PotionUsed>().firstOrNull()
+                assertNotNull(potionEntry)
+                assertEquals(potion, potionEntry!!.potion)
+                assertFalse(potionEntry.wasDiscarded)
+                // healthAfter should be >= healthBefore (healing or capped)
+                assertTrue(potionEntry.healthAfter >= potionEntry.healthBefore)
                 cancelAndIgnoreRemainingEvents()
             }
         }

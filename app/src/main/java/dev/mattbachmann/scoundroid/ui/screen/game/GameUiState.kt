@@ -1,6 +1,7 @@
 package dev.mattbachmann.scoundroid.ui.screen.game
 
 import dev.mattbachmann.scoundroid.data.model.Card
+import dev.mattbachmann.scoundroid.data.model.LogEntry
 import dev.mattbachmann.scoundroid.data.model.WeaponState
 
 /**
@@ -35,7 +36,7 @@ data class GameUiState(
     /** Whether to show the help/rules screen */
     val showHelp: Boolean = false,
     /** The action log entries */
-    val actionLog: List<dev.mattbachmann.scoundroid.data.model.LogEntry> = emptyList(),
+    val actionLog: List<LogEntry> = emptyList(),
     /** Whether to show the action log */
     val showActionLog: Boolean = false,
 )
