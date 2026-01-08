@@ -14,6 +14,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Help
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -80,6 +81,16 @@ fun GameScreen(
         }
     }
 
+    // Action log bottom sheet
+    if (uiState.showActionLog) {
+        ModalBottomSheet(
+            onDismissRequest = { viewModel.onIntent(GameIntent.HideActionLog) },
+            sheetState = rememberModalBottomSheetState(),
+        ) {
+            dev.mattbachmann.scoundroid.ui.component.ActionLogPanel(actionLog = uiState.actionLog)
+        }
+    }
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
     ) { innerPadding ->
@@ -113,12 +124,21 @@ fun GameScreen(
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary,
                         )
-                        IconButton(onClick = { viewModel.onIntent(GameIntent.ShowHelp) }) {
-                            Icon(
-                                imageVector = Icons.Filled.Help,
-                                contentDescription = "Help",
-                                tint = MaterialTheme.colorScheme.primary,
-                            )
+                        Row {
+                            IconButton(onClick = { viewModel.onIntent(GameIntent.ShowActionLog) }) {
+                                Icon(
+                                    imageVector = Icons.Filled.Refresh,
+                                    contentDescription = "Action Log",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                )
+                            }
+                            IconButton(onClick = { viewModel.onIntent(GameIntent.ShowHelp) }) {
+                                Icon(
+                                    imageVector = Icons.Filled.Help,
+                                    contentDescription = "Help",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                )
+                            }
                         }
                     }
                     GameStatusBar(
@@ -161,7 +181,7 @@ fun GameScreen(
                         .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(24.dp),
             ) {
-                // Title with help button
+                // Title with action log and help buttons
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -173,12 +193,21 @@ fun GameScreen(
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary,
                     )
-                    IconButton(onClick = { viewModel.onIntent(GameIntent.ShowHelp) }) {
-                        Icon(
-                            imageVector = Icons.Filled.Help,
-                            contentDescription = "Help",
-                            tint = MaterialTheme.colorScheme.primary,
-                        )
+                    Row {
+                        IconButton(onClick = { viewModel.onIntent(GameIntent.ShowActionLog) }) {
+                            Icon(
+                                imageVector = Icons.Filled.Refresh,
+                                contentDescription = "Action Log",
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
+                        }
+                        IconButton(onClick = { viewModel.onIntent(GameIntent.ShowHelp) }) {
+                            Icon(
+                                imageVector = Icons.Filled.Help,
+                                contentDescription = "Help",
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
+                        }
                     }
                 }
 

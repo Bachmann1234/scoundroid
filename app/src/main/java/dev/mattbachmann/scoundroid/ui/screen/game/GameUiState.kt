@@ -34,4 +34,8 @@ data class GameUiState(
     val isNewHighScore: Boolean = false,
     /** Whether to show the help/rules screen */
     val showHelp: Boolean = false,
+    /** The action log entries */
+    val actionLog: List<dev.mattbachmann.scoundroid.data.model.LogEntry> = emptyList(),
+    /** Whether to show the action log */
+    val showActionLog: Boolean = false,
 )

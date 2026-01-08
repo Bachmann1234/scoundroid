@@ -45,4 +45,14 @@ sealed class GameIntent {
      * Hide the help/rules screen.
      */
     data object HideHelp : GameIntent()
+
+    /**
+     * Show the action log.
+     */
+    data object ShowActionLog : GameIntent()
+
+    /**
+     * Hide the action log.
+     */
+    data object HideActionLog : GameIntent()
 }
