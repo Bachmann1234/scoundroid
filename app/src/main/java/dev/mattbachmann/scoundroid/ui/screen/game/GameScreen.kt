@@ -60,12 +60,10 @@ fun GameScreen(
         }
     }
 
-    val isExpanded = isExpandedScreen
-
     Scaffold(
         modifier = modifier.fillMaxSize(),
     ) { innerPadding ->
-        if (isExpanded) {
+        if (isExpandedScreen) {
             // Expanded layout: sidebar on left, game area on right
             Row(
                 modifier =
@@ -115,7 +113,7 @@ fun GameScreen(
                         selectedCards = selectedCards,
                         onSelectedCardsChange = { selectedCards = it },
                         onIntent = viewModel::onIntent,
-                        isExpanded = true,
+                        isExpandedScreen = true,
                     )
                 }
             }
@@ -153,7 +151,7 @@ fun GameScreen(
                     selectedCards = selectedCards,
                     onSelectedCardsChange = { selectedCards = it },
                     onIntent = viewModel::onIntent,
-                    isExpanded = false,
+                    isExpandedScreen = false,
                 )
             }
         }
@@ -169,7 +167,7 @@ private fun GameContent(
     selectedCards: Set<Card>,
     onSelectedCardsChange: (Set<Card>) -> Unit,
     onIntent: (GameIntent) -> Unit,
-    isExpanded: Boolean,
+    isExpandedScreen: Boolean,
 ) {
     // Game over / won message
     if (uiState.isGameOver) {
@@ -204,7 +202,7 @@ private fun GameContent(
                     cards = currentRoom,
                     selectedCards = emptySet(),
                     onCardClick = null,
-                    isExpanded = isExpanded,
+                    isExpanded = isExpandedScreen,
                 )
             } else {
                 // Room of 4 - allow selection
@@ -222,7 +220,7 @@ private fun GameContent(
                             },
                         )
                     },
-                    isExpanded = isExpanded,
+                    isExpanded = isExpandedScreen,
                 )
             }
 

@@ -215,10 +215,10 @@
 
 **Accomplishments:**
 
-- ✅ **WindowSizeClass Integration**
-  - Added `material3-window-size-class` dependency
-  - MainActivity calculates and passes `WindowWidthSizeClass` to GameScreen
-  - App detects compact (folded) vs medium/expanded (unfolded) modes
+- ✅ **Responsive Screen Detection**
+  - Uses `LocalConfiguration` to detect screen width at runtime
+  - MainActivity passes `isExpandedScreen` boolean to GameScreen
+  - Screen width >= 600dp triggers expanded (unfolded) layout
 
 - ✅ **Responsive GameScreen Layout**
   - Compact mode: Vertical stack layout (current behavior)
@@ -244,8 +244,7 @@
   - Added `android:resizeableActivity="true"` for foldable support
 
 **Files Modified:**
-- `build.gradle.kts` - Added material3-window-size-class dependency
-- `MainActivity.kt` - Added WindowSizeClass calculation
+- `MainActivity.kt` - Added `isExpandedScreen()` function using LocalConfiguration
 - `GameScreen.kt` - Added responsive layout with compact/expanded modes
 - `RoomDisplay.kt` - Added isExpanded parameter for 1x4 vs 2x2 layout
 - `CardView.kt` - Added configurable cardWidth/cardHeight parameters
