@@ -57,10 +57,12 @@ fun RoomDisplay(
                 ) {
                     CardView(
                         card = cards[0],
+                        isSelected = cards[0] in selectedCards,
                         onClick = { onCardClick(cards[0]) },
                     )
                     CardView(
                         card = cards[1],
+                        isSelected = cards[1] in selectedCards,
                         onClick = { onCardClick(cards[1]) },
                     )
                 }
@@ -70,10 +72,12 @@ fun RoomDisplay(
                 ) {
                     CardView(
                         card = cards[2],
+                        isSelected = cards[2] in selectedCards,
                         onClick = { onCardClick(cards[2]) },
                     )
                     CardView(
                         card = cards[3],
+                        isSelected = cards[3] in selectedCards,
                         onClick = { onCardClick(cards[3]) },
                     )
                 }
@@ -87,6 +91,7 @@ fun RoomDisplay(
                 cards.forEach { card ->
                     CardView(
                         card = card,
+                        isSelected = card in selectedCards,
                         onClick = { onCardClick(card) },
                     )
                 }
@@ -107,21 +112,22 @@ fun RoomDisplay(
 @Preview(showBackground = true)
 @Composable
 fun RoomDisplayPreview() {
+    val roomCards =
+        listOf(
+            Card(Suit.CLUBS, Rank.QUEEN),
+            Card(Suit.DIAMONDS, Rank.FIVE),
+            Card(Suit.HEARTS, Rank.SEVEN),
+            Card(Suit.SPADES, Rank.TEN),
+        )
     ScoundroidTheme {
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            // 4-card room
+            // 4-card room with 2 selected
             RoomDisplay(
-                cards =
-                    listOf(
-                        Card(Suit.CLUBS, Rank.QUEEN),
-                        Card(Suit.DIAMONDS, Rank.FIVE),
-                        Card(Suit.HEARTS, Rank.SEVEN),
-                        Card(Suit.SPADES, Rank.TEN),
-                    ),
-                selectedCards = emptySet(),
+                cards = roomCards,
+                selectedCards = setOf(roomCards[0], roomCards[2]),
                 onCardClick = {},
             )
 

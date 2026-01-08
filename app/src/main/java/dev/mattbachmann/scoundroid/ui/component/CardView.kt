@@ -14,6 +14,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -35,6 +37,7 @@ import dev.mattbachmann.scoundroid.ui.theme.ScoundroidTheme
 fun CardView(
     card: Card,
     modifier: Modifier = Modifier,
+    isSelected: Boolean = false,
     onClick: (() -> Unit)? = null,
 ) {
     val (backgroundColor, textColor, borderColor) =
@@ -62,15 +65,37 @@ fun CardView(
                 )
         }
 
+    val typeName =
+        when (card.type) {
+            CardType.MONSTER -> "Monster"
+            CardType.WEAPON -> "Weapon"
+            CardType.POTION -> "Potion"
+        }
+    val suitName =
+        when (card.suit) {
+            Suit.CLUBS -> "Clubs"
+            Suit.SPADES -> "Spades"
+            Suit.DIAMONDS -> "Diamonds"
+            Suit.HEARTS -> "Hearts"
+        }
+    val selectedText = if (isSelected) ", selected" else ""
+    val clickableText = if (onClick != null) ". Click to select" else ""
+    val accessibilityDescription =
+        "$typeName card, ${card.rank.displayName} of $suitName, value ${card.value}$selectedText$clickableText"
+
+    val actualBorderWidth = if (isSelected) 4.dp else 2.dp
+    val actualBorderColor = if (isSelected) Color(0xFFFFD700) else borderColor
+
     Card(
         modifier =
             modifier
-                .size(width = 100.dp, height = 140.dp),
+                .size(width = 100.dp, height = 140.dp)
+                .semantics { contentDescription = accessibilityDescription },
         colors =
             CardDefaults.cardColors(
                 containerColor = backgroundColor,
             ),
-        border = BorderStroke(2.dp, borderColor),
+        border = BorderStroke(actualBorderWidth, actualBorderColor),
         onClick = onClick ?: {},
     ) {
         Column(
@@ -117,8 +142,8 @@ fun CardViewPreview() {
             // Monster (Clubs)
             CardView(card = Card(Suit.CLUBS, Rank.QUEEN))
 
-            // Weapon (Diamonds)
-            CardView(card = Card(Suit.DIAMONDS, Rank.FIVE))
+            // Weapon (Diamonds) - selected
+            CardView(card = Card(Suit.DIAMONDS, Rank.FIVE), isSelected = true)
 
             // Potion (Hearts)
             CardView(card = Card(Suit.HEARTS, Rank.TEN))

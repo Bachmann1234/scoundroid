@@ -151,7 +151,12 @@ fun GameScreen(
                                     selectedCards = emptySet()
                                 },
                                 enabled = selectedCards.size == 3,
-                                modifier = Modifier.weight(1f),
+                                modifier =
+                                    if (uiState.canAvoidRoom) {
+                                        Modifier.weight(1f)
+                                    } else {
+                                        Modifier.fillMaxWidth()
+                                    },
                             ) {
                                 Text("Process ${selectedCards.size}/3 Cards")
                             }
