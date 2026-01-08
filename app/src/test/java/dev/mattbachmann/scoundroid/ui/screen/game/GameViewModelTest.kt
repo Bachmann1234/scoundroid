@@ -5,6 +5,10 @@ import dev.mattbachmann.scoundroid.data.model.Card
 import dev.mattbachmann.scoundroid.data.model.GameState
 import dev.mattbachmann.scoundroid.data.model.Rank
 import dev.mattbachmann.scoundroid.data.model.Suit
+import dev.mattbachmann.scoundroid.data.repository.HighScoreRepository
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -416,5 +420,122 @@ class GameViewModelTest {
                     .usePotion(testPotion(5)) // Health: 15 (second potion ignored)
 
             assertEquals(15, state.health) // 10 + 5 (first potion only), not 10 + 5 + 5
+        }
+
+    // ========== High Score Tests ==========
+
+    @Test
+    fun `initial state loads highest score from repository`() =
+        runTest {
+            val mockRepo = mockk<HighScoreRepository>(relaxed = true)
+            coEvery { mockRepo.getHighestScore() } returns 15
+
+            val viewModel = GameViewModel(mockRepo)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            viewModel.uiState.test {
+                val state = awaitItem()
+                assertEquals(15, state.highestScore)
+            }
+        }
+
+    @Test
+    fun `initial state shows null highest score when no scores exist`() =
+        runTest {
+            val mockRepo = mockk<HighScoreRepository>(relaxed = true)
+            coEvery { mockRepo.getHighestScore() } returns null
+
+            val viewModel = GameViewModel(mockRepo)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            viewModel.uiState.test {
+                val state = awaitItem()
+                assertNull(state.highestScore)
+            }
+        }
+
+    @Test
+    fun `isNewHighScore is true when current score beats existing high score`() =
+        runTest {
+            val mockRepo = mockk<HighScoreRepository>(relaxed = true)
+            coEvery { mockRepo.getHighestScore() } returns 10
+            coEvery { mockRepo.isNewHighScore(any()) } returns true
+
+            val viewModel = GameViewModel(mockRepo)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            viewModel.uiState.test {
+                val state = awaitItem()
+                // Initial health of 20 should beat high score of 10
+                assertTrue(state.isNewHighScore)
+            }
+        }
+
+    @Test
+    fun `isNewHighScore is false when current score is below existing high score`() =
+        runTest {
+            val mockRepo = mockk<HighScoreRepository>(relaxed = true)
+            coEvery { mockRepo.getHighestScore() } returns 20
+            coEvery { mockRepo.isNewHighScore(any()) } returns false
+
+            val viewModel = GameViewModel(mockRepo)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            viewModel.uiState.test {
+                val state = awaitItem()
+                assertFalse(state.isNewHighScore)
+            }
+        }
+
+    @Test
+    fun `score is saved when game is won`() =
+        runTest {
+            val mockRepo = mockk<HighScoreRepository>(relaxed = true)
+            coEvery { mockRepo.getHighestScore() } returns null
+            coEvery { mockRepo.isNewHighScore(any()) } returns true
+
+            val viewModel = GameViewModel(mockRepo)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            // Simulate winning by ending game (empty deck with health > 0)
+            viewModel.onIntent(GameIntent.GameEnded(score = 15, won = true))
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            coVerify { mockRepo.saveScore(score = 15, won = true) }
+        }
+
+    @Test
+    fun `score is saved when game is lost`() =
+        runTest {
+            val mockRepo = mockk<HighScoreRepository>(relaxed = true)
+            coEvery { mockRepo.getHighestScore() } returns null
+
+            val viewModel = GameViewModel(mockRepo)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            // Simulate losing
+            viewModel.onIntent(GameIntent.GameEnded(score = -30, won = false))
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            coVerify { mockRepo.saveScore(score = -30, won = false) }
+        }
+
+    @Test
+    fun `highest score is updated after saving new high score`() =
+        runTest {
+            val mockRepo = mockk<HighScoreRepository>(relaxed = true)
+            coEvery { mockRepo.getHighestScore() } returns 10 andThen 18
+            coEvery { mockRepo.isNewHighScore(any()) } returns true
+
+            val viewModel = GameViewModel(mockRepo)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            viewModel.onIntent(GameIntent.GameEnded(score = 18, won = true))
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            viewModel.uiState.test {
+                val state = awaitItem()
+                assertEquals(18, state.highestScore)
+            }
         }
 }

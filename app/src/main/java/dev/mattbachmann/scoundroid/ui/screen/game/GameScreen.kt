@@ -16,6 +16,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,6 +44,17 @@ fun GameScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var selectedCards by remember { mutableStateOf(setOf<Card>()) }
+    var scoreSaved by remember { mutableStateOf(false) }
+
+    // Save score when game ends, reset flag when new game starts
+    LaunchedEffect(uiState.isGameOver, uiState.isGameWon) {
+        if ((uiState.isGameOver || uiState.isGameWon) && !scoreSaved) {
+            viewModel.onIntent(GameIntent.GameEnded(uiState.score, uiState.isGameWon))
+            scoreSaved = true
+        } else if (!uiState.isGameOver && !uiState.isGameWon) {
+            scoreSaved = false
+        }
+    }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -77,6 +89,8 @@ fun GameScreen(
             if (uiState.isGameOver) {
                 GameOverScreen(
                     score = uiState.score,
+                    highestScore = uiState.highestScore,
+                    isNewHighScore = uiState.isNewHighScore,
                     onNewGame = {
                         viewModel.onIntent(GameIntent.NewGame)
                         selectedCards = emptySet()
@@ -85,6 +99,8 @@ fun GameScreen(
             } else if (uiState.isGameWon) {
                 GameWonScreen(
                     score = uiState.score,
+                    highestScore = uiState.highestScore,
+                    isNewHighScore = uiState.isNewHighScore,
                     onNewGame = {
                         viewModel.onIntent(GameIntent.NewGame)
                         selectedCards = emptySet()
@@ -208,6 +224,8 @@ fun GameScreen(
 @Composable
 private fun GameOverScreen(
     score: Int,
+    highestScore: Int?,
+    isNewHighScore: Boolean,
     onNewGame: () -> Unit,
 ) {
     Column(
@@ -230,6 +248,21 @@ private fun GameOverScreen(
             style = MaterialTheme.typography.headlineLarge,
         )
 
+        if (isNewHighScore) {
+            Text(
+                text = "NEW HIGH SCORE!",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.tertiary,
+            )
+        } else if (highestScore != null) {
+            Text(
+                text = "High Score: $highestScore",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+
         Button(
             onClick = onNewGame,
             modifier = Modifier.fillMaxWidth(),
@@ -245,6 +278,8 @@ private fun GameOverScreen(
 @Composable
 private fun GameWonScreen(
     score: Int,
+    highestScore: Int?,
+    isNewHighScore: Boolean,
     onNewGame: () -> Unit,
 ) {
     Column(
@@ -266,6 +301,21 @@ private fun GameWonScreen(
             text = "Final Score: $score",
             style = MaterialTheme.typography.headlineLarge,
         )
+
+        if (isNewHighScore) {
+            Text(
+                text = "NEW HIGH SCORE!",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.tertiary,
+            )
+        } else if (highestScore != null) {
+            Text(
+                text = "High Score: $highestScore",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
 
         Button(
             onClick = onNewGame,

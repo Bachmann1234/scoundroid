@@ -28,4 +28,11 @@ sealed class GameIntent {
      * @param selectedCards The 3 cards chosen from the room to process
      */
     data class ProcessSelectedCards(val selectedCards: List<Card>) : GameIntent()
+
+    /**
+     * Signal that the game has ended. Used to save the score.
+     * @param score The final score
+     * @param won Whether the player won
+     */
+    data class GameEnded(val score: Int, val won: Boolean) : GameIntent()
 }
