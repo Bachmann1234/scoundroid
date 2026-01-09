@@ -123,7 +123,7 @@ class GameFlowTest {
 
     @Test
     fun avoidRoom_whenAllowed() {
-        // First room cannot be avoided (canAvoidRoom starts false)
+        // First room CAN be avoided (lastRoomAvoided starts as false)
         // So we need to process one room first, then draw another
 
         // Draw first room

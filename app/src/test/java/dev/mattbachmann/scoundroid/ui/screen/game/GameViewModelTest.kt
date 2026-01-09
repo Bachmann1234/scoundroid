@@ -125,13 +125,17 @@ class GameViewModelTest {
 
                 // Process may pause for combat choices. Loop until room has 1 card (processing complete)
                 var currentState = awaitItem()
-                while (currentState.currentRoom?.size != 1) {
+                var safetyCounter = 0
+                val maxIterations = 100
+                while (currentState.currentRoom?.size != 1 && safetyCounter < maxIterations) {
                     if (currentState.pendingCombatChoice != null) {
                         viewModel.onIntent(GameIntent.ResolveCombatChoice(useWeapon = true))
                         testDispatcher.scheduler.advanceUntilIdle()
                     }
                     currentState = awaitItem()
+                    safetyCounter++
                 }
+                assertTrue(safetyCounter < maxIterations, "Exceeded max iterations; possible infinite loop")
 
                 // Draw next room (should draw 3 more + 1 remaining = 4 total)
                 viewModel.onIntent(GameIntent.DrawRoom)
@@ -236,13 +240,17 @@ class GameViewModelTest {
 
                 // Process may pause for combat choices. Loop until room has 1 card (processing complete)
                 var currentState = awaitItem()
-                while (currentState.currentRoom?.size != 1) {
+                var safetyCounter = 0
+                val maxIterations = 100
+                while (currentState.currentRoom?.size != 1 && safetyCounter < maxIterations) {
                     if (currentState.pendingCombatChoice != null) {
                         viewModel.onIntent(GameIntent.ResolveCombatChoice(useWeapon = true))
                         testDispatcher.scheduler.advanceUntilIdle()
                     }
                     currentState = awaitItem()
+                    safetyCounter++
                 }
+                assertTrue(safetyCounter < maxIterations, "Exceeded max iterations; possible infinite loop")
 
                 assertEquals(1, currentState.currentRoom!!.size) // 1 card left for next room
             }
@@ -756,11 +764,15 @@ class GameViewModelTest {
 
                 // Process may pause for combat choices (if later cards include weapon then monster)
                 var state = awaitItem()
-                while (state.pendingCombatChoice != null) {
+                var safetyCounter = 0
+                val maxIterations = 100
+                while (state.pendingCombatChoice != null && safetyCounter < maxIterations) {
                     viewModel.onIntent(GameIntent.ResolveCombatChoice(useWeapon = true))
                     testDispatcher.scheduler.advanceUntilIdle()
                     state = awaitItem()
+                    safetyCounter++
                 }
+                assertTrue(safetyCounter < maxIterations, "Exceeded max iterations; possible infinite loop")
 
                 // Find the MonsterFought entry for our specific monster
                 val monsterEntry =
@@ -804,11 +816,15 @@ class GameViewModelTest {
 
                 // Process may pause for combat choices if weapon is equipped then monster is fought
                 var state = awaitItem()
-                while (state.pendingCombatChoice != null) {
+                var safetyCounter = 0
+                val maxIterations = 100
+                while (state.pendingCombatChoice != null && safetyCounter < maxIterations) {
                     viewModel.onIntent(GameIntent.ResolveCombatChoice(useWeapon = true))
                     testDispatcher.scheduler.advanceUntilIdle()
                     state = awaitItem()
+                    safetyCounter++
                 }
+                assertTrue(safetyCounter < maxIterations, "Exceeded max iterations; possible infinite loop")
 
                 val weaponEntry = state.actionLog.filterIsInstance<LogEntry.WeaponEquipped>().firstOrNull()
                 assertNotNull(weaponEntry)
@@ -846,11 +862,15 @@ class GameViewModelTest {
 
                 // Process may pause for combat choices
                 var state = awaitItem()
-                while (state.pendingCombatChoice != null) {
+                var safetyCounter = 0
+                val maxIterations = 100
+                while (state.pendingCombatChoice != null && safetyCounter < maxIterations) {
                     viewModel.onIntent(GameIntent.ResolveCombatChoice(useWeapon = true))
                     testDispatcher.scheduler.advanceUntilIdle()
                     state = awaitItem()
+                    safetyCounter++
                 }
+                assertTrue(safetyCounter < maxIterations, "Exceeded max iterations; possible infinite loop")
 
                 val potionEntry = state.actionLog.filterIsInstance<LogEntry.PotionUsed>().firstOrNull()
                 assertNotNull(potionEntry)

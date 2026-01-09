@@ -274,9 +274,10 @@ class CombatTest {
     // ========== Combat Choice Behavior Tests ==========
 
     @Test
-    fun `weapon is automatically used when it can defeat monster`() {
-        // Note: Current implementation auto-uses weapon if canDefeat() is true
-        // Player cannot choose barehanded when weapon is usable
+    fun `fightMonster convenience method auto-uses weapon when it can defeat monster`() {
+        // Note: fightMonster() is a convenience method that auto-uses weapon if canDefeat() is true
+        // In actual gameplay, the ViewModel uses fightMonsterWithWeapon() or fightMonsterBarehanded()
+        // based on player choice
         val weapon = Card(Suit.DIAMONDS, Rank.SEVEN) // 7♦
         val game =
             GameState.newGame().copy(
