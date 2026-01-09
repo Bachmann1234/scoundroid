@@ -105,16 +105,20 @@ fun GameStatusBar(
                             "${weaponState.weapon.suit.symbol}${weaponState.weapon.rank.displayName} " +
                                 "(value: ${weaponState.weapon.value}, fresh)"
                         }
+                    val textStyle =
+                        if (isCompact) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium
                     Text(
                         text = weaponInfo,
-                        style = if (isCompact) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium,
+                        style = textStyle,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                     )
                 } else {
+                    val textStyle =
+                        if (isCompact) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium
                     Text(
                         text = "None",
-                        style = if (isCompact) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium,
+                        style = textStyle,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                     )

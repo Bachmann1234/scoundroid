@@ -56,16 +56,17 @@ fun PreviewPanel(
     ) {
         // Only enable scroll in compact mode where we have fixed height
         // In expanded mode, parent handles scrolling (avoid nested scroll crash)
-        val columnModifier = if (isCompact) {
-            Modifier
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
-                .padding(8.dp)
-        } else {
-            Modifier
-                .fillMaxWidth()
-                .padding(12.dp)
-        }
+        val columnModifier =
+            if (isCompact) {
+                Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(8.dp)
+            } else {
+                Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp)
+            }
         Column(
             modifier = columnModifier,
             verticalArrangement = Arrangement.spacedBy(if (isCompact) 4.dp else 8.dp),
@@ -94,7 +95,10 @@ fun PreviewPanel(
 }
 
 @Composable
-private fun PreviewEntryRow(entry: LogEntry, isCompact: Boolean = false) {
+private fun PreviewEntryRow(
+    entry: LogEntry,
+    isCompact: Boolean = false,
+) {
     val (icon, iconColor, description) =
         when (entry) {
             is LogEntry.MonsterFought -> {

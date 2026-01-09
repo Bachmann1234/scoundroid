@@ -10,10 +10,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -21,7 +17,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -260,10 +260,11 @@ fun PlaceholderCardView(
                                         // Draw center oval border
                                         drawOval(
                                             color = Color(0xFFF5F5DC),
-                                            topLeft = Offset(
-                                                centerX - ovalWidth / 2,
-                                                centerY - ovalHeight / 2,
-                                            ),
+                                            topLeft =
+                                                Offset(
+                                                    centerX - ovalWidth / 2,
+                                                    centerY - ovalHeight / 2,
+                                                ),
                                             size = Size(ovalWidth, ovalHeight),
                                             style = Stroke(width = 3f),
                                         )
@@ -271,10 +272,11 @@ fun PlaceholderCardView(
                                         // Fill center oval with solid color
                                         drawOval(
                                             color = Color(0xFF8B0000),
-                                            topLeft = Offset(
-                                                centerX - ovalWidth / 2 + 2,
-                                                centerY - ovalHeight / 2 + 2,
-                                            ),
+                                            topLeft =
+                                                Offset(
+                                                    centerX - ovalWidth / 2 + 2,
+                                                    centerY - ovalHeight / 2 + 2,
+                                                ),
                                             size = Size(ovalWidth - 4, ovalHeight - 4),
                                         )
                                     }

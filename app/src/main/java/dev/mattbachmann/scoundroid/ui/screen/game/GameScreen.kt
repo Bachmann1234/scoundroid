@@ -337,13 +337,6 @@ private fun RoomActionButtons(
                     }
                 }
                 1 -> {
-                    if (!isCompact) {
-                        Text(
-                            text = "This card stays for the next room",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
-                        )
-                    }
                     Button(
                         onClick = onDrawRoom,
                         modifier = Modifier.fillMaxWidth(),

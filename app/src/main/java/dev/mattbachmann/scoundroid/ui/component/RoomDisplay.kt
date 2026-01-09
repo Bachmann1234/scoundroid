@@ -41,9 +41,10 @@ fun RoomDisplay(
     val cardSpacing = if (isExpanded) 16.dp else 8.dp
 
     Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(bottom = if (isExpanded) 12.dp else 0.dp),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .padding(bottom = if (isExpanded) 12.dp else 0.dp),
         verticalArrangement = Arrangement.spacedBy(if (isExpanded) 16.dp else 8.dp),
     ) {
         Text(
@@ -69,48 +70,120 @@ fun RoomDisplay(
         // Use fixed height to prevent layout jumping between 1 card and 4 card states
         val cardAreaHeight = if (isExpanded) cardHeight else (cardHeight * 2 + cardSpacing)
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(cardAreaHeight),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(cardAreaHeight),
             contentAlignment = Alignment.Center,
         ) {
-        if (cards.isEmpty() && showPlaceholders) {
-            // Show placeholder cards when no room drawn yet
-            if (isExpanded) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(cardSpacing, Alignment.CenterHorizontally),
-                ) {
-                    repeat(4) {
-                        PlaceholderCardView(
-                            cardWidth = cardWidth,
-                            cardHeight = cardHeight,
-                        )
+            if (cards.isEmpty() && showPlaceholders) {
+                // Show placeholder cards when no room drawn yet
+                if (isExpanded) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(cardSpacing, Alignment.CenterHorizontally),
+                    ) {
+                        repeat(4) {
+                            PlaceholderCardView(
+                                cardWidth = cardWidth,
+                                cardHeight = cardHeight,
+                            )
+                        }
+                    }
+                } else {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(cardSpacing),
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(cardSpacing, Alignment.CenterHorizontally),
+                        ) {
+                            PlaceholderCardView(cardWidth = cardWidth, cardHeight = cardHeight)
+                            PlaceholderCardView(cardWidth = cardWidth, cardHeight = cardHeight)
+                        }
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(cardSpacing, Alignment.CenterHorizontally),
+                        ) {
+                            PlaceholderCardView(cardWidth = cardWidth, cardHeight = cardHeight)
+                            PlaceholderCardView(cardWidth = cardWidth, cardHeight = cardHeight)
+                        }
+                    }
+                }
+            } else if (cards.size == 4) {
+                if (isExpanded) {
+                    // Expanded mode: all 4 cards in a single horizontal row (larger cards)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(cardSpacing, Alignment.CenterHorizontally),
+                    ) {
+                        cards.forEach { card ->
+                            val orderIndex = selectedCards.indexOf(card)
+                            CardView(
+                                card = card,
+                                isSelected = card in selectedCards,
+                                selectionOrder = if (orderIndex >= 0) orderIndex + 1 else null,
+                                onClick = onCardClick?.let { { it(card) } },
+                                cardWidth = cardWidth,
+                                cardHeight = cardHeight,
+                            )
+                        }
+                    }
+                } else {
+                    // Compact mode: 2x2 grid
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(cardSpacing),
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(cardSpacing, Alignment.CenterHorizontally),
+                        ) {
+                            val orderIndex0 = selectedCards.indexOf(cards[0])
+                            CardView(
+                                card = cards[0],
+                                isSelected = cards[0] in selectedCards,
+                                selectionOrder = if (orderIndex0 >= 0) orderIndex0 + 1 else null,
+                                onClick = onCardClick?.let { { it(cards[0]) } },
+                                cardWidth = cardWidth,
+                                cardHeight = cardHeight,
+                            )
+                            val orderIndex1 = selectedCards.indexOf(cards[1])
+                            CardView(
+                                card = cards[1],
+                                isSelected = cards[1] in selectedCards,
+                                selectionOrder = if (orderIndex1 >= 0) orderIndex1 + 1 else null,
+                                onClick = onCardClick?.let { { it(cards[1]) } },
+                                cardWidth = cardWidth,
+                                cardHeight = cardHeight,
+                            )
+                        }
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(cardSpacing, Alignment.CenterHorizontally),
+                        ) {
+                            val orderIndex2 = selectedCards.indexOf(cards[2])
+                            CardView(
+                                card = cards[2],
+                                isSelected = cards[2] in selectedCards,
+                                selectionOrder = if (orderIndex2 >= 0) orderIndex2 + 1 else null,
+                                onClick = onCardClick?.let { { it(cards[2]) } },
+                                cardWidth = cardWidth,
+                                cardHeight = cardHeight,
+                            )
+                            val orderIndex3 = selectedCards.indexOf(cards[3])
+                            CardView(
+                                card = cards[3],
+                                isSelected = cards[3] in selectedCards,
+                                selectionOrder = if (orderIndex3 >= 0) orderIndex3 + 1 else null,
+                                onClick = onCardClick?.let { { it(cards[3]) } },
+                                cardWidth = cardWidth,
+                                cardHeight = cardHeight,
+                            )
+                        }
                     }
                 }
             } else {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(cardSpacing),
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(cardSpacing, Alignment.CenterHorizontally),
-                    ) {
-                        PlaceholderCardView(cardWidth = cardWidth, cardHeight = cardHeight)
-                        PlaceholderCardView(cardWidth = cardWidth, cardHeight = cardHeight)
-                    }
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(cardSpacing, Alignment.CenterHorizontally),
-                    ) {
-                        PlaceholderCardView(cardWidth = cardWidth, cardHeight = cardHeight)
-                        PlaceholderCardView(cardWidth = cardWidth, cardHeight = cardHeight)
-                    }
-                }
-            }
-        } else if (cards.size == 4) {
-            if (isExpanded) {
-                // Expanded mode: all 4 cards in a single horizontal row (larger cards)
+                // Single card or other layouts
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(cardSpacing, Alignment.CenterHorizontally),
@@ -127,78 +200,7 @@ fun RoomDisplay(
                         )
                     }
                 }
-            } else {
-                // Compact mode: 2x2 grid
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(cardSpacing),
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(cardSpacing, Alignment.CenterHorizontally),
-                    ) {
-                        val orderIndex0 = selectedCards.indexOf(cards[0])
-                        CardView(
-                            card = cards[0],
-                            isSelected = cards[0] in selectedCards,
-                            selectionOrder = if (orderIndex0 >= 0) orderIndex0 + 1 else null,
-                            onClick = onCardClick?.let { { it(cards[0]) } },
-                            cardWidth = cardWidth,
-                            cardHeight = cardHeight,
-                        )
-                        val orderIndex1 = selectedCards.indexOf(cards[1])
-                        CardView(
-                            card = cards[1],
-                            isSelected = cards[1] in selectedCards,
-                            selectionOrder = if (orderIndex1 >= 0) orderIndex1 + 1 else null,
-                            onClick = onCardClick?.let { { it(cards[1]) } },
-                            cardWidth = cardWidth,
-                            cardHeight = cardHeight,
-                        )
-                    }
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(cardSpacing, Alignment.CenterHorizontally),
-                    ) {
-                        val orderIndex2 = selectedCards.indexOf(cards[2])
-                        CardView(
-                            card = cards[2],
-                            isSelected = cards[2] in selectedCards,
-                            selectionOrder = if (orderIndex2 >= 0) orderIndex2 + 1 else null,
-                            onClick = onCardClick?.let { { it(cards[2]) } },
-                            cardWidth = cardWidth,
-                            cardHeight = cardHeight,
-                        )
-                        val orderIndex3 = selectedCards.indexOf(cards[3])
-                        CardView(
-                            card = cards[3],
-                            isSelected = cards[3] in selectedCards,
-                            selectionOrder = if (orderIndex3 >= 0) orderIndex3 + 1 else null,
-                            onClick = onCardClick?.let { { it(cards[3]) } },
-                            cardWidth = cardWidth,
-                            cardHeight = cardHeight,
-                        )
-                    }
-                }
             }
-        } else {
-            // Single card or other layouts
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(cardSpacing, Alignment.CenterHorizontally),
-            ) {
-                cards.forEach { card ->
-                    val orderIndex = selectedCards.indexOf(card)
-                    CardView(
-                        card = card,
-                        isSelected = card in selectedCards,
-                        selectionOrder = if (orderIndex >= 0) orderIndex + 1 else null,
-                        onClick = onCardClick?.let { { it(card) } },
-                        cardWidth = cardWidth,
-                        cardHeight = cardHeight,
-                    )
-                }
-            }
-        }
         }
 
         // Always reserve space for selection text to prevent layout shift
