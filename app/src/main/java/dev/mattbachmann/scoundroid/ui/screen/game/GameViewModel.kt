@@ -11,21 +11,28 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlin.random.Random
 
 /**
  * ViewModel for the game screen, managing game state and handling user intents.
  * Follows MVI (Model-View-Intent) pattern.
+ *
+ * @param highScoreRepository Repository for persisting high scores
+ * @param randomSeed Optional seed for deterministic shuffling (useful for tests)
  */
 class GameViewModel(
     private val highScoreRepository: HighScoreRepository? = null,
+    private val randomSeed: Long? = null,
 ) : ViewModel() {
-    private val _gameState = MutableStateFlow(GameState.newGame())
+    private fun createRandom(): Random = randomSeed?.let { Random(it) } ?: Random
+
+    private val _gameState = MutableStateFlow(GameState.newGame(createRandom()))
     private val gameState: StateFlow<GameState> = _gameState.asStateFlow()
 
     private val initialGameStarted = LogEntry.GameStarted(timestamp = System.currentTimeMillis())
     private val _uiState =
         MutableStateFlow(
-            GameState.newGame()
+            GameState.newGame(createRandom())
                 .toUiState()
                 .copy(actionLog = listOf(initialGameStarted)),
         )
@@ -92,7 +99,7 @@ class GameViewModel(
 
         actionLogEntries.clear()
         actionLogEntries.add(LogEntry.GameStarted(timestamp = System.currentTimeMillis()))
-        updateGameState(GameState.newGame())
+        updateGameState(GameState.newGame(createRandom()))
     }
 
     private fun handleDrawRoom() {

@@ -1,17 +1,21 @@
 package dev.mattbachmann.scoundroid.ui
 
+import androidx.compose.runtime.remember
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasText
-import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import dev.mattbachmann.scoundroid.MainActivity
+import dev.mattbachmann.scoundroid.ui.screen.game.GameScreen
+import dev.mattbachmann.scoundroid.ui.screen.game.GameViewModel
+import dev.mattbachmann.scoundroid.ui.theme.ScoundroidTheme
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -19,11 +23,27 @@ import org.junit.runner.RunWith
 /**
  * End-to-end UI tests for Scoundroid game flows.
  * Tests critical user journeys through the application.
+ *
+ * Uses a seeded random for deterministic card shuffling, making tests stable and reproducible.
  */
 @RunWith(AndroidJUnit4::class)
 class GameFlowTest {
     @get:Rule
-    val composeTestRule = createAndroidComposeRule<MainActivity>()
+    val composeTestRule = createComposeRule()
+
+    // Seed that produces a survivable game with varied card types
+    // First room with seed 42: includes potions and lower-damage monsters
+    private val testSeed = 42L
+
+    @Before
+    fun setUp() {
+        composeTestRule.setContent {
+            ScoundroidTheme {
+                val viewModel = remember { GameViewModel(randomSeed = testSeed) }
+                GameScreen(viewModel = viewModel)
+            }
+        }
+    }
 
     @Test
     fun newGame_showsInitialState() {
@@ -95,12 +115,6 @@ class GameFlowTest {
         composeTestRule.processCards()
 
         // After processing, room should have 1 card remaining and "Draw Next Room" button should appear
-        // OR the game might have ended if player took too much damage from monsters
-        if (isGameEnded()) {
-            // Game ended - that's valid behavior with random cards
-            return
-        }
-
         composeTestRule.onNode(hasText("Draw Next Room") and hasClickAction()).assertIsDisplayed()
 
         // Deck size should be reduced (44 - 4 = 40)
@@ -125,11 +139,6 @@ class GameFlowTest {
             composeTestRule.waitForIdle()
         }
         composeTestRule.processCards()
-
-        // Check if game ended after first room processing
-        if (isGameEnded()) {
-            return // Game ended - valid behavior with random cards
-        }
 
         // Draw next room (filling remaining card + 3 more = 4 cards)
         composeTestRule.drawNextRoom()
@@ -164,11 +173,6 @@ class GameFlowTest {
             composeTestRule.waitForIdle()
         }
         composeTestRule.processCards()
-
-        // Check if game ended after first room processing
-        if (isGameEnded()) {
-            return // Game ended - valid behavior with random cards
-        }
 
         // Draw second room
         composeTestRule.drawNextRoom()
@@ -251,90 +255,22 @@ class GameFlowTest {
     @Test
     fun multipleRooms_gameProgresses() {
         // Play through multiple rooms to verify game continues correctly
-        // Note: With random cards, the game might end early if player takes too much damage
+        // With seeded random, card order is deterministic
 
         // Room 1
         composeTestRule.drawRoom()
         selectAndProcessThreeCards()
 
-        // Check if game ended after first room
-        if (isGameEnded()) {
-            // Game ended - that's valid behavior with random cards
-            return
-        }
-
         // Room 2
         composeTestRule.drawNextRoom()
         selectAndProcessThreeCards()
-
-        if (isGameEnded()) {
-            return
-        }
 
         // Room 3
         composeTestRule.drawNextRoom()
         selectAndProcessThreeCards()
 
-        // If we get here, verify the deck size decreased
         // After 3 rooms: 44 - (4 + 3 + 3) = 34 cards in deck
-        if (!isGameEnded()) {
-            composeTestRule.assertDeckSize(34)
-        }
-    }
-
-    @Test
-    fun gameEnds_eventuallyShowsEndScreen() {
-        // Play through rooms until game ends (either victory or game over)
-        // This test verifies the game can reach an end state
-        var roomsPlayed = 0
-        val maxRooms = 15 // Safety limit to prevent infinite loop
-
-        composeTestRule.drawRoom()
-
-        while (roomsPlayed < maxRooms) {
-            // Check if game ended
-            try {
-                composeTestRule.onNodeWithTag("game_over_screen").assertIsDisplayed()
-                // Game over - test passes
-                return
-            } catch (_: AssertionError) {
-                // Not game over, continue
-            }
-
-            try {
-                composeTestRule.onNodeWithTag("victory_screen").assertIsDisplayed()
-                // Victory - test passes
-                return
-            } catch (_: AssertionError) {
-                // Not victory, continue
-            }
-
-            // Process current room
-            try {
-                selectAndProcessThreeCards()
-                roomsPlayed++
-
-                // Draw next room if possible
-                try {
-                    composeTestRule.drawNextRoom()
-                } catch (_: AssertionError) {
-                    // Might be at Draw Room instead
-                    try {
-                        composeTestRule.drawRoom()
-                    } catch (_: AssertionError) {
-                        // Game might have ended
-                        break
-                    }
-                }
-            } catch (_: AssertionError) {
-                // Can't select cards - game might have ended
-                break
-            }
-        }
-
-        // If we got here, verify we're in an end state or still playing
-        // (just verify the game didn't crash)
-        composeTestRule.waitForIdle()
+        composeTestRule.assertDeckSize(34)
     }
 
     @Test
@@ -345,23 +281,9 @@ class GameFlowTest {
         // Process first room
         selectAndProcessThreeCards()
 
-        // Check if game ended after first room
-        if (isGameEnded()) {
-            return // Game ended - valid behavior with random cards
-        }
-
         // Draw and process second room
         composeTestRule.drawNextRoom()
         selectAndProcessThreeCards()
-
-        // Check if game ended after second room
-        if (isGameEnded()) {
-            return // Game ended - valid behavior with random cards
-        }
-
-        // After fighting monsters, health should potentially be different
-        // (depends on random cards, but game state should be valid)
-        composeTestRule.waitForIdle()
 
         // Verify health display exists and shows a valid value
         composeTestRule.onNodeWithTag("health_display").assertIsDisplayed()
@@ -372,15 +294,12 @@ class GameFlowTest {
         // Play through rooms to potentially equip a weapon
         composeTestRule.drawRoom()
         selectAndProcessThreeCards()
-        if (isGameEnded()) return
 
         composeTestRule.drawNextRoom()
         selectAndProcessThreeCards()
-        if (isGameEnded()) return
 
         composeTestRule.drawNextRoom()
         selectAndProcessThreeCards()
-        if (isGameEnded()) return
 
         // Weapon display should exist (shows "None" or weapon info)
         composeTestRule.onNodeWithTag("weapon_display").assertIsDisplayed()
@@ -391,11 +310,9 @@ class GameFlowTest {
         // Play through rooms with monsters
         composeTestRule.drawRoom()
         selectAndProcessThreeCards()
-        if (isGameEnded()) return
 
         composeTestRule.drawNextRoom()
         selectAndProcessThreeCards()
-        if (isGameEnded()) return
 
         // Defeated count display should be visible
         composeTestRule.onNodeWithTag("defeated_display").assertIsDisplayed()
@@ -431,20 +348,6 @@ class GameFlowTest {
                 composeTestRule.waitForIdle()
             }
             composeTestRule.processCards()
-        }
-    }
-
-    private fun isGameEnded(): Boolean {
-        return try {
-            composeTestRule.onNodeWithTag("game_over_screen").assertIsDisplayed()
-            true
-        } catch (_: AssertionError) {
-            try {
-                composeTestRule.onNodeWithTag("victory_screen").assertIsDisplayed()
-                true
-            } catch (_: AssertionError) {
-                false
-            }
         }
     }
 }
