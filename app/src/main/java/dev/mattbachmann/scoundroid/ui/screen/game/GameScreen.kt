@@ -104,9 +104,11 @@ fun GameScreen(
     ) { innerPadding ->
         // Background gradient brush
         val backgroundGradient =
-            Brush.verticalGradient(
-                colors = listOf(GradientTop, GradientBottom),
-            )
+            remember {
+                Brush.verticalGradient(
+                    colors = listOf(GradientTop, GradientBottom),
+                )
+            }
 
         if (isExpandedScreen) {
             // Expanded layout: title at top, cards in center, controls on bottom
@@ -292,7 +294,7 @@ private fun RoomActionButtons(
 ) {
     val buttonSpacing = if (isCompact) 4.dp else 8.dp
     val buttonTextStyle = if (isCompact) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleLarge
-    val buttonShape = RoundedCornerShape(12.dp)
+    val buttonShape = remember { RoundedCornerShape(12.dp) }
     val primaryButtonColors =
         ButtonDefaults.buttonColors(
             containerColor = ButtonPrimary,
@@ -712,12 +714,16 @@ private fun GameOverScreen(
         }
 
         if (showButton) {
+            val buttonShape = remember { RoundedCornerShape(12.dp) }
+            val buttonColors = ButtonDefaults.buttonColors(containerColor = ButtonPrimary)
+            val buttonElevation =
+                ButtonDefaults.buttonElevation(defaultElevation = 4.dp, pressedElevation = 8.dp)
             Button(
                 onClick = onNewGame,
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = ButtonPrimary),
-                elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp, pressedElevation = 8.dp),
+                shape = buttonShape,
+                colors = buttonColors,
+                elevation = buttonElevation,
             ) {
                 Text(
                     text = "New Game",
@@ -772,12 +778,16 @@ private fun GameWonScreen(
         }
 
         if (showButton) {
+            val buttonShape = remember { RoundedCornerShape(12.dp) }
+            val buttonColors = ButtonDefaults.buttonColors(containerColor = ButtonPrimary)
+            val buttonElevation =
+                ButtonDefaults.buttonElevation(defaultElevation = 4.dp, pressedElevation = 8.dp)
             Button(
                 onClick = onNewGame,
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = ButtonPrimary),
-                elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp, pressedElevation = 8.dp),
+                shape = buttonShape,
+                colors = buttonColors,
+                elevation = buttonElevation,
             ) {
                 Text(
                     text = "New Game",

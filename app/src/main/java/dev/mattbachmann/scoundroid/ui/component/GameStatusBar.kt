@@ -88,19 +88,24 @@ fun GameStatusBar(
         previousHealth = health
     }
 
-    // Low health pulse animation
+    // Low health pulse animation - only run when health is low to avoid unnecessary computation
     val isLowHealth = health <= 5
-    val infiniteTransition = rememberInfiniteTransition(label = "lowHealthPulse")
-    val pulseAlpha by infiniteTransition.animateFloat(
-        initialValue = 1f,
-        targetValue = 0.3f,
-        animationSpec =
-            infiniteRepeatable(
-                animation = tween(500),
-                repeatMode = RepeatMode.Reverse,
-            ),
-        label = "pulseAlpha",
-    )
+    val pulseAlpha =
+        if (isLowHealth) {
+            val infiniteTransition = rememberInfiniteTransition(label = "lowHealthPulse")
+            infiniteTransition.animateFloat(
+                initialValue = 1f,
+                targetValue = 0.3f,
+                animationSpec =
+                    infiniteRepeatable(
+                        animation = tween(500),
+                        repeatMode = RepeatMode.Reverse,
+                    ),
+                label = "pulseAlpha",
+            ).value
+        } else {
+            1f
+        }
 
     // Animated health color - incorporates flash and low health pulse
     val baseColor =

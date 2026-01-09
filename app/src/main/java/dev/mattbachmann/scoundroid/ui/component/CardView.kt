@@ -158,13 +158,6 @@ fun CardView(
                     color = textColor,
                 )
 
-                // Value - only show if different from rank (face cards: J=11, Q=12, K=13, A=14)
-                val showValue = card.rank.displayName != card.value.toString()
-                Text(
-                    text = if (showValue) "${card.value}" else "",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = textColor,
-                )
             }
         }
 
