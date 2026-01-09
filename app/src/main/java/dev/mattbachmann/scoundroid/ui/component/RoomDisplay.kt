@@ -1,9 +1,11 @@
 package dev.mattbachmann.scoundroid.ui.component
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -62,6 +64,14 @@ fun RoomDisplay(
         )
 
         // Display cards - 1x4 row for expanded mode, 2x2 grid for compact mode
+        // Use fixed height to prevent layout jumping between 1 card and 4 card states
+        val cardAreaHeight = if (isExpanded) cardHeight else (cardHeight * 2 + cardSpacing)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(cardAreaHeight),
+            contentAlignment = Alignment.Center,
+        ) {
         if (cards.isEmpty() && showPlaceholders) {
             // Show placeholder cards when no room drawn yet
             if (isExpanded) {
@@ -186,6 +196,7 @@ fun RoomDisplay(
                     )
                 }
             }
+        }
         }
 
         // Always reserve space for selection text to prevent layout shift
