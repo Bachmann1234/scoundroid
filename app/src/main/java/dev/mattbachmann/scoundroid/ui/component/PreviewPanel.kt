@@ -55,12 +55,20 @@ fun PreviewPanel(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
             ),
     ) {
+        // Only enable scroll in compact mode where we have fixed height
+        // In expanded mode, parent handles scrolling (avoid nested scroll crash)
+        val columnModifier = if (isCompact) {
+            Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(8.dp)
+        } else {
+            Modifier
+                .fillMaxWidth()
+                .padding(12.dp)
+        }
         Column(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
-                    .padding(if (isCompact) 8.dp else 12.dp),
+            modifier = columnModifier,
             verticalArrangement = Arrangement.spacedBy(if (isCompact) 4.dp else 8.dp),
         ) {
             Text(
