@@ -128,6 +128,10 @@ fun CardView(
                 CardDefaults.cardColors(
                     containerColor = backgroundColor,
                 ),
+            elevation =
+                CardDefaults.cardElevation(
+                    defaultElevation = 6.dp,
+                ),
             border = BorderStroke(actualBorderWidth, actualBorderColor),
             onClick = onClick ?: {},
         ) {

@@ -1,6 +1,10 @@
 package dev.mattbachmann.scoundroid.ui.component
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -84,13 +88,34 @@ fun GameStatusBar(
         previousHealth = health
     }
 
-    // Animated health color
+    // Low health pulse animation
+    val isLowHealth = health <= 5
+    val infiniteTransition = rememberInfiniteTransition(label = "lowHealthPulse")
+    val pulseAlpha by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 0.3f,
+        animationSpec =
+            infiniteRepeatable(
+                animation = tween(500),
+                repeatMode = RepeatMode.Reverse,
+            ),
+        label = "pulseAlpha",
+    )
+
+    // Animated health color - incorporates flash and low health pulse
+    val baseColor =
+        when (healthFlashState) {
+            HealthFlashState.DAMAGE -> Color(0xFFFF1744) // Bright red
+            HealthFlashState.HEALING -> Color(0xFF00E676) // Bright green
+            HealthFlashState.NONE ->
+                if (isLowHealth) Color(0xFFFF1744) else MaterialTheme.colorScheme.onPrimaryContainer
+        }
     val healthTextColor by animateColorAsState(
         targetValue =
-            when (healthFlashState) {
-                HealthFlashState.DAMAGE -> Color(0xFFFF1744) // Bright red
-                HealthFlashState.HEALING -> Color(0xFF00E676) // Bright green
-                HealthFlashState.NONE -> MaterialTheme.colorScheme.onPrimaryContainer
+            if (isLowHealth && healthFlashState == HealthFlashState.NONE) {
+                baseColor.copy(alpha = pulseAlpha)
+            } else {
+                baseColor
             },
         animationSpec = tween(durationMillis = 200),
         label = "healthColor",
