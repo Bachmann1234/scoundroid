@@ -41,7 +41,9 @@ fun RoomDisplay(
     val cardSpacing = if (isExpanded) 16.dp else 8.dp
 
     Column(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(bottom = if (isExpanded) 12.dp else 0.dp),
         verticalArrangement = Arrangement.spacedBy(if (isExpanded) 16.dp else 8.dp),
     ) {
         Text(

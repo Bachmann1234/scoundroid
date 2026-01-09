@@ -29,7 +29,7 @@ import androidx.compose.ui.unit.dp
 import dev.mattbachmann.scoundroid.data.model.LogEntry
 
 private val PREVIEW_PANEL_HEIGHT_COMPACT = 95.dp
-private val PREVIEW_PANEL_HEIGHT_EXPANDED = 160.dp
+private val PREVIEW_PANEL_HEIGHT_EXPANDED = 140.dp
 
 /**
  * Displays a preview of what will happen when processing the selected cards.
