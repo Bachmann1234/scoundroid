@@ -111,7 +111,20 @@ class GameViewModel(
                 cardsReturned = cardsReturned,
             ),
         )
-        updateGameState(stateBefore.avoidRoom())
+        // Avoid the room, then auto-draw the next room
+        val stateAfterAvoid = stateBefore.avoidRoom()
+        val stateAfterDraw = stateAfterAvoid.drawRoom()
+
+        // Log the auto-drawn room
+        val cardsDrawn = stateAfterDraw.currentRoom?.size ?: 0
+        actionLogEntries.add(
+            LogEntry.RoomDrawn(
+                timestamp = System.currentTimeMillis(),
+                cardsDrawn = cardsDrawn,
+                deckSizeAfter = stateAfterDraw.deck.cards.size,
+            ),
+        )
+        updateGameState(stateAfterDraw)
     }
 
     private fun handleProcessSelectedCards(selectedCards: List<Card>) {

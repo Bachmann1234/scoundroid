@@ -136,7 +136,7 @@ class GameViewModelTest {
     // ========== Room Avoidance Tests ==========
 
     @Test
-    fun `avoidRoom intent moves all 4 cards to bottom of deck`() =
+    fun `avoidRoom intent moves all 4 cards to bottom of deck and auto-draws new room`() =
         runTest {
             val viewModel = GameViewModel()
 
@@ -148,8 +148,11 @@ class GameViewModelTest {
 
             viewModel.uiState.test {
                 val state = awaitItem()
-                assertNull(state.currentRoom)
-                assertEquals(44, state.deckSize) // Cards returned to deck
+                // After avoid, a new room is auto-drawn
+                assertNotNull(state.currentRoom)
+                assertEquals(4, state.currentRoom!!.size)
+                // Avoided 4 cards go to bottom, new 4 drawn from top
+                assertEquals(40, state.deckSize)
                 assertTrue(state.lastRoomAvoided)
             }
         }
@@ -159,18 +162,17 @@ class GameViewModelTest {
         runTest {
             val viewModel = GameViewModel()
 
-            // Draw and avoid first room
+            // Draw and avoid first room (auto-draws second room)
             viewModel.onIntent(GameIntent.DrawRoom)
             testDispatcher.scheduler.advanceUntilIdle()
             viewModel.onIntent(GameIntent.AvoidRoom)
             testDispatcher.scheduler.advanceUntilIdle()
 
-            // Draw second room
-            viewModel.onIntent(GameIntent.DrawRoom)
-            testDispatcher.scheduler.advanceUntilIdle()
-
+            // Second room is already auto-drawn after avoid
             viewModel.uiState.test {
                 val state = awaitItem()
+                // Room exists (auto-drawn) but cannot avoid because last room was avoided
+                assertNotNull(state.currentRoom)
                 assertFalse(state.canAvoidRoom)
             }
         }
@@ -674,10 +676,35 @@ class GameViewModelTest {
                 testDispatcher.scheduler.advanceUntilIdle()
 
                 val state = awaitItem()
-                val lastEntry = state.actionLog.last()
-                assertTrue(lastEntry is LogEntry.RoomAvoided)
-                val roomAvoided = lastEntry as LogEntry.RoomAvoided
-                assertEquals(4, roomAvoided.cardsReturned)
+                // Log should have RoomAvoided followed by RoomDrawn (auto-draw)
+                val roomAvoidedEntry = state.actionLog.filterIsInstance<LogEntry.RoomAvoided>().last()
+                assertEquals(4, roomAvoidedEntry.cardsReturned)
+                val roomDrawnEntry = state.actionLog.filterIsInstance<LogEntry.RoomDrawn>().last()
+                assertTrue(roomDrawnEntry.cardsDrawn > 0)
+            }
+        }
+
+    @Test
+    fun `avoidRoom auto-draws next room`() =
+        runTest {
+            val viewModel = GameViewModel()
+
+            viewModel.uiState.test {
+                awaitItem() // Initial state
+
+                viewModel.onIntent(GameIntent.DrawRoom)
+                testDispatcher.scheduler.advanceUntilIdle()
+                awaitItem()
+
+                viewModel.onIntent(GameIntent.AvoidRoom)
+                testDispatcher.scheduler.advanceUntilIdle()
+
+                val state = awaitItem()
+                // After avoiding, a new room should be automatically drawn
+                assertNotNull(state.currentRoom)
+                assertEquals(4, state.currentRoom!!.size)
+                // Deck should still be 40 (avoided 4 goes to bottom, new 4 drawn)
+                assertEquals(40, state.deckSize)
             }
         }
 
