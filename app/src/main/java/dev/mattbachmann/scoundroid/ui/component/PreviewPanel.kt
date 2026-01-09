@@ -28,7 +28,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import dev.mattbachmann.scoundroid.data.model.LogEntry
 
-private val PREVIEW_PANEL_HEIGHT_EXPANDED = 130.dp
 private val PREVIEW_PANEL_HEIGHT_COMPACT = 95.dp
 
 /**
@@ -42,12 +41,15 @@ fun PreviewPanel(
     placeholderText: String = "Select cards to see preview",
     isCompact: Boolean = false,
 ) {
-    val panelHeight = if (isCompact) PREVIEW_PANEL_HEIGHT_COMPACT else PREVIEW_PANEL_HEIGHT_EXPANDED
+    // Only use fixed height in compact mode to prevent layout jumping
+    // In expanded mode, let content determine height
+    val panelModifier = if (isCompact) {
+        modifier.fillMaxWidth().height(PREVIEW_PANEL_HEIGHT_COMPACT)
+    } else {
+        modifier.fillMaxWidth()
+    }
     Card(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .height(panelHeight),
+        modifier = panelModifier,
         colors =
             CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
@@ -77,7 +79,7 @@ fun PreviewPanel(
             } else {
                 // Show entries in processing order (not reversed)
                 previewEntries.forEach { entry ->
-                    PreviewEntryRow(entry = entry)
+                    PreviewEntryRow(entry = entry, isCompact = isCompact)
                 }
             }
         }
@@ -85,7 +87,7 @@ fun PreviewPanel(
 }
 
 @Composable
-private fun PreviewEntryRow(entry: LogEntry) {
+private fun PreviewEntryRow(entry: LogEntry, isCompact: Boolean = false) {
     val (icon, iconColor, description) =
         when (entry) {
             is LogEntry.MonsterFought -> {
@@ -164,7 +166,7 @@ private fun PreviewEntryRow(entry: LogEntry) {
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = description,
-                style = MaterialTheme.typography.bodySmall,
+                style = if (isCompact) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface,
             )
         }
