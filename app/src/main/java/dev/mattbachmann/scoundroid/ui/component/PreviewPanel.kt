@@ -44,9 +44,11 @@ fun PreviewPanel(
 ) {
     // Use fixed height in both modes to prevent layout jumping
     val panelHeight = if (isCompact) PREVIEW_PANEL_HEIGHT_COMPACT else PREVIEW_PANEL_HEIGHT_EXPANDED
-    val panelModifier = modifier.fillMaxWidth().height(panelHeight)
     Card(
-        modifier = panelModifier,
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .height(panelHeight),
         colors =
             CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),

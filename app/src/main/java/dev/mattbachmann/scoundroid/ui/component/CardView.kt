@@ -225,7 +225,7 @@ fun PlaceholderCardView(
                                 .background(Color(0xFF8B0000))
                                 .drawWithCache {
                                     val patternColor = Color(0xFFCD5C5C) // Indian red for pattern
-                                    val spacing = 12f
+                                    val spacing = 16f
                                     val strokeWidth = 1.5f
                                     val centerX = size.width / 2
                                     val centerY = size.height / 2

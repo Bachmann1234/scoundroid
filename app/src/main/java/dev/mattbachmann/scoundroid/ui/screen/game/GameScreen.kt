@@ -302,7 +302,10 @@ private fun RoomActionButtons(
                                 onClick = onAvoidRoom,
                                 modifier = Modifier.weight(1f),
                             ) {
-                                Text("Avoid Room")
+                                Text(
+                                    text = "Avoid Room",
+                                    style = buttonTextStyle,
+                                )
                             }
                         }
 
@@ -316,7 +319,10 @@ private fun RoomActionButtons(
                                     Modifier.fillMaxWidth()
                                 },
                         ) {
-                            Text("Process ${selectedCards.size}/3 Cards")
+                            Text(
+                                text = "Process ${selectedCards.size}/3 Cards",
+                                style = buttonTextStyle,
+                            )
                         }
                     }
 
