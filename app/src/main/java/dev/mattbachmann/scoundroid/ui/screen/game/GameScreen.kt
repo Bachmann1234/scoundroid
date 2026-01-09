@@ -241,6 +241,21 @@ fun GameScreen(
 }
 
 /**
+ * Handles card selection logic - toggles card selection up to max of 3.
+ */
+private fun toggleCardSelection(
+    card: Card,
+    selectedCards: Set<Card>,
+): Set<Card> =
+    if (card in selectedCards) {
+        selectedCards - card
+    } else if (selectedCards.size < 3) {
+        selectedCards + card
+    } else {
+        selectedCards
+    }
+
+/**
  * Game content that adapts to compact or expanded layouts.
  */
 @Composable
@@ -292,15 +307,7 @@ private fun GameContent(
                     cards = currentRoom,
                     selectedCards = selectedCards,
                     onCardClick = { card ->
-                        onSelectedCardsChange(
-                            if (card in selectedCards) {
-                                selectedCards - card
-                            } else if (selectedCards.size < 3) {
-                                selectedCards + card
-                            } else {
-                                selectedCards
-                            },
-                        )
+                        onSelectedCardsChange(toggleCardSelection(card, selectedCards))
                     },
                     isExpanded = isExpandedScreen,
                 )
@@ -411,6 +418,7 @@ private fun ExpandedCardsSection(
             highestScore = uiState.highestScore,
             isNewHighScore = uiState.isNewHighScore,
             onNewGame = {},
+            showButton = false,
         )
     } else if (uiState.isGameWon) {
         GameWonScreen(
@@ -418,6 +426,7 @@ private fun ExpandedCardsSection(
             highestScore = uiState.highestScore,
             isNewHighScore = uiState.isNewHighScore,
             onNewGame = {},
+            showButton = false,
         )
     } else {
         val currentRoom = uiState.currentRoom
@@ -434,15 +443,7 @@ private fun ExpandedCardsSection(
                     cards = currentRoom,
                     selectedCards = selectedCards,
                     onCardClick = { card ->
-                        onSelectedCardsChange(
-                            if (card in selectedCards) {
-                                selectedCards - card
-                            } else if (selectedCards.size < 3) {
-                                selectedCards + card
-                            } else {
-                                selectedCards
-                            },
-                        )
+                        onSelectedCardsChange(toggleCardSelection(card, selectedCards))
                     },
                     isExpanded = true,
                 )
@@ -508,22 +509,33 @@ private fun ExpandedControlsSection(
                             onSelectedCardsChange(emptySet())
                         },
                         enabled = selectedCards.size == 3,
-                        modifier = Modifier.weight(1f),
+                        modifier =
+                            if (uiState.canAvoidRoom) {
+                                Modifier.weight(1f)
+                            } else {
+                                Modifier.fillMaxWidth()
+                            },
                     ) {
                         Text("Process ${selectedCards.size}/3 Cards")
                     }
+                }
 
-                    OutlinedButton(
-                        onClick = {
-                            onIntent(GameIntent.NewGame)
-                            onSelectedCardsChange(emptySet())
-                        },
-                        modifier = Modifier.weight(1f),
-                    ) {
-                        Text("New Game")
-                    }
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedButton(
+                    onClick = {
+                        onIntent(GameIntent.NewGame)
+                        onSelectedCardsChange(emptySet())
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text("New Game")
                 }
             } else if (currentRoom.size == 1) {
+                Text(
+                    text = "This card stays for the next room",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+                )
                 Button(
                     onClick = { onIntent(GameIntent.DrawRoom) },
                     modifier = Modifier.fillMaxWidth(),
@@ -532,6 +544,17 @@ private fun ExpandedControlsSection(
                         text = "Draw Next Room",
                         style = MaterialTheme.typography.titleLarge,
                     )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedButton(
+                    onClick = {
+                        onIntent(GameIntent.NewGame)
+                        onSelectedCardsChange(emptySet())
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text("New Game")
                 }
             }
         } else {
@@ -544,6 +567,17 @@ private fun ExpandedControlsSection(
                     style = MaterialTheme.typography.titleLarge,
                 )
             }
+
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedButton(
+                onClick = {
+                    onIntent(GameIntent.NewGame)
+                    onSelectedCardsChange(emptySet())
+                },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text("New Game")
+            }
         }
     }
 }
@@ -554,6 +588,7 @@ private fun GameOverScreen(
     highestScore: Int?,
     isNewHighScore: Boolean,
     onNewGame: () -> Unit,
+    showButton: Boolean = true,
 ) {
     Column(
         modifier =
@@ -590,14 +625,16 @@ private fun GameOverScreen(
             )
         }
 
-        Button(
-            onClick = onNewGame,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text(
-                text = "New Game",
-                style = MaterialTheme.typography.titleLarge,
-            )
+        if (showButton) {
+            Button(
+                onClick = onNewGame,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(
+                    text = "New Game",
+                    style = MaterialTheme.typography.titleLarge,
+                )
+            }
         }
     }
 }
@@ -608,6 +645,7 @@ private fun GameWonScreen(
     highestScore: Int?,
     isNewHighScore: Boolean,
     onNewGame: () -> Unit,
+    showButton: Boolean = true,
 ) {
     Column(
         modifier =
@@ -644,14 +682,16 @@ private fun GameWonScreen(
             )
         }
 
-        Button(
-            onClick = onNewGame,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text(
-                text = "New Game",
-                style = MaterialTheme.typography.titleLarge,
-            )
+        if (showButton) {
+            Button(
+                onClick = onNewGame,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(
+                    text = "New Game",
+                    style = MaterialTheme.typography.titleLarge,
+                )
+            }
         }
     }
 }
