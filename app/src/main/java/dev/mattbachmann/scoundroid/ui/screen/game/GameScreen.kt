@@ -3,10 +3,8 @@ package dev.mattbachmann.scoundroid.ui.screen.game
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -259,6 +257,157 @@ private fun toggleCardSelection(
     }
 
 /**
+ * Shared action buttons for room interactions.
+ * Used by both compact and expanded layouts.
+ */
+@Composable
+private fun RoomActionButtons(
+    currentRoom: List<Card>?,
+    selectedCards: List<Card>,
+    canAvoidRoom: Boolean,
+    isGameOver: Boolean,
+    isGameWon: Boolean,
+    onAvoidRoom: () -> Unit,
+    onProcessCards: () -> Unit,
+    onDrawRoom: () -> Unit,
+    onNewGame: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        if (isGameOver || isGameWon) {
+            Button(
+                onClick = onNewGame,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(
+                    text = "New Game",
+                    style = MaterialTheme.typography.titleLarge,
+                )
+            }
+        } else if (currentRoom != null) {
+            when (currentRoom.size) {
+                4 -> {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        if (canAvoidRoom) {
+                            OutlinedButton(
+                                onClick = onAvoidRoom,
+                                modifier = Modifier.weight(1f),
+                            ) {
+                                Text("Avoid Room")
+                            }
+                        }
+
+                        Button(
+                            onClick = onProcessCards,
+                            enabled = selectedCards.size == 3,
+                            modifier =
+                                if (canAvoidRoom) {
+                                    Modifier.weight(1f)
+                                } else {
+                                    Modifier.fillMaxWidth()
+                                },
+                        ) {
+                            Text("Process ${selectedCards.size}/3 Cards")
+                        }
+                    }
+
+                    OutlinedButton(
+                        onClick = onNewGame,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text("New Game")
+                    }
+                }
+                1 -> {
+                    Text(
+                        text = "This card stays for the next room",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+                    )
+                    Button(
+                        onClick = onDrawRoom,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(
+                            text = "Draw Next Room",
+                            style = MaterialTheme.typography.titleLarge,
+                        )
+                    }
+
+                    OutlinedButton(
+                        onClick = onNewGame,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text("New Game")
+                    }
+                }
+            }
+        } else {
+            Button(
+                onClick = onDrawRoom,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(
+                    text = "Draw Room",
+                    style = MaterialTheme.typography.titleLarge,
+                )
+            }
+
+            OutlinedButton(
+                onClick = onNewGame,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text("New Game")
+            }
+        }
+    }
+}
+
+/**
+ * Shared room cards display.
+ * Used by both compact and expanded layouts.
+ */
+@Composable
+private fun RoomCardsDisplay(
+    currentRoom: List<Card>?,
+    selectedCards: List<Card>,
+    isExpanded: Boolean,
+    onCardClick: ((Card) -> Unit)?,
+) {
+    if (currentRoom != null) {
+        if (currentRoom.size == 1) {
+            RoomDisplay(
+                cards = currentRoom,
+                selectedCards = emptyList(),
+                onCardClick = null,
+                isExpanded = isExpanded,
+            )
+        } else {
+            RoomDisplay(
+                cards = currentRoom,
+                selectedCards = selectedCards,
+                onCardClick = onCardClick,
+                isExpanded = isExpanded,
+            )
+        }
+    } else {
+        RoomDisplay(
+            cards = emptyList(),
+            selectedCards = emptyList(),
+            onCardClick = null,
+            isExpanded = isExpanded,
+            showPlaceholders = true,
+        )
+    }
+}
+
+/**
  * Game content that adapts to compact or expanded layouts.
  */
 @Composable
@@ -292,123 +441,45 @@ private fun GameContent(
             },
         )
     } else {
-        // Active game
+        // Active game - show room cards
+        RoomCardsDisplay(
+            currentRoom = uiState.currentRoom,
+            selectedCards = selectedCards,
+            isExpanded = isExpandedScreen,
+            onCardClick = { card ->
+                onSelectedCardsChange(toggleCardSelection(card, selectedCards))
+            },
+        )
+
+        // Preview panel - show what will happen when processing selected cards
         val currentRoom = uiState.currentRoom
-        if (currentRoom != null) {
-            // Show current room
-            if (currentRoom.size == 1) {
-                // Single card remaining - show it but don't allow clicking
-                // This card becomes part of the next room
-                RoomDisplay(
-                    cards = currentRoom,
-                    selectedCards = emptyList(),
-                    onCardClick = null,
-                    isExpanded = isExpandedScreen,
-                )
-            } else {
-                // Room of 4 - allow selection
-                RoomDisplay(
-                    cards = currentRoom,
-                    selectedCards = selectedCards,
-                    onCardClick = { card ->
-                        onSelectedCardsChange(toggleCardSelection(card, selectedCards))
-                    },
-                    isExpanded = isExpandedScreen,
-                )
-
-                // Preview panel - show what will happen when processing selected cards
-                PreviewPanel(
-                    previewEntries = simulateProcessing(selectedCards),
-                )
-            }
-
-            // Room actions
-            if (currentRoom.size == 4) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    // Avoid room button
-                    if (uiState.canAvoidRoom) {
-                        OutlinedButton(
-                            onClick = {
-                                onIntent(GameIntent.AvoidRoom)
-                                onSelectedCardsChange(emptyList())
-                            },
-                            modifier = Modifier.weight(1f),
-                        ) {
-                            Text("Avoid Room")
-                        }
-                    }
-
-                    // Process selected cards button
-                    Button(
-                        onClick = {
-                            onIntent(
-                                GameIntent.ProcessSelectedCards(selectedCards),
-                            )
-                            onSelectedCardsChange(emptyList())
-                        },
-                        enabled = selectedCards.size == 3,
-                        modifier =
-                            if (uiState.canAvoidRoom) {
-                                Modifier.weight(1f)
-                            } else {
-                                Modifier.fillMaxWidth()
-                            },
-                    ) {
-                        Text("Process ${selectedCards.size}/3 Cards")
-                    }
-                }
-            } else if (currentRoom.size == 1) {
-                // 1 card remaining - show Draw Room button to continue
-                Text(
-                    text = "This card stays for the next room",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
-                )
-                Button(
-                    onClick = { onIntent(GameIntent.DrawRoom) },
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(
-                        text = "Draw Next Room",
-                        style = MaterialTheme.typography.titleLarge,
-                    )
-                }
-            }
-        } else {
-            // No room - show placeholders and draw button
-            RoomDisplay(
-                cards = emptyList(),
-                selectedCards = emptyList(),
-                onCardClick = null,
-                isExpanded = isExpandedScreen,
-                showPlaceholders = true,
+        if (currentRoom != null && currentRoom.size == 4) {
+            PreviewPanel(
+                previewEntries = simulateProcessing(selectedCards),
             )
-
-            Button(
-                onClick = { onIntent(GameIntent.DrawRoom) },
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(
-                    text = "Draw Room",
-                    style = MaterialTheme.typography.titleLarge,
-                )
-            }
         }
 
-        // New game button (always available)
-        Spacer(modifier = Modifier.height(8.dp))
-        OutlinedButton(
-            onClick = {
+        // Action buttons
+        RoomActionButtons(
+            currentRoom = uiState.currentRoom,
+            selectedCards = selectedCards,
+            canAvoidRoom = uiState.canAvoidRoom,
+            isGameOver = false,
+            isGameWon = false,
+            onAvoidRoom = {
+                onIntent(GameIntent.AvoidRoom)
+                onSelectedCardsChange(emptyList())
+            },
+            onProcessCards = {
+                onIntent(GameIntent.ProcessSelectedCards(selectedCards))
+                onSelectedCardsChange(emptyList())
+            },
+            onDrawRoom = { onIntent(GameIntent.DrawRoom) },
+            onNewGame = {
                 onIntent(GameIntent.NewGame)
                 onSelectedCardsChange(emptyList())
             },
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text("New Game")
-        }
+        )
     }
 }
 
@@ -438,34 +509,14 @@ private fun ExpandedCardsSection(
             showButton = false,
         )
     } else {
-        val currentRoom = uiState.currentRoom
-        if (currentRoom != null) {
-            if (currentRoom.size == 1) {
-                RoomDisplay(
-                    cards = currentRoom,
-                    selectedCards = emptyList(),
-                    onCardClick = null,
-                    isExpanded = true,
-                )
-            } else {
-                RoomDisplay(
-                    cards = currentRoom,
-                    selectedCards = selectedCards,
-                    onCardClick = { card ->
-                        onSelectedCardsChange(toggleCardSelection(card, selectedCards))
-                    },
-                    isExpanded = true,
-                )
-            }
-        } else {
-            RoomDisplay(
-                cards = emptyList(),
-                selectedCards = emptyList(),
-                onCardClick = null,
-                isExpanded = true,
-                showPlaceholders = true,
-            )
-        }
+        RoomCardsDisplay(
+            currentRoom = uiState.currentRoom,
+            selectedCards = selectedCards,
+            isExpanded = true,
+            onCardClick = { card ->
+                onSelectedCardsChange(toggleCardSelection(card, selectedCards))
+            },
+        )
     }
 }
 
@@ -480,123 +531,35 @@ private fun ExpandedControlsSection(
     onIntent: (GameIntent) -> Unit,
     simulateProcessing: (List<Card>) -> List<LogEntry>,
 ) {
-    if (uiState.isGameOver || uiState.isGameWon) {
-        Button(
-            onClick = {
-                onIntent(GameIntent.NewGame)
-                onSelectedCardsChange(emptyList())
-            },
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text(
-                text = "New Game",
-                style = MaterialTheme.typography.titleLarge,
-            )
-        }
-    } else {
-        val currentRoom = uiState.currentRoom
-        if (currentRoom != null) {
-            // Preview panel - show what will happen when processing selected cards
-            if (currentRoom.size == 4) {
-                PreviewPanel(
-                    previewEntries = simulateProcessing(selectedCards),
-                )
-            }
-
-            if (currentRoom.size == 4) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    if (uiState.canAvoidRoom) {
-                        OutlinedButton(
-                            onClick = {
-                                onIntent(GameIntent.AvoidRoom)
-                                onSelectedCardsChange(emptyList())
-                            },
-                            modifier = Modifier.weight(1f),
-                        ) {
-                            Text("Avoid Room")
-                        }
-                    }
-
-                    Button(
-                        onClick = {
-                            onIntent(GameIntent.ProcessSelectedCards(selectedCards))
-                            onSelectedCardsChange(emptyList())
-                        },
-                        enabled = selectedCards.size == 3,
-                        modifier =
-                            if (uiState.canAvoidRoom) {
-                                Modifier.weight(1f)
-                            } else {
-                                Modifier.fillMaxWidth()
-                            },
-                    ) {
-                        Text("Process ${selectedCards.size}/3 Cards")
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedButton(
-                    onClick = {
-                        onIntent(GameIntent.NewGame)
-                        onSelectedCardsChange(emptyList())
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text("New Game")
-                }
-            } else if (currentRoom.size == 1) {
-                Text(
-                    text = "This card stays for the next room",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
-                )
-                Button(
-                    onClick = { onIntent(GameIntent.DrawRoom) },
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(
-                        text = "Draw Next Room",
-                        style = MaterialTheme.typography.titleLarge,
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedButton(
-                    onClick = {
-                        onIntent(GameIntent.NewGame)
-                        onSelectedCardsChange(emptyList())
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text("New Game")
-                }
-            }
-        } else {
-            Button(
-                onClick = { onIntent(GameIntent.DrawRoom) },
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(
-                    text = "Draw Room",
-                    style = MaterialTheme.typography.titleLarge,
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-            OutlinedButton(
-                onClick = {
-                    onIntent(GameIntent.NewGame)
-                    onSelectedCardsChange(emptyList())
-                },
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text("New Game")
-            }
-        }
+    // Preview panel - show what will happen when processing selected cards
+    val currentRoom = uiState.currentRoom
+    if (!uiState.isGameOver && !uiState.isGameWon && currentRoom != null && currentRoom.size == 4) {
+        PreviewPanel(
+            previewEntries = simulateProcessing(selectedCards),
+        )
     }
+
+    // Action buttons
+    RoomActionButtons(
+        currentRoom = uiState.currentRoom,
+        selectedCards = selectedCards,
+        canAvoidRoom = uiState.canAvoidRoom,
+        isGameOver = uiState.isGameOver,
+        isGameWon = uiState.isGameWon,
+        onAvoidRoom = {
+            onIntent(GameIntent.AvoidRoom)
+            onSelectedCardsChange(emptyList())
+        },
+        onProcessCards = {
+            onIntent(GameIntent.ProcessSelectedCards(selectedCards))
+            onSelectedCardsChange(emptyList())
+        },
+        onDrawRoom = { onIntent(GameIntent.DrawRoom) },
+        onNewGame = {
+            onIntent(GameIntent.NewGame)
+            onSelectedCardsChange(emptyList())
+        },
+    )
 }
 
 @Composable
