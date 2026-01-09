@@ -83,10 +83,13 @@ private fun PreviewEntryRow(entry: LogEntry) {
                         "barehanded"
                     }
                 val healthChange = "${entry.healthBefore} -> ${entry.healthAfter} HP"
+                // Dark red for monsters
                 PreviewEntryDisplay(
                     icon = Icons.Default.Shield,
-                    iconColor = Color(0xFFB71C1C), // Dark red for monsters
-                    description = "Fight ${entry.monster.displayName} $weaponInfo, take ${entry.damageTaken} damage ($healthChange)",
+                    iconColor = Color(0xFFB71C1C),
+                    description =
+                        "Fight ${entry.monster.displayName} $weaponInfo, " +
+                            "take ${entry.damageTaken} damage ($healthChange)",
                 )
             }
             is LogEntry.WeaponEquipped -> {
@@ -96,9 +99,10 @@ private fun PreviewEntryRow(entry: LogEntry) {
                     } else {
                         ""
                     }
+                // Blue for weapons
                 PreviewEntryDisplay(
                     icon = Icons.Default.Shield,
-                    iconColor = Color(0xFF1565C0), // Blue for weapons
+                    iconColor = Color(0xFF1565C0),
                     description = "Equip ${entry.weapon.displayName}$replaceInfo",
                 )
             }
@@ -111,10 +115,13 @@ private fun PreviewEntryRow(entry: LogEntry) {
                     )
                 } else {
                     val healthChange = "${entry.healthBefore} -> ${entry.healthAfter} HP"
+                    // Green for healing
                     PreviewEntryDisplay(
                         icon = Icons.Default.Favorite,
-                        iconColor = Color(0xFF2E7D32), // Green for healing
-                        description = "Drink ${entry.potion.displayName}, restore ${entry.healthRestored} HP ($healthChange)",
+                        iconColor = Color(0xFF2E7D32),
+                        description =
+                            "Drink ${entry.potion.displayName}, " +
+                                "restore ${entry.healthRestored} HP ($healthChange)",
                     )
                 }
             }
