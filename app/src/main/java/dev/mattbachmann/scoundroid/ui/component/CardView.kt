@@ -21,8 +21,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -110,10 +110,11 @@ fun CardView(
     // Scale animation for selection feedback
     val scale by animateFloatAsState(
         targetValue = if (isSelected) 1.08f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium,
-        ),
+        animationSpec =
+            spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessMedium,
+            ),
         label = "cardScale",
     )
 
@@ -153,9 +154,10 @@ fun CardView(
                     color = textColor,
                 )
 
-                // Value
+                // Value - only show if different from rank (face cards: J=11, Q=12, K=13, A=14)
+                val showValue = card.rank.displayName != card.value.toString()
                 Text(
-                    text = "${card.value}",
+                    text = if (showValue) "${card.value}" else "",
                     style = MaterialTheme.typography.bodyLarge,
                     color = textColor,
                 )

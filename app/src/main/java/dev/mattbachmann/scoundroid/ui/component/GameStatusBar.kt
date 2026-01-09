@@ -24,12 +24,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.delay
 import dev.mattbachmann.scoundroid.data.model.Card
 import dev.mattbachmann.scoundroid.data.model.Rank
 import dev.mattbachmann.scoundroid.data.model.Suit
 import dev.mattbachmann.scoundroid.data.model.WeaponState
 import dev.mattbachmann.scoundroid.ui.theme.ScoundroidTheme
+import kotlinx.coroutines.delay
 
 /**
  * Health flash animation states.
@@ -86,11 +86,12 @@ fun GameStatusBar(
 
     // Animated health color
     val healthTextColor by animateColorAsState(
-        targetValue = when (healthFlashState) {
-            HealthFlashState.DAMAGE -> Color(0xFFFF1744) // Bright red
-            HealthFlashState.HEALING -> Color(0xFF00E676) // Bright green
-            HealthFlashState.NONE -> MaterialTheme.colorScheme.onPrimaryContainer
-        },
+        targetValue =
+            when (healthFlashState) {
+                HealthFlashState.DAMAGE -> Color(0xFFFF1744) // Bright red
+                HealthFlashState.HEALING -> Color(0xFF00E676) // Bright green
+                HealthFlashState.NONE -> MaterialTheme.colorScheme.onPrimaryContainer
+            },
         animationSpec = tween(durationMillis = 200),
         label = "healthColor",
     )

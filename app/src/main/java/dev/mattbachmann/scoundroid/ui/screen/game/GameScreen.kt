@@ -1,5 +1,6 @@
 package dev.mattbachmann.scoundroid.ui.screen.game
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -7,11 +8,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -30,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -42,6 +46,10 @@ import dev.mattbachmann.scoundroid.ui.component.HelpContent
 import dev.mattbachmann.scoundroid.ui.component.PreviewPanel
 import dev.mattbachmann.scoundroid.ui.component.RoomDisplay
 import dev.mattbachmann.scoundroid.ui.component.StatusBarLayout
+import dev.mattbachmann.scoundroid.ui.theme.ButtonPrimary
+import dev.mattbachmann.scoundroid.ui.theme.GradientBottom
+import dev.mattbachmann.scoundroid.ui.theme.GradientTop
+import dev.mattbachmann.scoundroid.ui.theme.Purple80
 import dev.mattbachmann.scoundroid.ui.theme.ScoundroidTheme
 
 /**
@@ -94,12 +102,19 @@ fun GameScreen(
     Scaffold(
         modifier = modifier.fillMaxSize(),
     ) { innerPadding ->
+        // Background gradient brush
+        val backgroundGradient =
+            Brush.verticalGradient(
+                colors = listOf(GradientTop, GradientBottom),
+            )
+
         if (isExpandedScreen) {
             // Expanded layout: title at top, cards in center, controls on bottom
             Column(
                 modifier =
                     Modifier
                         .fillMaxSize()
+                        .background(backgroundGradient)
                         .padding(innerPadding)
                         .padding(16.dp),
             ) {
@@ -113,21 +128,21 @@ fun GameScreen(
                         text = "Scoundroid",
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary,
+                        color = Purple80,
                     )
                     Row {
                         IconButton(onClick = { viewModel.onIntent(GameIntent.ShowActionLog) }) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.List,
                                 contentDescription = "Action Log",
-                                tint = MaterialTheme.colorScheme.primary,
+                                tint = Purple80,
                             )
                         }
                         IconButton(onClick = { viewModel.onIntent(GameIntent.ShowHelp) }) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.Help,
                                 contentDescription = "Help",
-                                tint = MaterialTheme.colorScheme.primary,
+                                tint = Purple80,
                             )
                         }
                     }
@@ -183,6 +198,7 @@ fun GameScreen(
                 modifier =
                     Modifier
                         .fillMaxSize()
+                        .background(backgroundGradient)
                         .padding(innerPadding)
                         .verticalScroll(rememberScrollState())
                         .padding(12.dp),
@@ -198,21 +214,21 @@ fun GameScreen(
                         text = "Scoundroid",
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary,
+                        color = Purple80,
                     )
                     Row {
                         IconButton(onClick = { viewModel.onIntent(GameIntent.ShowActionLog) }) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.List,
                                 contentDescription = "Action Log",
-                                tint = MaterialTheme.colorScheme.primary,
+                                tint = Purple80,
                             )
                         }
                         IconButton(onClick = { viewModel.onIntent(GameIntent.ShowHelp) }) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.Help,
                                 contentDescription = "Help",
-                                tint = MaterialTheme.colorScheme.primary,
+                                tint = Purple80,
                             )
                         }
                     }
@@ -276,6 +292,20 @@ private fun RoomActionButtons(
 ) {
     val buttonSpacing = if (isCompact) 4.dp else 8.dp
     val buttonTextStyle = if (isCompact) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleLarge
+    val buttonShape = RoundedCornerShape(12.dp)
+    val primaryButtonColors =
+        ButtonDefaults.buttonColors(
+            containerColor = ButtonPrimary,
+        )
+    val primaryButtonElevation =
+        ButtonDefaults.buttonElevation(
+            defaultElevation = 4.dp,
+            pressedElevation = 8.dp,
+        )
+    val outlinedButtonColors =
+        ButtonDefaults.outlinedButtonColors(
+            contentColor = Purple80,
+        )
 
     Column(
         modifier = modifier,
@@ -285,6 +315,9 @@ private fun RoomActionButtons(
             Button(
                 onClick = onNewGame,
                 modifier = Modifier.fillMaxWidth(),
+                shape = buttonShape,
+                colors = primaryButtonColors,
+                elevation = primaryButtonElevation,
             ) {
                 Text(
                     text = "New Game",
@@ -302,6 +335,8 @@ private fun RoomActionButtons(
                             OutlinedButton(
                                 onClick = onAvoidRoom,
                                 modifier = Modifier.weight(1f),
+                                shape = buttonShape,
+                                colors = outlinedButtonColors,
                             ) {
                                 Text(
                                     text = "Avoid Room",
@@ -319,6 +354,9 @@ private fun RoomActionButtons(
                                 } else {
                                     Modifier.fillMaxWidth()
                                 },
+                            shape = buttonShape,
+                            colors = primaryButtonColors,
+                            elevation = primaryButtonElevation,
                         ) {
                             Text(
                                 text = "Process ${selectedCards.size}/3 Cards",
@@ -330,6 +368,8 @@ private fun RoomActionButtons(
                     OutlinedButton(
                         onClick = onNewGame,
                         modifier = Modifier.fillMaxWidth(),
+                        shape = buttonShape,
+                        colors = outlinedButtonColors,
                     ) {
                         Text(
                             text = "New Game",
@@ -341,6 +381,9 @@ private fun RoomActionButtons(
                     Button(
                         onClick = onDrawRoom,
                         modifier = Modifier.fillMaxWidth(),
+                        shape = buttonShape,
+                        colors = primaryButtonColors,
+                        elevation = primaryButtonElevation,
                     ) {
                         Text(
                             text = "Draw Next Room",
@@ -351,6 +394,8 @@ private fun RoomActionButtons(
                     OutlinedButton(
                         onClick = onNewGame,
                         modifier = Modifier.fillMaxWidth(),
+                        shape = buttonShape,
+                        colors = outlinedButtonColors,
                     ) {
                         Text(
                             text = "New Game",
@@ -363,6 +408,9 @@ private fun RoomActionButtons(
             Button(
                 onClick = onDrawRoom,
                 modifier = Modifier.fillMaxWidth(),
+                shape = buttonShape,
+                colors = primaryButtonColors,
+                elevation = primaryButtonElevation,
             ) {
                 Text(
                     text = "Draw Room",
@@ -373,6 +421,8 @@ private fun RoomActionButtons(
             OutlinedButton(
                 onClick = onNewGame,
                 modifier = Modifier.fillMaxWidth(),
+                shape = buttonShape,
+                colors = outlinedButtonColors,
             ) {
                 Text(
                     text = "New Game",
@@ -665,6 +715,9 @@ private fun GameOverScreen(
             Button(
                 onClick = onNewGame,
                 modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = ButtonPrimary),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp, pressedElevation = 8.dp),
             ) {
                 Text(
                     text = "New Game",
@@ -722,6 +775,9 @@ private fun GameWonScreen(
             Button(
                 onClick = onNewGame,
                 modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = ButtonPrimary),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp, pressedElevation = 8.dp),
             ) {
                 Text(
                     text = "New Game",
