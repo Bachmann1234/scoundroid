@@ -10,6 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -47,13 +48,13 @@ fun RoomDisplay(
             fontWeight = FontWeight.Bold,
         )
 
-        if (cards.size == 4) {
-            Text(
-                text = "Select 3 cards to process (leave 1 for next room)",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
-            )
-        }
+        // Always reserve space for instruction text to prevent layout shift
+        Text(
+            text = "Select 3 cards to process (leave 1 for next room)",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+            modifier = Modifier.alpha(if (cards.size == 4) 1f else 0f),
+        )
 
         // Display cards - 1x4 row for expanded mode, 2x2 grid for compact mode
         if (cards.isEmpty() && showPlaceholders) {
@@ -174,18 +175,18 @@ fun RoomDisplay(
             }
         }
 
-        if (selectedCards.isNotEmpty()) {
-            Text(
-                text = "Selected: ${selectedCards.size} / 3",
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
-            )
-        }
+        // Always reserve space for selection text to prevent layout shift
+        Text(
+            text = "Selected: ${selectedCards.size} / 3",
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.alpha(if (selectedCards.isNotEmpty()) 1f else 0f),
+        )
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, widthDp = 400, heightDp = 800)
 @Composable
 fun RoomDisplayPreview() {
     val roomCards =

@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -25,6 +26,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import dev.mattbachmann.scoundroid.data.model.LogEntry
 
+private val PREVIEW_PANEL_HEIGHT = 130.dp
+
 /**
  * Displays a preview of what will happen when processing the selected cards.
  * Shows log entries in processing order (not reversed like action log).
@@ -33,9 +36,10 @@ import dev.mattbachmann.scoundroid.data.model.LogEntry
 fun PreviewPanel(
     previewEntries: List<LogEntry>,
     modifier: Modifier = Modifier,
+    placeholderText: String = "Select cards to see preview",
 ) {
     Card(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth().height(PREVIEW_PANEL_HEIGHT),
         colors =
             CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
@@ -57,7 +61,7 @@ fun PreviewPanel(
 
             if (previewEntries.isEmpty()) {
                 Text(
-                    text = "Select cards to see preview",
+                    text = placeholderText,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

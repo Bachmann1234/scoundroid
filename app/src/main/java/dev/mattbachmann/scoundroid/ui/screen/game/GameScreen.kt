@@ -95,7 +95,7 @@ fun GameScreen(
         modifier = modifier.fillMaxSize(),
     ) { innerPadding ->
         if (isExpandedScreen) {
-            // Expanded layout: cards on top, controls on bottom
+            // Expanded layout: title at top, cards in center, controls on bottom
             Column(
                 modifier =
                     Modifier
@@ -103,7 +103,37 @@ fun GameScreen(
                         .padding(innerPadding)
                         .padding(16.dp),
             ) {
-                // Top section: Cards (takes available space)
+                // Title row at the top
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = "Scoundroid",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                    Row {
+                        IconButton(onClick = { viewModel.onIntent(GameIntent.ShowActionLog) }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.List,
+                                contentDescription = "Action Log",
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
+                        }
+                        IconButton(onClick = { viewModel.onIntent(GameIntent.ShowHelp) }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.Help,
+                                contentDescription = "Help",
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
+                        }
+                    }
+                }
+
+                // Center section: Cards (takes available space)
                 Column(
                     modifier =
                         Modifier
@@ -119,7 +149,7 @@ fun GameScreen(
                     )
                 }
 
-                // Bottom section: Title, status, preview, buttons
+                // Bottom section: status, preview, buttons
                 Column(
                     modifier =
                         Modifier
@@ -127,36 +157,6 @@ fun GameScreen(
                             .verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    // Title row
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = "Scoundroid",
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary,
-                        )
-                        Row {
-                            IconButton(onClick = { viewModel.onIntent(GameIntent.ShowActionLog) }) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.List,
-                                    contentDescription = "Action Log",
-                                    tint = MaterialTheme.colorScheme.primary,
-                                )
-                            }
-                            IconButton(onClick = { viewModel.onIntent(GameIntent.ShowHelp) }) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.Help,
-                                    contentDescription = "Help",
-                                    tint = MaterialTheme.colorScheme.primary,
-                                )
-                            }
-                        }
-                    }
-
                     // Status bar (inline horizontal)
                     GameStatusBar(
                         health = uiState.health,
@@ -451,12 +451,27 @@ private fun GameContent(
             },
         )
 
-        // Preview panel - show what will happen when processing selected cards
+        // Always show preview panel to prevent layout jumping
         val currentRoom = uiState.currentRoom
-        if (currentRoom != null && currentRoom.size == 4) {
-            PreviewPanel(
-                previewEntries = simulateProcessing(selectedCards),
-            )
+        when {
+            currentRoom != null && currentRoom.size == 4 -> {
+                PreviewPanel(
+                    previewEntries = simulateProcessing(selectedCards),
+                )
+            }
+            currentRoom == null -> {
+                PreviewPanel(
+                    previewEntries = emptyList(),
+                    placeholderText = "Draw a room to see preview",
+                )
+            }
+            else -> {
+                // Room has 1 card remaining
+                PreviewPanel(
+                    previewEntries = emptyList(),
+                    placeholderText = "Draw next room to see preview",
+                )
+            }
         }
 
         // Action buttons
@@ -531,12 +546,34 @@ private fun ExpandedControlsSection(
     onIntent: (GameIntent) -> Unit,
     simulateProcessing: (List<Card>) -> List<LogEntry>,
 ) {
-    // Preview panel - show what will happen when processing selected cards
+    // Always show preview panel to prevent layout jumping
     val currentRoom = uiState.currentRoom
-    if (!uiState.isGameOver && !uiState.isGameWon && currentRoom != null && currentRoom.size == 4) {
-        PreviewPanel(
-            previewEntries = simulateProcessing(selectedCards),
-        )
+    when {
+        uiState.isGameOver || uiState.isGameWon -> {
+            // Show empty preview panel during game over to maintain layout
+            PreviewPanel(
+                previewEntries = emptyList(),
+                placeholderText = "Start a new game",
+            )
+        }
+        currentRoom != null && currentRoom.size == 4 -> {
+            PreviewPanel(
+                previewEntries = simulateProcessing(selectedCards),
+            )
+        }
+        currentRoom == null -> {
+            PreviewPanel(
+                previewEntries = emptyList(),
+                placeholderText = "Draw a room to see preview",
+            )
+        }
+        else -> {
+            // Room has 1 card remaining
+            PreviewPanel(
+                previewEntries = emptyList(),
+                placeholderText = "Draw next room to see preview",
+            )
+        }
     }
 
     // Action buttons

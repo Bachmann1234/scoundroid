@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -170,8 +169,8 @@ fun CardView(
 }
 
 /**
- * Displays an empty placeholder card to reserve space in the layout.
- * Used when no cards have been drawn yet to prevent UI shifting.
+ * Displays a card back design to represent face-down cards in the deck.
+ * Features a classic playing card back with a crosshatch pattern.
  */
 @Composable
 fun PlaceholderCardView(
@@ -183,22 +182,115 @@ fun PlaceholderCardView(
         modifier =
             modifier
                 .size(width = cardWidth, height = cardHeight)
-                .semantics { contentDescription = "Empty card slot" },
+                .semantics { contentDescription = "Card back" },
         colors =
             CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                containerColor = Color(0xFF8B0000), // Dark red
             ),
-        border = BorderStroke(2.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)),
+        border = BorderStroke(2.dp, Color(0xFFF5F5DC)), // Cream border
     ) {
         Box(
-            modifier = Modifier.fillMaxWidth().padding(12.dp),
-            contentAlignment = Alignment.Center,
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(6.dp),
         ) {
-            Text(
-                text = "?",
-                style = MaterialTheme.typography.displayMedium,
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
-            )
+            // Inner decorative border
+            Box(
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .background(Color(0xFF8B0000))
+                        .padding(2.dp),
+            ) {
+                Box(
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .background(Color(0xFFF5F5DC)) // Cream inner border
+                            .padding(2.dp),
+                ) {
+                    Box(
+                        modifier =
+                            Modifier
+                                .fillMaxSize()
+                                .background(Color(0xFF8B0000)), // Dark red center
+                    ) {
+                        // Crosshatch pattern using Canvas
+                        androidx.compose.foundation.Canvas(
+                            modifier = Modifier.fillMaxSize(),
+                        ) {
+                            val patternColor = Color(0xFFCD5C5C) // Indian red for pattern
+                            val spacing = 12f
+                            val strokeWidth = 1.5f
+
+                            // Draw diagonal lines from top-left to bottom-right
+                            var x = -size.height
+                            while (x < size.width + size.height) {
+                                drawLine(
+                                    color = patternColor,
+                                    start = androidx.compose.ui.geometry.Offset(x, 0f),
+                                    end =
+                                        androidx.compose.ui.geometry.Offset(
+                                            x + size.height,
+                                            size.height,
+                                        ),
+                                    strokeWidth = strokeWidth,
+                                )
+                                x += spacing
+                            }
+
+                            // Draw diagonal lines from top-right to bottom-left
+                            x = 0f
+                            while (x < size.width + size.height) {
+                                drawLine(
+                                    color = patternColor,
+                                    start = androidx.compose.ui.geometry.Offset(x, 0f),
+                                    end =
+                                        androidx.compose.ui.geometry.Offset(
+                                            x - size.height,
+                                            size.height,
+                                        ),
+                                    strokeWidth = strokeWidth,
+                                )
+                                x += spacing
+                            }
+
+                            // Draw center oval border
+                            val centerX = size.width / 2
+                            val centerY = size.height / 2
+                            val ovalWidth = size.width * 0.6f
+                            val ovalHeight = size.height * 0.5f
+
+                            drawOval(
+                                color = Color(0xFFF5F5DC),
+                                topLeft =
+                                    androidx.compose.ui.geometry.Offset(
+                                        centerX - ovalWidth / 2,
+                                        centerY - ovalHeight / 2,
+                                    ),
+                                size = androidx.compose.ui.geometry.Size(ovalWidth, ovalHeight),
+                                style = androidx.compose.ui.graphics.drawscope.Stroke(width = 3f),
+                            )
+
+                            // Fill center oval with solid color
+                            drawOval(
+                                color = Color(0xFF8B0000),
+                                topLeft =
+                                    androidx.compose.ui.geometry.Offset(
+                                        centerX - ovalWidth / 2 + 2,
+                                        centerY - ovalHeight / 2 + 2,
+                                    ),
+                                size =
+                                    androidx.compose.ui.geometry.Size(
+                                        ovalWidth - 4,
+                                        ovalHeight - 4,
+                                    ),
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }
