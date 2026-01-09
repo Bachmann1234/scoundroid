@@ -4,12 +4,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -45,6 +43,7 @@ import dev.mattbachmann.scoundroid.ui.component.GameStatusBar
 import dev.mattbachmann.scoundroid.ui.component.HelpContent
 import dev.mattbachmann.scoundroid.ui.component.PreviewPanel
 import dev.mattbachmann.scoundroid.ui.component.RoomDisplay
+import dev.mattbachmann.scoundroid.ui.component.StatusBarLayout
 import dev.mattbachmann.scoundroid.ui.theme.ScoundroidTheme
 
 /**
@@ -98,24 +97,39 @@ fun GameScreen(
         modifier = modifier.fillMaxSize(),
     ) { innerPadding ->
         if (isExpandedScreen) {
-            // Expanded layout: sidebar on left, game area on right
-            Row(
+            // Expanded layout: cards on top, controls on bottom
+            Column(
                 modifier =
                     Modifier
                         .fillMaxSize()
                         .padding(innerPadding)
                         .padding(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(24.dp),
             ) {
-                // Left sidebar - status bar
+                // Top section: Cards (takes available space)
                 Column(
                     modifier =
                         Modifier
-                            .width(200.dp)
-                            .fillMaxHeight()
-                            .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                            .weight(1f)
+                            .fillMaxWidth(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
+                    ExpandedCardsSection(
+                        uiState = uiState,
+                        selectedCards = selectedCards,
+                        onSelectedCardsChange = { selectedCards = it },
+                    )
+                }
+
+                // Bottom section: Title, status, preview, buttons
+                Column(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    // Title row
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -144,33 +158,24 @@ fun GameScreen(
                             }
                         }
                     }
+
+                    // Status bar (inline horizontal)
                     GameStatusBar(
                         health = uiState.health,
                         score = uiState.score,
                         deckSize = uiState.deckSize,
                         weaponState = uiState.weaponState,
                         defeatedMonstersCount = uiState.defeatedMonstersCount,
-                        isExpanded = true,
+                        layout = StatusBarLayout.INLINE,
                     )
-                }
 
-                // Right side - game area
-                Column(
-                    modifier =
-                        Modifier
-                            .weight(1f)
-                            .fillMaxHeight()
-                            .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    GameContent(
+                    // Controls section
+                    ExpandedControlsSection(
                         uiState = uiState,
                         selectedCards = selectedCards,
                         onSelectedCardsChange = { selectedCards = it },
                         onIntent = viewModel::onIntent,
                         simulateProcessing = viewModel::simulateProcessing,
-                        isExpandedScreen = true,
                     )
                 }
             }
@@ -222,7 +227,7 @@ fun GameScreen(
                     deckSize = uiState.deckSize,
                     weaponState = uiState.weaponState,
                     defeatedMonstersCount = uiState.defeatedMonstersCount,
-                    isExpanded = false,
+                    layout = StatusBarLayout.COMPACT,
                 )
 
                 GameContent(
@@ -333,7 +338,7 @@ private fun GameContent(
                     Button(
                         onClick = {
                             onIntent(
-                                GameIntent.ProcessSelectedCards(selectedCards.toList()),
+                                GameIntent.ProcessSelectedCards(selectedCards),
                             )
                             onSelectedCardsChange(emptyList())
                         },

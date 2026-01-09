@@ -51,7 +51,7 @@ fun RoomDisplay(
         // Display cards - 1x4 row for expanded mode, 2x2 grid for compact mode
         if (cards.size == 4) {
             if (isExpanded) {
-                // Expanded mode: all 4 cards in a single horizontal row
+                // Expanded mode: all 4 cards in a single horizontal row (larger cards)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
@@ -63,8 +63,8 @@ fun RoomDisplay(
                             isSelected = card in selectedCards,
                             selectionOrder = if (orderIndex >= 0) orderIndex + 1 else null,
                             onClick = onCardClick?.let { { it(card) } },
-                            cardWidth = 120.dp,
-                            cardHeight = 168.dp,
+                            cardWidth = 160.dp,
+                            cardHeight = 224.dp,
                         )
                     }
                 }
@@ -126,8 +126,8 @@ fun RoomDisplay(
                         isSelected = card in selectedCards,
                         selectionOrder = if (orderIndex >= 0) orderIndex + 1 else null,
                         onClick = onCardClick?.let { { it(card) } },
-                        cardWidth = if (isExpanded) 120.dp else 100.dp,
-                        cardHeight = if (isExpanded) 168.dp else 140.dp,
+                        cardWidth = if (isExpanded) 160.dp else 100.dp,
+                        cardHeight = if (isExpanded) 224.dp else 140.dp,
                     )
                 }
             }

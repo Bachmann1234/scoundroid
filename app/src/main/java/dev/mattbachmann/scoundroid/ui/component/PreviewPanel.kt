@@ -57,7 +57,7 @@ fun PreviewPanel(
 
             if (previewEntries.isEmpty()) {
                 Text(
-                    text = "Select 3 cards to see preview",
+                    text = "Select cards to see preview",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
