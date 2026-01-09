@@ -374,7 +374,15 @@ private fun GameContent(
                 }
             }
         } else {
-            // No room - show draw button
+            // No room - show placeholders and draw button
+            RoomDisplay(
+                cards = emptyList(),
+                selectedCards = emptySet(),
+                onCardClick = null,
+                isExpanded = isExpandedScreen,
+                showPlaceholders = true,
+            )
+
             Button(
                 onClick = { onIntent(GameIntent.DrawRoom) },
                 modifier = Modifier.fillMaxWidth(),
