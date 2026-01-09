@@ -333,7 +333,7 @@ private fun GameContent(
                     Button(
                         onClick = {
                             onIntent(
-                                GameIntent.ProcessSelectedCards(selectedCards.toList()),
+                                GameIntent.ProcessSelectedCards(selectedCards),
                             )
                             onSelectedCardsChange(emptyList())
                         },
