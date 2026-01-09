@@ -45,6 +45,7 @@ fun GameStatusBar(
     modifier: Modifier = Modifier,
     layout: StatusBarLayout = StatusBarLayout.COMPACT,
 ) {
+    val isCompact = layout == StatusBarLayout.COMPACT
     Card(
         modifier = modifier.fillMaxWidth(),
         colors =
@@ -53,8 +54,8 @@ fun GameStatusBar(
             ),
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.padding(if (isCompact) 10.dp else 16.dp),
+            verticalArrangement = Arrangement.spacedBy(if (isCompact) 6.dp else 12.dp),
         ) {
             when (layout) {
                 StatusBarLayout.COMPACT -> {
@@ -63,15 +64,15 @@ fun GameStatusBar(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
-                        StatusItem(label = "Health", value = "$health / 20")
-                        StatusItem(label = "Score", value = "$score")
+                        StatusItem(label = "Health", value = "$health / 20", isCompact = true)
+                        StatusItem(label = "Score", value = "$score", isCompact = true)
                     }
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
-                        StatusItem(label = "Deck", value = "$deckSize cards")
-                        StatusItem(label = "Defeated", value = "$defeatedMonstersCount")
+                        StatusItem(label = "Deck", value = "$deckSize cards", isCompact = true)
+                        StatusItem(label = "Defeated", value = "$defeatedMonstersCount", isCompact = true)
                     }
                 }
                 StatusBarLayout.INLINE -> {
@@ -90,11 +91,11 @@ fun GameStatusBar(
 
             // Weapon status
             if (weaponState != null) {
-                WeaponStatus(weaponState = weaponState)
+                WeaponStatus(weaponState = weaponState, isCompact = isCompact)
             } else {
                 Text(
                     text = "No weapon equipped",
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = if (isCompact) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
             }
@@ -106,6 +107,7 @@ fun GameStatusBar(
 private fun StatusItem(
     label: String,
     value: String,
+    isCompact: Boolean = false,
 ) {
     Column(
         horizontalAlignment = Alignment.Start,
@@ -117,7 +119,7 @@ private fun StatusItem(
         )
         Text(
             text = value,
-            style = MaterialTheme.typography.titleMedium,
+            style = if (isCompact) MaterialTheme.typography.titleSmall else MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onPrimaryContainer,
         )
@@ -125,7 +127,10 @@ private fun StatusItem(
 }
 
 @Composable
-private fun WeaponStatus(weaponState: WeaponState) {
+private fun WeaponStatus(
+    weaponState: WeaponState,
+    isCompact: Boolean = false,
+) {
     val weaponInfo =
         if (weaponState.maxMonsterValue != null) {
             "${weaponState.weapon.suit.symbol}${weaponState.weapon.rank.displayName} " +
@@ -143,7 +148,7 @@ private fun WeaponStatus(weaponState: WeaponState) {
         )
         Text(
             text = weaponInfo,
-            style = MaterialTheme.typography.bodyMedium,
+            style = if (isCompact) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onPrimaryContainer,
         )

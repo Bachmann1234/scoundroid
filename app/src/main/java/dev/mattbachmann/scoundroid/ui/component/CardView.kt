@@ -185,9 +185,11 @@ fun PlaceholderCardView(
                 .semantics { contentDescription = "Card back" },
         colors =
             CardDefaults.cardColors(
-                containerColor = Color(0xFF8B0000), // Dark red
+                // Dark red
+                containerColor = Color(0xFF8B0000),
             ),
-        border = BorderStroke(2.dp, Color(0xFFF5F5DC)), // Cream border
+        // Cream border
+        border = BorderStroke(2.dp, Color(0xFFF5F5DC)),
     ) {
         Box(
             modifier =
@@ -203,18 +205,20 @@ fun PlaceholderCardView(
                         .background(Color(0xFF8B0000))
                         .padding(2.dp),
             ) {
+                // Cream inner border
                 Box(
                     modifier =
                         Modifier
                             .fillMaxSize()
-                            .background(Color(0xFFF5F5DC)) // Cream inner border
+                            .background(Color(0xFFF5F5DC))
                             .padding(2.dp),
                 ) {
+                    // Dark red center
                     Box(
                         modifier =
                             Modifier
                                 .fillMaxSize()
-                                .background(Color(0xFF8B0000)), // Dark red center
+                                .background(Color(0xFF8B0000)),
                     ) {
                         // Crosshatch pattern using Canvas
                         androidx.compose.foundation.Canvas(

@@ -26,7 +26,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import dev.mattbachmann.scoundroid.data.model.LogEntry
 
-private val PREVIEW_PANEL_HEIGHT = 130.dp
+private val PREVIEW_PANEL_HEIGHT_EXPANDED = 130.dp
+private val PREVIEW_PANEL_HEIGHT_COMPACT = 95.dp
 
 /**
  * Displays a preview of what will happen when processing the selected cards.
@@ -37,9 +38,11 @@ fun PreviewPanel(
     previewEntries: List<LogEntry>,
     modifier: Modifier = Modifier,
     placeholderText: String = "Select cards to see preview",
+    isCompact: Boolean = false,
 ) {
+    val panelHeight = if (isCompact) PREVIEW_PANEL_HEIGHT_COMPACT else PREVIEW_PANEL_HEIGHT_EXPANDED
     Card(
-        modifier = modifier.fillMaxWidth().height(PREVIEW_PANEL_HEIGHT),
+        modifier = modifier.fillMaxWidth().height(panelHeight),
         colors =
             CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
@@ -49,12 +52,12 @@ fun PreviewPanel(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+                    .padding(if (isCompact) 8.dp else 12.dp),
+            verticalArrangement = Arrangement.spacedBy(if (isCompact) 4.dp else 8.dp),
         ) {
             Text(
                 text = "Preview",
-                style = MaterialTheme.typography.titleMedium,
+                style = if (isCompact) MaterialTheme.typography.titleSmall else MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
             )
@@ -62,7 +65,7 @@ fun PreviewPanel(
             if (previewEntries.isEmpty()) {
                 Text(
                     text = placeholderText,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = if (isCompact) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             } else {

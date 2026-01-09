@@ -178,15 +178,14 @@ fun GameScreen(
                 }
             }
         } else {
-            // Compact layout: vertical stack
+            // Compact layout: vertical stack (no scroll - fits on screen)
             Column(
                 modifier =
                     Modifier
                         .fillMaxSize()
                         .padding(innerPadding)
-                        .padding(16.dp)
-                        .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(24.dp),
+                        .padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 // Title with action log and help buttons
                 Row(
@@ -196,7 +195,7 @@ fun GameScreen(
                 ) {
                     Text(
                         text = "Scoundroid",
-                        style = MaterialTheme.typography.displayMedium,
+                        style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary,
                     )
@@ -272,10 +271,14 @@ private fun RoomActionButtons(
     onDrawRoom: () -> Unit,
     onNewGame: () -> Unit,
     modifier: Modifier = Modifier,
+    isCompact: Boolean = false,
 ) {
+    val buttonSpacing = if (isCompact) 4.dp else 8.dp
+    val buttonTextStyle = if (isCompact) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleLarge
+
     Column(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(buttonSpacing),
     ) {
         if (isGameOver || isGameWon) {
             Button(
@@ -284,7 +287,7 @@ private fun RoomActionButtons(
             ) {
                 Text(
                     text = "New Game",
-                    style = MaterialTheme.typography.titleLarge,
+                    style = buttonTextStyle,
                 )
             }
         } else if (currentRoom != null) {
@@ -292,7 +295,7 @@ private fun RoomActionButtons(
                 4 -> {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(buttonSpacing),
                     ) {
                         if (canAvoidRoom) {
                             OutlinedButton(
@@ -325,18 +328,20 @@ private fun RoomActionButtons(
                     }
                 }
                 1 -> {
-                    Text(
-                        text = "This card stays for the next room",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
-                    )
+                    if (!isCompact) {
+                        Text(
+                            text = "This card stays for the next room",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+                        )
+                    }
                     Button(
                         onClick = onDrawRoom,
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         Text(
                             text = "Draw Next Room",
-                            style = MaterialTheme.typography.titleLarge,
+                            style = buttonTextStyle,
                         )
                     }
 
@@ -355,7 +360,7 @@ private fun RoomActionButtons(
             ) {
                 Text(
                     text = "Draw Room",
-                    style = MaterialTheme.typography.titleLarge,
+                    style = buttonTextStyle,
                 )
             }
 
@@ -453,16 +458,19 @@ private fun GameContent(
 
         // Always show preview panel to prevent layout jumping
         val currentRoom = uiState.currentRoom
+        val isCompact = !isExpandedScreen
         when {
             currentRoom != null && currentRoom.size == 4 -> {
                 PreviewPanel(
                     previewEntries = simulateProcessing(selectedCards),
+                    isCompact = isCompact,
                 )
             }
             currentRoom == null -> {
                 PreviewPanel(
                     previewEntries = emptyList(),
                     placeholderText = "Draw a room to see preview",
+                    isCompact = isCompact,
                 )
             }
             else -> {
@@ -470,6 +478,7 @@ private fun GameContent(
                 PreviewPanel(
                     previewEntries = emptyList(),
                     placeholderText = "Draw next room to see preview",
+                    isCompact = isCompact,
                 )
             }
         }
@@ -481,6 +490,7 @@ private fun GameContent(
             canAvoidRoom = uiState.canAvoidRoom,
             isGameOver = false,
             isGameWon = false,
+            isCompact = isCompact,
             onAvoidRoom = {
                 onIntent(GameIntent.AvoidRoom)
                 onSelectedCardsChange(emptyList())
