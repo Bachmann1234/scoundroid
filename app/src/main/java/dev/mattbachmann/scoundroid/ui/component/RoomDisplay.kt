@@ -220,7 +220,7 @@ fun RoomDisplayPreview() {
             // Placeholder state
             RoomDisplay(
                 cards = emptyList(),
-                selectedCards = emptySet(),
+                selectedCards = emptyList(),
                 onCardClick = null,
                 showPlaceholders = true,
             )
