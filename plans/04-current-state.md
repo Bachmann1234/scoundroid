@@ -1,6 +1,6 @@
 # Current State & Next Steps
 
-**Last Updated**: 2026-01-08 (Session 6 complete)
+**Last Updated**: 2026-01-09 (Session 7 - Visual Polish PR)
 
 ## Phase 1: COMPLETE ✅
 ## Phase 2: COMPLETE ✅
@@ -256,9 +256,35 @@
 - **All 173 tests passing** ✅
 - No new tests needed (UI changes only)
 
-## What's NOT Done Yet
+## What's NOT Done Yet (All Optional)
 
-❌ Visual polish (optional)
+**Persistence:**
+- [ ] Mid-game save/load (resume interrupted games)
+- [ ] Statistics tracking (games played, wins/losses)
+- [ ] Statistics screen
+
+**Polish & UX:**
+- [ ] Dark mode
+- [ ] Damage number animations
+- [ ] Undo functionality
+- [ ] Settings screen
+- [ ] Haptic feedback
+- [ ] Visual feedback for weapon degradation
+
+**Help System (enhanced):**
+- [ ] Interactive tutorial
+- [ ] Contextual tooltips ("Why can't I use this weapon?")
+- [ ] Quick reference overlay
+- [ ] In-app PDF viewer for rules
+
+**Audio (optional):**
+- [ ] Card flip sounds
+- [ ] Combat sounds
+- [ ] Victory/defeat sounds
+
+**Testing & Docs:**
+- [ ] End-to-end tests
+- [ ] README/documentation
 
 ## Session 6 Completed (2026-01-08)
 
@@ -411,4 +437,4 @@ When you're ready to continue:
 2. Check [`05-testing-strategy.md`](05-testing-strategy.md) for persistence testing strategy
 3. Say "Let's do Phase 4" or "Add persistence"
 
-**Current Status**: All features complete! Game is fully playable with rules/help screen, high scores, and foldable device support. 175 passing tests. Only optional visual polish remains.
+**Current Status**: Core game complete and fully playable! Has rules/help screen, high scores, foldable device support, and visual polish (PR #21). 175+ passing tests. Remaining features (mid-game save, statistics, dark mode, tutorial, audio) are all optional enhancements.

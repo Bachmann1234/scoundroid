@@ -3,9 +3,11 @@
 This document helps us track progress and plan what to work on in each session.
 
 ## Current Status
-- **Phase**: Not Started
-- **Last Updated**: 2026-01-05
-- **Next Session Goal**: Project setup and foundation
+- **Phase**: Core Complete, Polish In Progress
+- **Last Updated**: 2026-01-09
+- **Completed**: Phases 1-3, ViewModel, High Scores, Foldable Support, Help Screen, Visual Polish
+- **In Progress**: PR #21 (visual polish animations)
+- **Remaining**: Mid-game save/load, statistics, dark mode, tutorial, audio (all optional)
 
 ## Suggested Session Breakdown
 
