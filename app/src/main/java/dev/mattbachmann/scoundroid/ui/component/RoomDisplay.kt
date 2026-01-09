@@ -65,8 +65,8 @@ fun RoomDisplay(
                 ) {
                     repeat(4) {
                         PlaceholderCardView(
-                            cardWidth = 120.dp,
-                            cardHeight = 168.dp,
+                            cardWidth = 160.dp,
+                            cardHeight = 224.dp,
                         )
                     }
                 }
@@ -92,7 +92,7 @@ fun RoomDisplay(
             }
         } else if (cards.size == 4) {
             if (isExpanded) {
-                // Expanded mode: all 4 cards in a single horizontal row
+                // Expanded mode: all 4 cards in a single horizontal row (larger cards)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
@@ -102,8 +102,8 @@ fun RoomDisplay(
                             card = card,
                             isSelected = card in selectedCards,
                             onClick = onCardClick?.let { { it(card) } },
-                            cardWidth = 120.dp,
-                            cardHeight = 168.dp,
+                            cardWidth = 160.dp,
+                            cardHeight = 224.dp,
                         )
                     }
                 }
@@ -155,8 +155,8 @@ fun RoomDisplay(
                         card = card,
                         isSelected = card in selectedCards,
                         onClick = onCardClick?.let { { it(card) } },
-                        cardWidth = if (isExpanded) 120.dp else 100.dp,
-                        cardHeight = if (isExpanded) 168.dp else 140.dp,
+                        cardWidth = if (isExpanded) 160.dp else 100.dp,
+                        cardHeight = if (isExpanded) 224.dp else 140.dp,
                     )
                 }
             }
