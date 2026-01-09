@@ -2,6 +2,7 @@ package dev.mattbachmann.scoundroid.ui.component
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -133,6 +134,39 @@ fun CardView(
     }
 }
 
+/**
+ * Displays an empty placeholder card to reserve space in the layout.
+ * Used when no cards have been drawn yet to prevent UI shifting.
+ */
+@Composable
+fun PlaceholderCardView(
+    modifier: Modifier = Modifier,
+    cardWidth: Dp = 100.dp,
+    cardHeight: Dp = 140.dp,
+) {
+    Card(
+        modifier =
+            modifier
+                .size(width = cardWidth, height = cardHeight),
+        colors =
+            CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+            ),
+        border = BorderStroke(2.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)),
+    ) {
+        Box(
+            modifier = Modifier.fillMaxWidth().padding(12.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = "?",
+                style = MaterialTheme.typography.displayMedium,
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
+            )
+        }
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 fun CardViewPreview() {
@@ -149,6 +183,9 @@ fun CardViewPreview() {
 
             // Potion (Hearts)
             CardView(card = Card(Suit.HEARTS, Rank.TEN))
+
+            // Placeholder
+            PlaceholderCardView()
         }
     }
 }

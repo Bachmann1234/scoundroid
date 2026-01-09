@@ -21,6 +21,7 @@ import dev.mattbachmann.scoundroid.ui.theme.ScoundroidTheme
 /**
  * Displays the current room of cards.
  * Shows 4 cards when a room is first drawn, or 1 card remaining after selection.
+ * Shows placeholder cards when no cards are present.
  */
 @Composable
 fun RoomDisplay(
@@ -29,13 +30,19 @@ fun RoomDisplay(
     onCardClick: ((Card) -> Unit)?,
     modifier: Modifier = Modifier,
     isExpanded: Boolean = false,
+    showPlaceholders: Boolean = false,
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         Text(
-            text = if (cards.size == 1) "Leftover Card" else "Current Room (${cards.size} cards)",
+            text =
+                when {
+                    cards.isEmpty() && showPlaceholders -> "Draw a Room"
+                    cards.size == 1 -> "Leftover Card"
+                    else -> "Current Room (${cards.size} cards)"
+                },
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
         )
@@ -49,7 +56,41 @@ fun RoomDisplay(
         }
 
         // Display cards - 1x4 row for expanded mode, 2x2 grid for compact mode
-        if (cards.size == 4) {
+        if (cards.isEmpty() && showPlaceholders) {
+            // Show placeholder cards when no room drawn yet
+            if (isExpanded) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
+                ) {
+                    repeat(4) {
+                        PlaceholderCardView(
+                            cardWidth = 120.dp,
+                            cardHeight = 168.dp,
+                        )
+                    }
+                }
+            } else {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+                    ) {
+                        PlaceholderCardView()
+                        PlaceholderCardView()
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+                    ) {
+                        PlaceholderCardView()
+                        PlaceholderCardView()
+                    }
+                }
+            }
+        } else if (cards.size == 4) {
             if (isExpanded) {
                 // Expanded mode: all 4 cards in a single horizontal row
                 Row(
@@ -162,6 +203,14 @@ fun RoomDisplayPreview() {
                     ),
                 selectedCards = emptySet(),
                 onCardClick = {},
+            )
+
+            // Placeholder state
+            RoomDisplay(
+                cards = emptyList(),
+                selectedCards = emptySet(),
+                onCardClick = null,
+                showPlaceholders = true,
             )
         }
     }
