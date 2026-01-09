@@ -89,15 +89,36 @@ fun GameStatusBar(
                 }
             }
 
-            // Weapon status
-            if (weaponState != null) {
-                WeaponStatus(weaponState = weaponState, isCompact = isCompact)
-            } else {
+            // Weapon status - use consistent Column structure to prevent layout jumping
+            Column {
                 Text(
-                    text = "No weapon equipped",
-                    style = if (isCompact) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    text = "Weapon:",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
                 )
+                if (weaponState != null) {
+                    val weaponInfo =
+                        if (weaponState.maxMonsterValue != null) {
+                            "${weaponState.weapon.suit.symbol}${weaponState.weapon.rank.displayName} " +
+                                "(value: ${weaponState.weapon.value}, max monster: ${weaponState.maxMonsterValue})"
+                        } else {
+                            "${weaponState.weapon.suit.symbol}${weaponState.weapon.rank.displayName} " +
+                                "(value: ${weaponState.weapon.value}, fresh)"
+                        }
+                    Text(
+                        text = weaponInfo,
+                        style = if (isCompact) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    )
+                } else {
+                    Text(
+                        text = "None",
+                        style = if (isCompact) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    )
+                }
             }
         }
     }
@@ -120,35 +141,6 @@ private fun StatusItem(
         Text(
             text = value,
             style = if (isCompact) MaterialTheme.typography.titleSmall else MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onPrimaryContainer,
-        )
-    }
-}
-
-@Composable
-private fun WeaponStatus(
-    weaponState: WeaponState,
-    isCompact: Boolean = false,
-) {
-    val weaponInfo =
-        if (weaponState.maxMonsterValue != null) {
-            "${weaponState.weapon.suit.symbol}${weaponState.weapon.rank.displayName} " +
-                "(value: ${weaponState.weapon.value}, max monster: ${weaponState.maxMonsterValue})"
-        } else {
-            "${weaponState.weapon.suit.symbol}${weaponState.weapon.rank.displayName} " +
-                "(value: ${weaponState.weapon.value}, fresh)"
-        }
-
-    Column {
-        Text(
-            text = "Weapon:",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
-        )
-        Text(
-            text = weaponInfo,
-            style = if (isCompact) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onPrimaryContainer,
         )
