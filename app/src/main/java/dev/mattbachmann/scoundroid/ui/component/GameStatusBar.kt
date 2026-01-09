@@ -22,6 +22,20 @@ import dev.mattbachmann.scoundroid.data.model.WeaponState
 import dev.mattbachmann.scoundroid.ui.theme.ScoundroidTheme
 
 /**
+ * Layout modes for the status bar.
+ */
+enum class StatusBarLayout {
+    /** Compact 2-row grid for narrow screens */
+    COMPACT,
+
+    /** Vertical stack for sidebar */
+    SIDEBAR,
+
+    /** Horizontal inline for bottom panel */
+    INLINE,
+}
+
+/**
  * Displays current game status: health, score, deck size, and weapon info.
  */
 @Composable
@@ -32,10 +46,10 @@ fun GameStatusBar(
     weaponState: WeaponState?,
     defeatedMonstersCount: Int,
     modifier: Modifier = Modifier,
-    isExpanded: Boolean = false,
+    layout: StatusBarLayout = StatusBarLayout.COMPACT,
 ) {
     Card(
-        modifier = if (isExpanded) modifier else modifier.fillMaxWidth(),
+        modifier = if (layout == StatusBarLayout.SIDEBAR) modifier else modifier.fillMaxWidth(),
         colors =
             CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -45,28 +59,42 @@ fun GameStatusBar(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            if (isExpanded) {
-                // Expanded mode: vertical sidebar layout - all items stacked vertically
-                StatusItem(label = "Health", value = "$health / 20")
-                StatusItem(label = "Score", value = "$score")
-                StatusItem(label = "Deck", value = "$deckSize cards")
-                StatusItem(label = "Defeated", value = "$defeatedMonstersCount")
-            } else {
-                // Compact mode: horizontal rows
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
+            when (layout) {
+                StatusBarLayout.SIDEBAR -> {
+                    // Vertical sidebar layout - all items stacked vertically
                     StatusItem(label = "Health", value = "$health / 20")
                     StatusItem(label = "Score", value = "$score")
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
                     StatusItem(label = "Deck", value = "$deckSize cards")
                     StatusItem(label = "Defeated", value = "$defeatedMonstersCount")
+                }
+                StatusBarLayout.COMPACT -> {
+                    // Compact mode: 2-row grid
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        StatusItem(label = "Health", value = "$health / 20")
+                        StatusItem(label = "Score", value = "$score")
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        StatusItem(label = "Deck", value = "$deckSize cards")
+                        StatusItem(label = "Defeated", value = "$defeatedMonstersCount")
+                    }
+                }
+                StatusBarLayout.INLINE -> {
+                    // Horizontal inline for bottom panel - all 4 items in single row
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                    ) {
+                        StatusItem(label = "Health", value = "$health / 20")
+                        StatusItem(label = "Score", value = "$score")
+                        StatusItem(label = "Deck", value = "$deckSize cards")
+                        StatusItem(label = "Defeated", value = "$defeatedMonstersCount")
+                    }
                 }
             }
 
