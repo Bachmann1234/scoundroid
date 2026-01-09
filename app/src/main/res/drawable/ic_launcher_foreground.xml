@@ -4,22 +4,22 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Card background with slight rotation for dynamic look -->
+    <!-- Card shadow -->
     <group
         android:pivotX="54"
         android:pivotY="54"
         android:rotation="-8">
-        <!-- Card shadow -->
         <path
             android:fillColor="#0D0D1A"
             android:pathData="M32,26h48c2,0 4,2 4,4v48c0,2 -2,4 -4,4h-48c-2,0 -4,-2 -4,-4v-48c0,-2 2,-4 4,-4z" />
     </group>
 
+    <!-- Main card -->
     <group
         android:pivotX="54"
         android:pivotY="54"
         android:rotation="-5">
-        <!-- Main card body -->
+        <!-- Card body -->
         <path
             android:fillColor="#F5F5F0"
             android:pathData="M32,24h44c2.2,0 4,1.8 4,4v52c0,2.2 -1.8,4 -4,4h-44c-2.2,0 -4,-1.8 -4,-4v-52c0,-2.2 1.8,-4 4,-4z" />
@@ -29,33 +29,61 @@
             android:fillColor="#00000000"
             android:pathData="M32,24h44c2.2,0 4,1.8 4,4v52c0,2.2 -1.8,4 -4,4h-44c-2.2,0 -4,-1.8 -4,-4v-52c0,-2.2 1.8,-4 4,-4z"
             android:strokeWidth="1"
-            android:strokeColor="#CCCCCC" />
+            android:strokeColor="#BBBBBB" />
 
-        <!-- Club symbol (monster suit) - large center -->
-        <!-- Bottom circle of club -->
+        <!-- Sword blade (behind skull) -->
         <path
-            android:fillColor="#1A1A2E"
-            android:pathData="M54,62a8,8 0,1 1,0 -0.01z" />
-        <!-- Left circle of club -->
-        <path
-            android:fillColor="#1A1A2E"
-            android:pathData="M46,52a7,7 0,1 1,0 -0.01z" />
-        <!-- Right circle of club -->
-        <path
-            android:fillColor="#1A1A2E"
-            android:pathData="M62,52a7,7 0,1 1,0 -0.01z" />
-        <!-- Club stem -->
-        <path
-            android:fillColor="#1A1A2E"
-            android:pathData="M50,58h8v12l-2,3h-4l-2,-3z" />
-        <!-- Top circle of club -->
-        <path
-            android:fillColor="#1A1A2E"
-            android:pathData="M54,46a7,7 0,1 1,0 -0.01z" />
+            android:fillColor="#6B7B8C"
+            android:pathData="M52,28l2,-2l2,2l0,48l-2,2l-2,-2z" />
 
-        <!-- Small "S" in corner for Scoundrel -->
+        <!-- Sword edge highlight -->
         <path
-            android:fillColor="#8B0000"
-            android:pathData="M35,32c0,-1.5 1.2,-2.5 3,-2.5c1.8,0 3,0.8 3,2c0,1 -0.5,1.5 -1.5,2l-2,1c-1,0.5 -1.5,1 -1.5,2v0.5h5v-1.5h-3c0,-0.5 0.3,-0.8 1,-1.2l1.5,-0.8c1.2,-0.7 2,-1.5 2,-3c0,-2 -1.7,-3.5 -4.5,-3.5c-2.8,0 -4.5,1.5 -4.5,4h2.5z" />
+            android:fillColor="#8899AA"
+            android:pathData="M53,28l1,-1l0,49l-1,1z" />
+
+        <!-- Skull - cranium -->
+        <path
+            android:fillColor="#1A1A2E"
+            android:pathData="M54,40c-9,0 -14,5 -14,12c0,3.5 1.5,6 3.5,8h21c2,-2 3.5,-4.5 3.5,-8c0,-7 -5,-12 -14,-12z" />
+
+        <!-- Skull - left eye socket -->
+        <path
+            android:fillColor="#F5F5F0"
+            android:pathData="M46,49a3.5,3.5 0,1 1,7 0a3.5,3.5 0,1 1,-7 0" />
+
+        <!-- Skull - right eye socket -->
+        <path
+            android:fillColor="#F5F5F0"
+            android:pathData="M55,49a3.5,3.5 0,1 1,7 0a3.5,3.5 0,1 1,-7 0" />
+
+        <!-- Skull - nose hole -->
+        <path
+            android:fillColor="#F5F5F0"
+            android:pathData="M52,55l2,3l2,-3z" />
+
+        <!-- Skull - jaw -->
+        <path
+            android:fillColor="#1A1A2E"
+            android:pathData="M43.5,60h21v6c0,1.5 -1.5,3 -3,3h-15c-1.5,0 -3,-1.5 -3,-3z" />
+
+        <!-- Teeth gaps -->
+        <path
+            android:fillColor="#F5F5F0"
+            android:pathData="M47,60v5h1v-5zM51,60v5h1v-5zM55,60v5h1v-5zM59,60v5h1v-5z" />
+
+        <!-- Sword crossguard -->
+        <path
+            android:fillColor="#8B4513"
+            android:pathData="M46,70h16v3c0,1 -1,2 -2,2h-12c-1,0 -2,-1 -2,-2z" />
+
+        <!-- Sword handle -->
+        <path
+            android:fillColor="#5D3A1A"
+            android:pathData="M51,75h6v6h-6z" />
+
+        <!-- Sword pommel -->
+        <path
+            android:fillColor="#8B4513"
+            android:pathData="M50,81h8v2c0,1 -1,2 -2,2h-4c-1,0 -2,-1 -2,-2z" />
     </group>
 </vector>
