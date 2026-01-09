@@ -679,6 +679,8 @@ class GameViewModelTest {
                 // Log should have RoomAvoided followed by RoomDrawn (auto-draw)
                 val roomAvoidedEntry = state.actionLog.filterIsInstance<LogEntry.RoomAvoided>().last()
                 assertEquals(4, roomAvoidedEntry.cardsReturned)
+                val roomDrawnEntry = state.actionLog.filterIsInstance<LogEntry.RoomDrawn>().last()
+                assertTrue(roomDrawnEntry.cardsDrawn > 0)
             }
         }
 
