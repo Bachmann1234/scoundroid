@@ -178,12 +178,13 @@ fun GameScreen(
                 }
             }
         } else {
-            // Compact layout: vertical stack (no scroll - fits on screen)
+            // Compact layout: vertical stack with scroll fallback for smaller screens
             Column(
                 modifier =
                     Modifier
                         .fillMaxSize()
                         .padding(innerPadding)
+                        .verticalScroll(rememberScrollState())
                         .padding(12.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {

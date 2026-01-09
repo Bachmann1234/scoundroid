@@ -28,6 +28,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import dev.mattbachmann.scoundroid.data.model.LogEntry
 
+// Fixed heights for preview panel to prevent layout jumping during gameplay.
+// Compact: fits title + 3 preview entries with small text (cover screen of Pixel 10 Pro Fold)
+// Expanded: fits title + 3 preview entries with medium text (inner screen)
 private val PREVIEW_PANEL_HEIGHT_COMPACT = 95.dp
 private val PREVIEW_PANEL_HEIGHT_EXPANDED = 140.dp
 
@@ -54,8 +57,10 @@ fun PreviewPanel(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
             ),
     ) {
-        // Only enable scroll in compact mode where we have fixed height
-        // In expanded mode, parent handles scrolling (avoid nested scroll crash)
+        // Compact mode: smaller fixed height (95dp) may not fit all 3 preview entries,
+        // so enable internal scroll. The fixed height ensures this doesn't conflict with
+        // the parent's scroll since nested scroll works when inner container has fixed bounds.
+        // Expanded mode: larger fixed height (140dp) fits content without needing scroll.
         val columnModifier =
             if (isCompact) {
                 Modifier

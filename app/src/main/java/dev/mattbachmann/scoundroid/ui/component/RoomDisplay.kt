@@ -12,7 +12,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -58,13 +57,16 @@ fun RoomDisplay(
             fontWeight = FontWeight.Bold,
         )
 
-        // Always reserve space for instruction text to prevent layout shift
-        Text(
-            text = "Select 3 cards to process (leave 1 for next room)",
-            style = if (isExpanded) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
-            modifier = Modifier.alpha(if (cards.size == 4) 1f else 0f),
-        )
+        // Only show instruction text when 4 cards present, use fixed height to prevent layout shift
+        Box(modifier = Modifier.height(if (isExpanded) 20.dp else 16.dp)) {
+            if (cards.size == 4) {
+                Text(
+                    text = "Select 3 cards to process (leave 1 for next room)",
+                    style = if (isExpanded) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+                )
+            }
+        }
 
         // Display cards - 1x4 row for expanded mode, 2x2 grid for compact mode
         // Use fixed height to prevent layout jumping between 1 card and 4 card states
@@ -203,14 +205,17 @@ fun RoomDisplay(
             }
         }
 
-        // Always reserve space for selection text to prevent layout shift
-        Text(
-            text = "Selected: ${selectedCards.size} / 3",
-            style = if (isExpanded) MaterialTheme.typography.bodyLarge else MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.alpha(if (selectedCards.isNotEmpty()) 1f else 0f),
-        )
+        // Only show selection count when cards are selected, use fixed height to prevent layout shift
+        Box(modifier = Modifier.height(if (isExpanded) 24.dp else 20.dp)) {
+            if (selectedCards.isNotEmpty()) {
+                Text(
+                    text = "Selected: ${selectedCards.size} / 3",
+                    style = if (isExpanded) MaterialTheme.typography.bodyLarge else MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
+        }
     }
 }
 
