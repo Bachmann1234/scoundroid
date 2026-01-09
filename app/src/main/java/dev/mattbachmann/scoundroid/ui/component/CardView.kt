@@ -100,7 +100,7 @@ fun CardView(
         "$typeName card, ${card.rank.displayName} of $suitName, value ${card.value}$selectedText"
 
     val actualBorderWidth = if (isSelected) 4.dp else 2.dp
-    val actualBorderColor = if (isSelected) Color(0xFF00BCD4) else borderColor
+    val actualBorderColor = if (isSelected) Color(0xFF009688) else borderColor
 
     Box(modifier = modifier) {
         Card(
@@ -156,7 +156,7 @@ fun CardView(
                         .offset(x = 4.dp, y = (-4).dp)
                         .size(24.dp)
                         .background(
-                            color = Color(0xFF00BCD4),
+                            color = Color(0xFF009688),
                             shape = CircleShape,
                         ),
                 contentAlignment = Alignment.Center,
