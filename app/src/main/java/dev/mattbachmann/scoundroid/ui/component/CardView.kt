@@ -157,7 +157,6 @@ fun CardView(
                     fontWeight = FontWeight.Bold,
                     color = textColor,
                 )
-
             }
         }
 
