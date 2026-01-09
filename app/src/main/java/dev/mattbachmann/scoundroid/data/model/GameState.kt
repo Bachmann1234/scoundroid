@@ -31,10 +31,12 @@ data class GameState(
 
         /**
          * Creates a new game with a shuffled deck and starting conditions.
+         *
+         * @param random Optional random source for deterministic shuffling (useful for tests)
          */
-        fun newGame(): GameState {
+        fun newGame(random: kotlin.random.Random = kotlin.random.Random): GameState {
             return GameState(
-                deck = Deck.create().shuffle(),
+                deck = Deck.create().shuffle(random),
                 health = MAX_HEALTH,
                 currentRoom = null,
                 weaponState = null,
@@ -140,7 +142,50 @@ data class GameState(
     }
 
     /**
+     * Fights a monster using the equipped weapon.
+     * Weapon must be able to defeat the monster.
+     *
+     * @param monster The monster to fight
+     * @return New game state after combat with reduced damage and degraded weapon
+     */
+    fun fightMonsterWithWeapon(monster: Card): GameState {
+        require(monster.type == CardType.MONSTER) { "Can only fight monster cards" }
+        require(weaponState != null && weaponState.canDefeat(monster)) {
+            "Weapon cannot defeat this monster"
+        }
+
+        val damage = (monster.value - weaponState.weapon.value).coerceAtLeast(0)
+        val newWeaponState = weaponState.useOn(monster)
+
+        return copy(
+            health = (health - damage).coerceAtLeast(0),
+            weaponState = newWeaponState,
+            defeatedMonsters = defeatedMonsters + monster,
+            lastCardProcessed = monster,
+        )
+    }
+
+    /**
+     * Fights a monster barehanded, taking full damage.
+     * Weapon (if any) is not used and not degraded.
+     *
+     * @param monster The monster to fight
+     * @return New game state after combat with full damage taken
+     */
+    fun fightMonsterBarehanded(monster: Card): GameState {
+        require(monster.type == CardType.MONSTER) { "Can only fight monster cards" }
+
+        return copy(
+            health = (health - monster.value).coerceAtLeast(0),
+            defeatedMonsters = defeatedMonsters + monster,
+            lastCardProcessed = monster,
+            // weaponState unchanged - not used
+        )
+    }
+
+    /**
      * Fights a monster, applying damage and weapon degradation.
+     * Auto-uses weapon if available and can defeat the monster.
      *
      * Combat rules:
      * - If no weapon or weapon can't defeat monster: barehanded (full damage)
@@ -153,25 +198,11 @@ data class GameState(
     fun fightMonster(monster: Card): GameState {
         require(monster.type == CardType.MONSTER) { "Can only fight monster cards" }
 
-        val damage: Int
-        val newWeaponState: WeaponState?
-
-        if (weaponState != null && weaponState.canDefeat(monster)) {
-            // Weapon combat: reduced damage and weapon degrades
-            damage = (monster.value - weaponState.weapon.value).coerceAtLeast(0)
-            newWeaponState = weaponState.useOn(monster)
+        return if (weaponState != null && weaponState.canDefeat(monster)) {
+            fightMonsterWithWeapon(monster)
         } else {
-            // Barehanded combat: full damage, weapon unchanged
-            damage = monster.value
-            newWeaponState = weaponState
+            fightMonsterBarehanded(monster)
         }
-
-        return copy(
-            health = (health - damage).coerceAtLeast(0),
-            weaponState = newWeaponState,
-            defeatedMonsters = defeatedMonsters + monster,
-            lastCardProcessed = monster,
-        )
     }
 
     /**

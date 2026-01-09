@@ -39,4 +39,25 @@ data class GameUiState(
     val actionLog: List<LogEntry> = emptyList(),
     /** Whether to show the action log */
     val showActionLog: Boolean = false,
+    /** Pending combat choice when player must decide weapon vs barehanded */
+    val pendingCombatChoice: PendingCombatChoice? = null,
+)
+
+/**
+ * Represents a pending combat choice when the player has a weapon
+ * that can defeat the current monster.
+ */
+data class PendingCombatChoice(
+    /** The monster being fought */
+    val monster: Card,
+    /** The weapon available to use */
+    val weapon: Card,
+    /** Damage taken if using weapon */
+    val weaponDamage: Int,
+    /** Damage taken if fighting barehanded */
+    val barehandedDamage: Int,
+    /** What the weapon's max monster value will be after use */
+    val weaponDegradedTo: Int,
+    /** Cards remaining to process after this monster */
+    val remainingCards: List<Card>,
 )

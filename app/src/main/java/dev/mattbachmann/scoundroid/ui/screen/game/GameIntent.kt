@@ -55,4 +55,11 @@ sealed class GameIntent {
      * Hide the action log.
      */
     data object HideActionLog : GameIntent()
+
+    /**
+     * Resolve a pending combat choice.
+     * @param useWeapon true to use weapon (reduced damage, weapon degrades),
+     *                  false to fight barehanded (full damage, weapon unchanged)
+     */
+    data class ResolveCombatChoice(val useWeapon: Boolean) : GameIntent()
 }

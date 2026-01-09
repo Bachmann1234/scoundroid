@@ -25,6 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -149,24 +150,32 @@ fun GameStatusBar(
                             value = "$health / 20",
                             isCompact = true,
                             valueColor = healthTextColor,
+                            valueTestTag = "health_display",
                         )
                         StatusItem(
                             label = "Score",
                             value = "$score",
                             isCompact = true,
                             horizontalAlignment = Alignment.End,
+                            valueTestTag = "score_display",
                         )
                     }
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
-                        StatusItem(label = "Deck", value = "$deckSize cards", isCompact = true)
+                        StatusItem(
+                            label = "Deck",
+                            value = "$deckSize cards",
+                            isCompact = true,
+                            valueTestTag = "deck_size_display",
+                        )
                         StatusItem(
                             label = "Defeated",
                             value = "$defeatedMonstersCount",
                             isCompact = true,
                             horizontalAlignment = Alignment.End,
+                            valueTestTag = "defeated_display",
                         )
                     }
                 }
@@ -176,10 +185,27 @@ fun GameStatusBar(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly,
                     ) {
-                        StatusItem(label = "Health", value = "$health / 20", valueColor = healthTextColor)
-                        StatusItem(label = "Score", value = "$score")
-                        StatusItem(label = "Deck", value = "$deckSize cards")
-                        StatusItem(label = "Defeated", value = "$defeatedMonstersCount")
+                        StatusItem(
+                            label = "Health",
+                            value = "$health / 20",
+                            valueColor = healthTextColor,
+                            valueTestTag = "health_display",
+                        )
+                        StatusItem(
+                            label = "Score",
+                            value = "$score",
+                            valueTestTag = "score_display",
+                        )
+                        StatusItem(
+                            label = "Deck",
+                            value = "$deckSize cards",
+                            valueTestTag = "deck_size_display",
+                        )
+                        StatusItem(
+                            label = "Defeated",
+                            value = "$defeatedMonstersCount",
+                            valueTestTag = "defeated_display",
+                        )
                     }
                 }
             }
@@ -207,6 +233,7 @@ fun GameStatusBar(
                         style = textStyle,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.testTag("weapon_display"),
                     )
                 } else {
                     val textStyle =
@@ -216,6 +243,7 @@ fun GameStatusBar(
                         style = textStyle,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.testTag("weapon_display"),
                     )
                 }
             }
@@ -230,6 +258,7 @@ private fun StatusItem(
     isCompact: Boolean = false,
     horizontalAlignment: Alignment.Horizontal = Alignment.Start,
     valueColor: Color? = null,
+    valueTestTag: String? = null,
 ) {
     Column(
         horizontalAlignment = horizontalAlignment,
@@ -244,6 +273,7 @@ private fun StatusItem(
             style = if (isCompact) MaterialTheme.typography.titleSmall else MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             color = valueColor ?: MaterialTheme.colorScheme.onPrimaryContainer,
+            modifier = if (valueTestTag != null) Modifier.testTag(valueTestTag) else Modifier,
         )
     }
 }

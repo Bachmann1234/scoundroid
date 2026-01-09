@@ -1,5 +1,7 @@
 package dev.mattbachmann.scoundroid.data.model
 
+import kotlin.random.Random
+
 /**
  * Represents a deck of Scoundrel cards.
  * The Scoundrel deck has 44 cards (standard 52-card deck with specific removals):
@@ -53,9 +55,11 @@ data class Deck(val cards: List<Card>) {
 
     /**
      * Returns a new shuffled deck with the same cards in random order.
+     *
+     * @param random Optional random source for deterministic shuffling (useful for tests)
      */
-    fun shuffle(): Deck {
-        return Deck(cards.shuffled())
+    fun shuffle(random: Random = Random): Deck {
+        return Deck(cards.shuffled(random))
     }
 
     /**

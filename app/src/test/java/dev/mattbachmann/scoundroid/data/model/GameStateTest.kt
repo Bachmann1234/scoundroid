@@ -218,4 +218,213 @@ class GameStateTest {
 
         assertEquals(weapon2, gameState.weaponState?.weapon)
     }
+
+    // ========== First Room Avoidance Tests ==========
+
+    @Test
+    fun `first room can be avoided since no previous room was avoided`() {
+        val gameState = GameState.newGame().drawRoom()
+
+        // First room CAN be avoided (lastRoomAvoided starts false)
+        assertFalse(gameState.lastRoomAvoided)
+
+        // Should be able to avoid
+        val afterAvoid = gameState.avoidRoom()
+        assertTrue(afterAvoid.lastRoomAvoided)
+        assertNull(afterAvoid.currentRoom)
+    }
+
+    @Test
+    fun `new game starts with lastRoomAvoided as false`() {
+        val gameState = GameState.newGame()
+        assertFalse(gameState.lastRoomAvoided)
+    }
+
+    // ========== Deck Exhaustion Edge Cases ==========
+
+    @Test
+    fun `drawing room when deck has exactly 4 cards uses all cards`() {
+        val fourCards =
+            listOf(
+                Card(Suit.CLUBS, Rank.TWO),
+                Card(Suit.SPADES, Rank.THREE),
+                Card(Suit.DIAMONDS, Rank.FOUR),
+                Card(Suit.HEARTS, Rank.FIVE),
+            )
+        val gameState =
+            GameState(
+                deck = Deck(fourCards),
+                health = 20,
+                currentRoom = null,
+                weaponState = null,
+                defeatedMonsters = emptyList(),
+                discardPile = emptyList(),
+                lastRoomAvoided = false,
+                usedPotionThisTurn = false,
+                lastCardProcessed = null,
+            )
+
+        val newState = gameState.drawRoom()
+
+        assertEquals(4, newState.currentRoom?.size)
+        assertEquals(0, newState.deck.size)
+    }
+
+    @Test
+    fun `drawing room when deck has 3 cards creates room with 3 cards`() {
+        val threeCards =
+            listOf(
+                Card(Suit.CLUBS, Rank.TWO),
+                Card(Suit.SPADES, Rank.THREE),
+                Card(Suit.DIAMONDS, Rank.FOUR),
+            )
+        val gameState =
+            GameState(
+                deck = Deck(threeCards),
+                health = 20,
+                currentRoom = null,
+                weaponState = null,
+                defeatedMonsters = emptyList(),
+                discardPile = emptyList(),
+                lastRoomAvoided = false,
+                usedPotionThisTurn = false,
+                lastCardProcessed = null,
+            )
+
+        val newState = gameState.drawRoom()
+
+        assertEquals(3, newState.currentRoom?.size)
+        assertEquals(0, newState.deck.size)
+    }
+
+    @Test
+    fun `drawing room when deck has 1 card creates room with 1 card`() {
+        val oneCard = listOf(Card(Suit.CLUBS, Rank.ACE))
+        val gameState =
+            GameState(
+                deck = Deck(oneCard),
+                health = 20,
+                currentRoom = null,
+                weaponState = null,
+                defeatedMonsters = emptyList(),
+                discardPile = emptyList(),
+                lastRoomAvoided = false,
+                usedPotionThisTurn = false,
+                lastCardProcessed = null,
+            )
+
+        val newState = gameState.drawRoom()
+
+        assertEquals(1, newState.currentRoom?.size)
+        assertEquals(0, newState.deck.size)
+    }
+
+    @Test
+    fun `drawing room when deck is empty creates empty room`() {
+        val gameState =
+            GameState(
+                deck = Deck(emptyList()),
+                health = 20,
+                currentRoom = null,
+                weaponState = null,
+                defeatedMonsters = emptyList(),
+                discardPile = emptyList(),
+                lastRoomAvoided = false,
+                usedPotionThisTurn = false,
+                lastCardProcessed = null,
+            )
+
+        val newState = gameState.drawRoom()
+
+        assertEquals(0, newState.currentRoom?.size ?: 0)
+    }
+
+    @Test
+    fun `game win is determined by empty deck and positive health`() {
+        // Note: Current implementation considers game won when deck.isEmpty && health > 0
+        // This doesn't account for cards still in the room - the UI handles showing
+        // the win condition only after the final room is processed.
+
+        // Start with exactly 4 cards
+        val fourCards =
+            listOf(
+                Card(Suit.CLUBS, Rank.TWO),
+                Card(Suit.HEARTS, Rank.THREE),
+                Card(Suit.HEARTS, Rank.FOUR),
+                Card(Suit.HEARTS, Rank.FIVE),
+            )
+        val gameState =
+            GameState(
+                deck = Deck(fourCards),
+                health = 20,
+                currentRoom = null,
+                weaponState = null,
+                defeatedMonsters = emptyList(),
+                discardPile = emptyList(),
+                lastRoomAvoided = false,
+                usedPotionThisTurn = false,
+                lastCardProcessed = null,
+            )
+
+        // Draw room (deck now empty)
+        val withRoom = gameState.drawRoom()
+        assertEquals(0, withRoom.deck.size)
+        assertEquals(4, withRoom.currentRoom?.size)
+
+        // With empty deck and health > 0, isGameWon returns true
+        // (even though there's still a room to process)
+        assertTrue(withRoom.isGameWon)
+
+        // The UI layer (ViewModel) handles showing win screen only after
+        // the room is fully processed - this tests the underlying state logic
+    }
+
+    @Test
+    fun `leftover card from previous room joins next room draw`() {
+        val gameState = GameState.newGame().drawRoom()
+        val originalRoom = gameState.currentRoom!!
+
+        // Select first 3 cards, leaving the 4th
+        val leftoverCard = originalRoom[3]
+        val afterSelect = gameState.selectCards(originalRoom.take(3))
+
+        assertEquals(1, afterSelect.currentRoom?.size)
+        assertEquals(leftoverCard, afterSelect.currentRoom?.first())
+
+        // Draw next room - should have 4 cards (1 leftover + 3 new)
+        val nextRoom = afterSelect.drawRoom()
+        assertEquals(4, nextRoom.currentRoom?.size)
+
+        // The leftover card should still be in the room
+        assertTrue(nextRoom.currentRoom!!.contains(leftoverCard))
+    }
+
+    @Test
+    fun `drawing next room with 1 leftover and 2 cards in deck creates 3 card room`() {
+        // Create state with 2 cards in deck and 1 leftover
+        val twoCards =
+            listOf(
+                Card(Suit.CLUBS, Rank.KING),
+                Card(Suit.SPADES, Rank.QUEEN),
+            )
+        val leftover = Card(Suit.HEARTS, Rank.TWO)
+        val gameState =
+            GameState(
+                deck = Deck(twoCards),
+                health = 20,
+                currentRoom = listOf(leftover),
+                weaponState = null,
+                defeatedMonsters = emptyList(),
+                discardPile = emptyList(),
+                lastRoomAvoided = false,
+                usedPotionThisTurn = false,
+                lastCardProcessed = null,
+            )
+
+        val newState = gameState.drawRoom()
+
+        assertEquals(3, newState.currentRoom?.size)
+        assertEquals(0, newState.deck.size)
+        assertTrue(newState.currentRoom!!.contains(leftover))
+    }
 }
