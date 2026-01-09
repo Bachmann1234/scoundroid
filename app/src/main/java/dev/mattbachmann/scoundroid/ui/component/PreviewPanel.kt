@@ -5,9 +5,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Shield
@@ -25,6 +28,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import dev.mattbachmann.scoundroid.data.model.LogEntry
 
+// Fixed heights for preview panel to prevent layout jumping during gameplay.
+// Compact: fits title + 3 preview entries with small text (cover screen of Pixel 10 Pro Fold)
+// Expanded: fits title + 3 preview entries with medium text (inner screen)
+private val PREVIEW_PANEL_HEIGHT_COMPACT = 95.dp
+private val PREVIEW_PANEL_HEIGHT_EXPANDED = 140.dp
+
 /**
  * Displays a preview of what will happen when processing the selected cards.
  * Shows log entries in processing order (not reversed like action log).
@@ -33,38 +42,57 @@ import dev.mattbachmann.scoundroid.data.model.LogEntry
 fun PreviewPanel(
     previewEntries: List<LogEntry>,
     modifier: Modifier = Modifier,
+    placeholderText: String = "Select cards to see preview",
+    isCompact: Boolean = false,
 ) {
+    // Use fixed height in both modes to prevent layout jumping
+    val panelHeight = if (isCompact) PREVIEW_PANEL_HEIGHT_COMPACT else PREVIEW_PANEL_HEIGHT_EXPANDED
     Card(
-        modifier = modifier.fillMaxWidth(),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .height(panelHeight),
         colors =
             CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
             ),
     ) {
-        Column(
-            modifier =
+        // Compact mode: smaller fixed height (95dp) may not fit all 3 preview entries,
+        // so enable internal scroll. The fixed height ensures this doesn't conflict with
+        // the parent's scroll since nested scroll works when inner container has fixed bounds.
+        // Expanded mode: larger fixed height (140dp) fits content without needing scroll.
+        val columnModifier =
+            if (isCompact) {
                 Modifier
                     .fillMaxWidth()
-                    .padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+                    .verticalScroll(rememberScrollState())
+                    .padding(8.dp)
+            } else {
+                Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp)
+            }
+        Column(
+            modifier = columnModifier,
+            verticalArrangement = Arrangement.spacedBy(if (isCompact) 4.dp else 8.dp),
         ) {
             Text(
                 text = "Preview",
-                style = MaterialTheme.typography.titleMedium,
+                style = if (isCompact) MaterialTheme.typography.titleSmall else MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
             )
 
             if (previewEntries.isEmpty()) {
                 Text(
-                    text = "Select cards to see preview",
-                    style = MaterialTheme.typography.bodyMedium,
+                    text = placeholderText,
+                    style = if (isCompact) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             } else {
                 // Show entries in processing order (not reversed)
                 previewEntries.forEach { entry ->
-                    PreviewEntryRow(entry = entry)
+                    PreviewEntryRow(entry = entry, isCompact = isCompact)
                 }
             }
         }
@@ -72,7 +100,10 @@ fun PreviewPanel(
 }
 
 @Composable
-private fun PreviewEntryRow(entry: LogEntry) {
+private fun PreviewEntryRow(
+    entry: LogEntry,
+    isCompact: Boolean = false,
+) {
     val (icon, iconColor, description) =
         when (entry) {
             is LogEntry.MonsterFought -> {
@@ -151,7 +182,7 @@ private fun PreviewEntryRow(entry: LogEntry) {
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = description,
-                style = MaterialTheme.typography.bodySmall,
+                style = if (isCompact) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface,
             )
         }

@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -18,7 +17,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -97,7 +100,7 @@ fun CardView(
         "$typeName card, ${card.rank.displayName} of $suitName, value ${card.value}$selectedText"
 
     val actualBorderWidth = if (isSelected) 4.dp else 2.dp
-    val actualBorderColor = if (isSelected) Color(0xFFFFD700) else borderColor
+    val actualBorderColor = if (isSelected) Color(0xFF009688) else borderColor
 
     Box(modifier = modifier) {
         Card(
@@ -153,7 +156,7 @@ fun CardView(
                         .offset(x = 4.dp, y = (-4).dp)
                         .size(24.dp)
                         .background(
-                            color = Color(0xFFFFD700),
+                            color = Color(0xFF009688),
                             shape = CircleShape,
                         ),
                 contentAlignment = Alignment.Center,
@@ -170,8 +173,8 @@ fun CardView(
 }
 
 /**
- * Displays an empty placeholder card to reserve space in the layout.
- * Used when no cards have been drawn yet to prevent UI shifting.
+ * Displays a card back design to represent face-down cards in the deck.
+ * Features a classic playing card back with a crosshatch pattern.
  */
 @Composable
 fun PlaceholderCardView(
@@ -183,22 +186,104 @@ fun PlaceholderCardView(
         modifier =
             modifier
                 .size(width = cardWidth, height = cardHeight)
-                .semantics { contentDescription = "Empty card slot" },
+                .semantics { contentDescription = "Card back" },
         colors =
             CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                // Dark red
+                containerColor = Color(0xFF8B0000),
             ),
-        border = BorderStroke(2.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)),
+        // Cream border
+        border = BorderStroke(2.dp, Color(0xFFF5F5DC)),
     ) {
         Box(
-            modifier = Modifier.fillMaxWidth().padding(12.dp),
-            contentAlignment = Alignment.Center,
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(6.dp),
         ) {
-            Text(
-                text = "?",
-                style = MaterialTheme.typography.displayMedium,
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
-            )
+            // Inner decorative border
+            Box(
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .background(Color(0xFF8B0000))
+                        .padding(2.dp),
+            ) {
+                // Cream inner border
+                Box(
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .background(Color(0xFFF5F5DC))
+                            .padding(2.dp),
+                ) {
+                    // Dark red center with cached crosshatch pattern
+                    Box(
+                        modifier =
+                            Modifier
+                                .fillMaxSize()
+                                .background(Color(0xFF8B0000))
+                                .drawWithCache {
+                                    val patternColor = Color(0xFFCD5C5C) // Indian red for pattern
+                                    val spacing = 16f
+                                    val strokeWidth = 1.5f
+                                    val centerX = size.width / 2
+                                    val centerY = size.height / 2
+                                    val ovalWidth = size.width * 0.6f
+                                    val ovalHeight = size.height * 0.5f
+
+                                    onDrawBehind {
+                                        // Draw diagonal lines from top-left to bottom-right
+                                        var x = -size.height
+                                        while (x < size.width + size.height) {
+                                            drawLine(
+                                                color = patternColor,
+                                                start = Offset(x, 0f),
+                                                end = Offset(x + size.height, size.height),
+                                                strokeWidth = strokeWidth,
+                                            )
+                                            x += spacing
+                                        }
+
+                                        // Draw diagonal lines from top-right to bottom-left
+                                        x = 0f
+                                        while (x < size.width + size.height) {
+                                            drawLine(
+                                                color = patternColor,
+                                                start = Offset(x, 0f),
+                                                end = Offset(x - size.height, size.height),
+                                                strokeWidth = strokeWidth,
+                                            )
+                                            x += spacing
+                                        }
+
+                                        // Draw center oval border
+                                        drawOval(
+                                            color = Color(0xFFF5F5DC),
+                                            topLeft =
+                                                Offset(
+                                                    centerX - ovalWidth / 2,
+                                                    centerY - ovalHeight / 2,
+                                                ),
+                                            size = Size(ovalWidth, ovalHeight),
+                                            style = Stroke(width = 3f),
+                                        )
+
+                                        // Fill center oval with solid color
+                                        drawOval(
+                                            color = Color(0xFF8B0000),
+                                            topLeft =
+                                                Offset(
+                                                    centerX - ovalWidth / 2 + 2,
+                                                    centerY - ovalHeight / 2 + 2,
+                                                ),
+                                            size = Size(ovalWidth - 4, ovalHeight - 4),
+                                        )
+                                    }
+                                },
+                    )
+                }
+            }
         }
     }
 }
