@@ -324,7 +324,10 @@ private fun RoomActionButtons(
                         onClick = onNewGame,
                         modifier = Modifier.fillMaxWidth(),
                     ) {
-                        Text("New Game")
+                        Text(
+                            text = "New Game",
+                            style = buttonTextStyle,
+                        )
                     }
                 }
                 1 -> {
@@ -349,7 +352,10 @@ private fun RoomActionButtons(
                         onClick = onNewGame,
                         modifier = Modifier.fillMaxWidth(),
                     ) {
-                        Text("New Game")
+                        Text(
+                            text = "New Game",
+                            style = buttonTextStyle,
+                        )
                     }
                 }
             }
@@ -368,7 +374,10 @@ private fun RoomActionButtons(
                 onClick = onNewGame,
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text("New Game")
+                Text(
+                    text = "New Game",
+                    style = buttonTextStyle,
+                )
             }
         }
     }

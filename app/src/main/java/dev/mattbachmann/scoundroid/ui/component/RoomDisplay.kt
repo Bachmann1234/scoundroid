@@ -56,7 +56,7 @@ fun RoomDisplay(
         // Always reserve space for instruction text to prevent layout shift
         Text(
             text = "Select 3 cards to process (leave 1 for next room)",
-            style = MaterialTheme.typography.bodySmall,
+            style = if (isExpanded) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
             modifier = Modifier.alpha(if (cards.size == 4) 1f else 0f),
         )

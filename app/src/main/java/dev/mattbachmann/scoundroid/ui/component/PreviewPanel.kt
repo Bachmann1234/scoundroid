@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Shield
@@ -42,7 +44,10 @@ fun PreviewPanel(
 ) {
     val panelHeight = if (isCompact) PREVIEW_PANEL_HEIGHT_COMPACT else PREVIEW_PANEL_HEIGHT_EXPANDED
     Card(
-        modifier = modifier.fillMaxWidth().height(panelHeight),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .height(panelHeight),
         colors =
             CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
@@ -52,6 +57,7 @@ fun PreviewPanel(
             modifier =
                 Modifier
                     .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
                     .padding(if (isCompact) 8.dp else 12.dp),
             verticalArrangement = Arrangement.spacedBy(if (isCompact) 4.dp else 8.dp),
         ) {
