@@ -88,10 +88,10 @@ fun CardView(
             Suit.HEARTS -> "Hearts"
         }
     val selectedText =
-        when {
-            selectionOrder != null -> ", selected $selectionOrder of 3"
-            isSelected -> ", selected"
-            else -> ""
+        if (isSelected) {
+            if (selectionOrder != null) ", selected $selectionOrder of 3" else ", selected"
+        } else {
+            ""
         }
     val accessibilityDescription =
         "$typeName card, ${card.rank.displayName} of $suitName, value ${card.value}$selectedText"
