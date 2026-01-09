@@ -28,6 +28,9 @@ enum class StatusBarLayout {
     /** Compact 2-row grid for narrow screens */
     COMPACT,
 
+    /** Vertical stack for sidebar */
+    SIDEBAR,
+
     /** Horizontal inline for bottom panel */
     INLINE,
 }
@@ -46,7 +49,7 @@ fun GameStatusBar(
     layout: StatusBarLayout = StatusBarLayout.COMPACT,
 ) {
     Card(
-        modifier = modifier.fillMaxWidth(),
+        modifier = if (layout == StatusBarLayout.SIDEBAR) modifier else modifier.fillMaxWidth(),
         colors =
             CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -57,6 +60,13 @@ fun GameStatusBar(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             when (layout) {
+                StatusBarLayout.SIDEBAR -> {
+                    // Vertical sidebar layout - all items stacked vertically
+                    StatusItem(label = "Health", value = "$health / 20")
+                    StatusItem(label = "Score", value = "$score")
+                    StatusItem(label = "Deck", value = "$deckSize cards")
+                    StatusItem(label = "Defeated", value = "$defeatedMonstersCount")
+                }
                 StatusBarLayout.COMPACT -> {
                     // Compact mode: 2-row grid
                     Row(

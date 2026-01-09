@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -122,7 +121,7 @@ fun GameScreen(
                     )
                 }
 
-                // Bottom section: Title, status, buttons
+                // Bottom section: Title, status, preview, buttons
                 Column(
                     modifier =
                         Modifier
@@ -176,6 +175,7 @@ fun GameScreen(
                         selectedCards = selectedCards,
                         onSelectedCardsChange = { selectedCards = it },
                         onIntent = viewModel::onIntent,
+                        simulateProcessing = viewModel::simulateProcessing,
                     )
                 }
             }
@@ -248,8 +248,8 @@ fun GameScreen(
  */
 private fun toggleCardSelection(
     card: Card,
-    selectedCards: Set<Card>,
-): Set<Card> =
+    selectedCards: List<Card>,
+): List<Card> =
     if (card in selectedCards) {
         selectedCards - card
     } else if (selectedCards.size < 3) {
@@ -418,8 +418,8 @@ private fun GameContent(
 @Composable
 private fun ExpandedCardsSection(
     uiState: GameUiState,
-    selectedCards: Set<Card>,
-    onSelectedCardsChange: (Set<Card>) -> Unit,
+    selectedCards: List<Card>,
+    onSelectedCardsChange: (List<Card>) -> Unit,
 ) {
     if (uiState.isGameOver) {
         GameOverScreen(
@@ -443,7 +443,7 @@ private fun ExpandedCardsSection(
             if (currentRoom.size == 1) {
                 RoomDisplay(
                     cards = currentRoom,
-                    selectedCards = emptySet(),
+                    selectedCards = emptyList(),
                     onCardClick = null,
                     isExpanded = true,
                 )
@@ -460,7 +460,7 @@ private fun ExpandedCardsSection(
         } else {
             RoomDisplay(
                 cards = emptyList(),
-                selectedCards = emptySet(),
+                selectedCards = emptyList(),
                 onCardClick = null,
                 isExpanded = true,
                 showPlaceholders = true,
@@ -475,15 +475,16 @@ private fun ExpandedCardsSection(
 @Composable
 private fun ExpandedControlsSection(
     uiState: GameUiState,
-    selectedCards: Set<Card>,
-    onSelectedCardsChange: (Set<Card>) -> Unit,
+    selectedCards: List<Card>,
+    onSelectedCardsChange: (List<Card>) -> Unit,
     onIntent: (GameIntent) -> Unit,
+    simulateProcessing: (List<Card>) -> List<LogEntry>,
 ) {
     if (uiState.isGameOver || uiState.isGameWon) {
         Button(
             onClick = {
                 onIntent(GameIntent.NewGame)
-                onSelectedCardsChange(emptySet())
+                onSelectedCardsChange(emptyList())
             },
             modifier = Modifier.fillMaxWidth(),
         ) {
@@ -495,6 +496,13 @@ private fun ExpandedControlsSection(
     } else {
         val currentRoom = uiState.currentRoom
         if (currentRoom != null) {
+            // Preview panel - show what will happen when processing selected cards
+            if (currentRoom.size == 4) {
+                PreviewPanel(
+                    previewEntries = simulateProcessing(selectedCards),
+                )
+            }
+
             if (currentRoom.size == 4) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -504,7 +512,7 @@ private fun ExpandedControlsSection(
                         OutlinedButton(
                             onClick = {
                                 onIntent(GameIntent.AvoidRoom)
-                                onSelectedCardsChange(emptySet())
+                                onSelectedCardsChange(emptyList())
                             },
                             modifier = Modifier.weight(1f),
                         ) {
@@ -514,8 +522,8 @@ private fun ExpandedControlsSection(
 
                     Button(
                         onClick = {
-                            onIntent(GameIntent.ProcessSelectedCards(selectedCards.toList()))
-                            onSelectedCardsChange(emptySet())
+                            onIntent(GameIntent.ProcessSelectedCards(selectedCards))
+                            onSelectedCardsChange(emptyList())
                         },
                         enabled = selectedCards.size == 3,
                         modifier =
@@ -533,7 +541,7 @@ private fun ExpandedControlsSection(
                 OutlinedButton(
                     onClick = {
                         onIntent(GameIntent.NewGame)
-                        onSelectedCardsChange(emptySet())
+                        onSelectedCardsChange(emptyList())
                     },
                     modifier = Modifier.fillMaxWidth(),
                 ) {
@@ -559,7 +567,7 @@ private fun ExpandedControlsSection(
                 OutlinedButton(
                     onClick = {
                         onIntent(GameIntent.NewGame)
-                        onSelectedCardsChange(emptySet())
+                        onSelectedCardsChange(emptyList())
                     },
                     modifier = Modifier.fillMaxWidth(),
                 ) {
@@ -581,7 +589,7 @@ private fun ExpandedControlsSection(
             OutlinedButton(
                 onClick = {
                     onIntent(GameIntent.NewGame)
-                    onSelectedCardsChange(emptySet())
+                    onSelectedCardsChange(emptyList())
                 },
                 modifier = Modifier.fillMaxWidth(),
             ) {
