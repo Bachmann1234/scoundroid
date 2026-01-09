@@ -1,5 +1,8 @@
 package dev.mattbachmann.scoundroid.ui.component
 
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -15,8 +18,10 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -102,7 +107,17 @@ fun CardView(
     val actualBorderWidth = if (isSelected) 4.dp else 2.dp
     val actualBorderColor = if (isSelected) Color(0xFF009688) else borderColor
 
-    Box(modifier = modifier) {
+    // Scale animation for selection feedback
+    val scale by animateFloatAsState(
+        targetValue = if (isSelected) 1.08f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium,
+        ),
+        label = "cardScale",
+    )
+
+    Box(modifier = modifier.scale(scale)) {
         Card(
             modifier =
                 Modifier
