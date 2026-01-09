@@ -39,9 +39,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.mattbachmann.scoundroid.data.model.Card
+import dev.mattbachmann.scoundroid.data.model.LogEntry
 import dev.mattbachmann.scoundroid.ui.component.ActionLogPanel
 import dev.mattbachmann.scoundroid.ui.component.GameStatusBar
 import dev.mattbachmann.scoundroid.ui.component.HelpContent
+import dev.mattbachmann.scoundroid.ui.component.PreviewPanel
 import dev.mattbachmann.scoundroid.ui.component.RoomDisplay
 import dev.mattbachmann.scoundroid.ui.theme.ScoundroidTheme
 
@@ -58,7 +60,7 @@ fun GameScreen(
     isExpandedScreen: Boolean = false,
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    var selectedCards by remember { mutableStateOf(setOf<Card>()) }
+    var selectedCards by remember { mutableStateOf(listOf<Card>()) }
     var scoreSaved by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
 
@@ -167,6 +169,7 @@ fun GameScreen(
                         selectedCards = selectedCards,
                         onSelectedCardsChange = { selectedCards = it },
                         onIntent = viewModel::onIntent,
+                        simulateProcessing = viewModel::simulateProcessing,
                         isExpandedScreen = true,
                     )
                 }
@@ -227,6 +230,7 @@ fun GameScreen(
                     selectedCards = selectedCards,
                     onSelectedCardsChange = { selectedCards = it },
                     onIntent = viewModel::onIntent,
+                    simulateProcessing = viewModel::simulateProcessing,
                     isExpandedScreen = false,
                 )
             }
@@ -240,9 +244,10 @@ fun GameScreen(
 @Composable
 private fun GameContent(
     uiState: GameUiState,
-    selectedCards: Set<Card>,
-    onSelectedCardsChange: (Set<Card>) -> Unit,
+    selectedCards: List<Card>,
+    onSelectedCardsChange: (List<Card>) -> Unit,
     onIntent: (GameIntent) -> Unit,
+    simulateProcessing: (List<Card>) -> List<LogEntry>,
     isExpandedScreen: Boolean,
 ) {
     // Game over / won message
@@ -253,7 +258,7 @@ private fun GameContent(
             isNewHighScore = uiState.isNewHighScore,
             onNewGame = {
                 onIntent(GameIntent.NewGame)
-                onSelectedCardsChange(emptySet())
+                onSelectedCardsChange(emptyList())
             },
         )
     } else if (uiState.isGameWon) {
@@ -263,7 +268,7 @@ private fun GameContent(
             isNewHighScore = uiState.isNewHighScore,
             onNewGame = {
                 onIntent(GameIntent.NewGame)
-                onSelectedCardsChange(emptySet())
+                onSelectedCardsChange(emptyList())
             },
         )
     } else {
@@ -276,7 +281,7 @@ private fun GameContent(
                 // This card becomes part of the next room
                 RoomDisplay(
                     cards = currentRoom,
-                    selectedCards = emptySet(),
+                    selectedCards = emptyList(),
                     onCardClick = null,
                     isExpanded = isExpandedScreen,
                 )
@@ -298,6 +303,11 @@ private fun GameContent(
                     },
                     isExpanded = isExpandedScreen,
                 )
+
+                // Preview panel - show what will happen when processing selected cards
+                PreviewPanel(
+                    previewEntries = simulateProcessing(selectedCards),
+                )
             }
 
             // Room actions
@@ -311,7 +321,7 @@ private fun GameContent(
                         OutlinedButton(
                             onClick = {
                                 onIntent(GameIntent.AvoidRoom)
-                                onSelectedCardsChange(emptySet())
+                                onSelectedCardsChange(emptyList())
                             },
                             modifier = Modifier.weight(1f),
                         ) {
@@ -325,7 +335,7 @@ private fun GameContent(
                             onIntent(
                                 GameIntent.ProcessSelectedCards(selectedCards.toList()),
                             )
-                            onSelectedCardsChange(emptySet())
+                            onSelectedCardsChange(emptyList())
                         },
                         enabled = selectedCards.size == 3,
                         modifier =
@@ -373,7 +383,7 @@ private fun GameContent(
         OutlinedButton(
             onClick = {
                 onIntent(GameIntent.NewGame)
-                onSelectedCardsChange(emptySet())
+                onSelectedCardsChange(emptyList())
             },
             modifier = Modifier.fillMaxWidth(),
         ) {

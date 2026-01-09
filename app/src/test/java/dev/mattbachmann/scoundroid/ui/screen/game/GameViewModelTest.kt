@@ -818,4 +818,145 @@ class GameViewModelTest {
                 assertTrue(state.actionLog[0] is LogEntry.GameStarted)
             }
         }
+
+    // ========== Simulate Processing (Preview) Tests ==========
+
+    @Test
+    fun `simulateProcessing returns empty list for empty selection`() =
+        runTest {
+            val viewModel = GameViewModel()
+
+            val result = viewModel.simulateProcessing(emptyList())
+
+            assertTrue(result.isEmpty())
+        }
+
+    @Test
+    fun `simulateProcessing returns MonsterFought entry for monster card`() =
+        runTest {
+            val viewModel = GameViewModel()
+            val monster = testMonster(8)
+
+            val result = viewModel.simulateProcessing(listOf(monster))
+
+            assertEquals(1, result.size)
+            assertTrue(result[0] is LogEntry.MonsterFought)
+            val entry = result[0] as LogEntry.MonsterFought
+            assertEquals(monster, entry.monster)
+            assertEquals(8, entry.damageTaken)
+            assertNull(entry.weaponUsed)
+            assertEquals(20, entry.healthBefore)
+            assertEquals(12, entry.healthAfter)
+        }
+
+    @Test
+    fun `simulateProcessing returns WeaponEquipped entry for weapon card`() =
+        runTest {
+            val viewModel = GameViewModel()
+            val weapon = testWeapon(5)
+
+            val result = viewModel.simulateProcessing(listOf(weapon))
+
+            assertEquals(1, result.size)
+            assertTrue(result[0] is LogEntry.WeaponEquipped)
+            val entry = result[0] as LogEntry.WeaponEquipped
+            assertEquals(weapon, entry.weapon)
+            assertNull(entry.replacedWeapon)
+        }
+
+    @Test
+    fun `simulateProcessing returns PotionUsed entry for potion card`() =
+        runTest {
+            val viewModel = GameViewModel()
+            val potion = testPotion(7)
+
+            val result = viewModel.simulateProcessing(listOf(potion))
+
+            assertEquals(1, result.size)
+            assertTrue(result[0] is LogEntry.PotionUsed)
+            val entry = result[0] as LogEntry.PotionUsed
+            assertEquals(potion, entry.potion)
+            assertEquals(0, entry.healthRestored) // Already at max health
+            assertFalse(entry.wasDiscarded)
+        }
+
+    @Test
+    fun `simulateProcessing shows weapon reducing monster damage`() =
+        runTest {
+            val viewModel = GameViewModel()
+            val weapon = testWeapon(5)
+            val monster = testMonster(8)
+
+            // Weapon first, then monster - weapon should reduce damage
+            val result = viewModel.simulateProcessing(listOf(weapon, monster))
+
+            assertEquals(2, result.size)
+            assertTrue(result[0] is LogEntry.WeaponEquipped)
+            assertTrue(result[1] is LogEntry.MonsterFought)
+            val monsterEntry = result[1] as LogEntry.MonsterFought
+            assertEquals(weapon, monsterEntry.weaponUsed)
+            assertEquals(5, monsterEntry.damageBlocked)
+            assertEquals(3, monsterEntry.damageTaken) // 8 - 5 = 3
+            assertEquals(17, monsterEntry.healthAfter) // 20 - 3 = 17
+        }
+
+    @Test
+    fun `simulateProcessing shows second potion as discarded`() =
+        runTest {
+            val viewModel = GameViewModel()
+            val potion1 = testPotion(5)
+            val potion2 = testPotion(7)
+
+            val result = viewModel.simulateProcessing(listOf(potion1, potion2))
+
+            assertEquals(2, result.size)
+            val firstPotionEntry = result[0] as LogEntry.PotionUsed
+            assertFalse(firstPotionEntry.wasDiscarded)
+
+            val secondPotionEntry = result[1] as LogEntry.PotionUsed
+            assertTrue(secondPotionEntry.wasDiscarded)
+            assertEquals(0, secondPotionEntry.healthRestored)
+        }
+
+    @Test
+    fun `simulateProcessing does not mutate actual game state`() =
+        runTest {
+            val viewModel = GameViewModel()
+            val monster = testMonster(10)
+
+            viewModel.uiState.test {
+                val initialState = awaitItem()
+                val initialHealth = initialState.health
+
+                // Simulate processing monster
+                viewModel.simulateProcessing(listOf(monster))
+
+                // Health should not change
+                val currentState = viewModel.uiState.value
+                assertEquals(initialHealth, currentState.health)
+            }
+        }
+
+    @Test
+    fun `simulateProcessing reflects order-dependent weapon degradation`() =
+        runTest {
+            val viewModel = GameViewModel()
+            val weapon = testWeapon(5)
+            val smallMonster = testMonster(3)
+            val bigMonster = testMonster(12)
+
+            // Equip weapon, fight small monster (weapon degrades to max 3), then big monster
+            val result = viewModel.simulateProcessing(listOf(weapon, smallMonster, bigMonster))
+
+            assertEquals(3, result.size)
+
+            // Small monster should use weapon
+            val smallFight = result[1] as LogEntry.MonsterFought
+            assertEquals(weapon, smallFight.weaponUsed)
+
+            // Big monster should NOT use weapon (12 > 3 after degradation)
+            val bigFight = result[2] as LogEntry.MonsterFought
+            assertNull(bigFight.weaponUsed)
+            assertEquals(12, bigFight.damageTaken) // Full damage
+        }
 }
