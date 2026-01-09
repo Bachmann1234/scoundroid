@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import dev.mattbachmann.scoundroid.data.model.LogEntry
 
 private val PREVIEW_PANEL_HEIGHT_COMPACT = 95.dp
+private val PREVIEW_PANEL_HEIGHT_EXPANDED = 160.dp
 
 /**
  * Displays a preview of what will happen when processing the selected cards.
@@ -41,13 +42,9 @@ fun PreviewPanel(
     placeholderText: String = "Select cards to see preview",
     isCompact: Boolean = false,
 ) {
-    // Only use fixed height in compact mode to prevent layout jumping
-    // In expanded mode, let content determine height
-    val panelModifier = if (isCompact) {
-        modifier.fillMaxWidth().height(PREVIEW_PANEL_HEIGHT_COMPACT)
-    } else {
-        modifier.fillMaxWidth()
-    }
+    // Use fixed height in both modes to prevent layout jumping
+    val panelHeight = if (isCompact) PREVIEW_PANEL_HEIGHT_COMPACT else PREVIEW_PANEL_HEIGHT_EXPANDED
+    val panelModifier = modifier.fillMaxWidth().height(panelHeight)
     Card(
         modifier = panelModifier,
         colors =
