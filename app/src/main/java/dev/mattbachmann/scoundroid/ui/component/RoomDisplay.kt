@@ -65,8 +65,8 @@ fun RoomDisplay(
                 ) {
                     repeat(4) {
                         PlaceholderCardView(
-                            cardWidth = 120.dp,
-                            cardHeight = 168.dp,
+                            cardWidth = 160.dp,
+                            cardHeight = 224.dp,
                         )
                     }
                 }
