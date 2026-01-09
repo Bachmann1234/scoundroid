@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -133,6 +134,7 @@ fun GameScreen(
                                     imageVector = Icons.AutoMirrored.Filled.List,
                                     contentDescription = "Action Log",
                                     tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(32.dp),
                                 )
                             }
                             IconButton(onClick = { viewModel.onIntent(GameIntent.ShowHelp) }) {
@@ -140,6 +142,7 @@ fun GameScreen(
                                     imageVector = Icons.AutoMirrored.Filled.Help,
                                     contentDescription = "Help",
                                     tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(32.dp),
                                 )
                             }
                         }
@@ -366,7 +369,15 @@ private fun GameContent(
                 }
             }
         } else {
-            // No room - show draw button
+            // No room - show placeholders and draw button
+            RoomDisplay(
+                cards = emptyList(),
+                selectedCards = emptyList(),
+                onCardClick = null,
+                isExpanded = isExpandedScreen,
+                showPlaceholders = true,
+            )
+
             Button(
                 onClick = { onIntent(GameIntent.DrawRoom) },
                 modifier = Modifier.fillMaxWidth(),
