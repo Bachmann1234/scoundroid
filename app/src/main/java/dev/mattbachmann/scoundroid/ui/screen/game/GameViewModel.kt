@@ -111,7 +111,20 @@ class GameViewModel(
                 cardsReturned = cardsReturned,
             ),
         )
-        updateGameState(stateBefore.avoidRoom())
+        // Avoid the room, then auto-draw the next room
+        val stateAfterAvoid = stateBefore.avoidRoom()
+        val stateAfterDraw = stateAfterAvoid.drawRoom()
+
+        // Log the auto-drawn room
+        val cardsDrawn = stateAfterDraw.currentRoom?.size ?: 0
+        actionLogEntries.add(
+            LogEntry.RoomDrawn(
+                timestamp = System.currentTimeMillis(),
+                cardsDrawn = cardsDrawn,
+                deckSizeAfter = stateAfterDraw.deck.cards.size,
+            ),
+        )
+        updateGameState(stateAfterDraw)
     }
 
     private fun handleProcessSelectedCards(selectedCards: List<Card>) {
@@ -215,6 +228,89 @@ class GameViewModel(
 
     private fun handleHideActionLog() {
         _uiState.value = _uiState.value.copy(showActionLog = false)
+    }
+
+    /**
+     * Simulates processing the selected cards and returns the log entries
+     * that would be generated, without mutating any actual state.
+     * Used for preview display before committing to card selection.
+     */
+    fun simulateProcessing(selectedCards: List<Card>): List<LogEntry> {
+        if (selectedCards.isEmpty()) return emptyList()
+
+        val previewEntries = mutableListOf<LogEntry>()
+        var state = gameState.value
+
+        selectedCards.forEach { card ->
+            val healthBefore = state.health
+            val weaponBefore = state.weaponState?.weapon
+            val usedPotionBefore = state.usedPotionThisTurn
+
+            state =
+                when (card.type) {
+                    CardType.MONSTER -> {
+                        val canUseWeapon = state.weaponState?.canDefeat(card) == true
+                        val weaponUsed = if (canUseWeapon) state.weaponState?.weapon else null
+                        val damageBlocked =
+                            if (canUseWeapon) {
+                                state.weaponState!!.weapon.value.coerceAtMost(card.value)
+                            } else {
+                                0
+                            }
+                        val damageTaken =
+                            if (canUseWeapon) {
+                                (card.value - state.weaponState!!.weapon.value).coerceAtLeast(0)
+                            } else {
+                                card.value
+                            }
+
+                        val newState = state.fightMonster(card)
+
+                        previewEntries.add(
+                            LogEntry.MonsterFought(
+                                timestamp = 0L,
+                                monster = card,
+                                weaponUsed = weaponUsed,
+                                damageBlocked = damageBlocked,
+                                damageTaken = damageTaken,
+                                healthBefore = healthBefore,
+                                healthAfter = newState.health,
+                            ),
+                        )
+                        newState
+                    }
+                    CardType.WEAPON -> {
+                        val newState = state.equipWeapon(card)
+                        previewEntries.add(
+                            LogEntry.WeaponEquipped(
+                                timestamp = 0L,
+                                weapon = card,
+                                replacedWeapon = weaponBefore,
+                            ),
+                        )
+                        newState
+                    }
+                    CardType.POTION -> {
+                        val wasDiscarded = usedPotionBefore
+                        val newState = state.usePotion(card)
+                        val healthRestored = if (wasDiscarded) 0 else newState.health - healthBefore
+
+                        previewEntries.add(
+                            LogEntry.PotionUsed(
+                                timestamp = 0L,
+                                potion = card,
+                                healthRestored = healthRestored,
+                                healthBefore = healthBefore,
+                                healthAfter = newState.health,
+                                wasDiscarded = wasDiscarded,
+                            ),
+                        )
+                        newState
+                    }
+                }
+        }
+
+        return previewEntries
     }
 
     private fun updateGameState(newState: GameState) {

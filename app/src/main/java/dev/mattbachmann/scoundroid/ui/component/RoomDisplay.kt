@@ -26,7 +26,7 @@ import dev.mattbachmann.scoundroid.ui.theme.ScoundroidTheme
 @Composable
 fun RoomDisplay(
     cards: List<Card>,
-    selectedCards: Set<Card>,
+    selectedCards: List<Card>,
     onCardClick: ((Card) -> Unit)?,
     modifier: Modifier = Modifier,
     isExpanded: Boolean = false,
@@ -98,9 +98,11 @@ fun RoomDisplay(
                     horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
                 ) {
                     cards.forEach { card ->
+                        val orderIndex = selectedCards.indexOf(card)
                         CardView(
                             card = card,
                             isSelected = card in selectedCards,
+                            selectionOrder = if (orderIndex >= 0) orderIndex + 1 else null,
                             onClick = onCardClick?.let { { it(card) } },
                             cardWidth = 160.dp,
                             cardHeight = 224.dp,
@@ -116,14 +118,18 @@ fun RoomDisplay(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
                     ) {
+                        val orderIndex0 = selectedCards.indexOf(cards[0])
                         CardView(
                             card = cards[0],
                             isSelected = cards[0] in selectedCards,
+                            selectionOrder = if (orderIndex0 >= 0) orderIndex0 + 1 else null,
                             onClick = onCardClick?.let { { it(cards[0]) } },
                         )
+                        val orderIndex1 = selectedCards.indexOf(cards[1])
                         CardView(
                             card = cards[1],
                             isSelected = cards[1] in selectedCards,
+                            selectionOrder = if (orderIndex1 >= 0) orderIndex1 + 1 else null,
                             onClick = onCardClick?.let { { it(cards[1]) } },
                         )
                     }
@@ -131,14 +137,18 @@ fun RoomDisplay(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
                     ) {
+                        val orderIndex2 = selectedCards.indexOf(cards[2])
                         CardView(
                             card = cards[2],
                             isSelected = cards[2] in selectedCards,
+                            selectionOrder = if (orderIndex2 >= 0) orderIndex2 + 1 else null,
                             onClick = onCardClick?.let { { it(cards[2]) } },
                         )
+                        val orderIndex3 = selectedCards.indexOf(cards[3])
                         CardView(
                             card = cards[3],
                             isSelected = cards[3] in selectedCards,
+                            selectionOrder = if (orderIndex3 >= 0) orderIndex3 + 1 else null,
                             onClick = onCardClick?.let { { it(cards[3]) } },
                         )
                     }
@@ -151,9 +161,11 @@ fun RoomDisplay(
                 horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
             ) {
                 cards.forEach { card ->
+                    val orderIndex = selectedCards.indexOf(card)
                     CardView(
                         card = card,
                         isSelected = card in selectedCards,
+                        selectionOrder = if (orderIndex >= 0) orderIndex + 1 else null,
                         onClick = onCardClick?.let { { it(card) } },
                         cardWidth = if (isExpanded) 160.dp else 100.dp,
                         cardHeight = if (isExpanded) 224.dp else 140.dp,
@@ -191,7 +203,7 @@ fun RoomDisplayPreview() {
             // 4-card room with 2 selected
             RoomDisplay(
                 cards = roomCards,
-                selectedCards = setOf(roomCards[0], roomCards[2]),
+                selectedCards = listOf(roomCards[0], roomCards[2]),
                 onCardClick = {},
             )
 
@@ -201,14 +213,14 @@ fun RoomDisplayPreview() {
                     listOf(
                         Card(Suit.CLUBS, Rank.ACE),
                     ),
-                selectedCards = emptySet(),
+                selectedCards = emptyList(),
                 onCardClick = {},
             )
 
             // Placeholder state
             RoomDisplay(
                 cards = emptyList(),
-                selectedCards = emptySet(),
+                selectedCards = emptyList(),
                 onCardClick = null,
                 showPlaceholders = true,
             )

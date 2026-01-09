@@ -1,12 +1,16 @@
 package dev.mattbachmann.scoundroid.ui.component
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -40,6 +44,7 @@ fun CardView(
     card: Card,
     modifier: Modifier = Modifier,
     isSelected: Boolean = false,
+    selectionOrder: Int? = null,
     onClick: (() -> Unit)? = null,
     cardWidth: Dp = 100.dp,
     cardHeight: Dp = 140.dp,
@@ -89,47 +94,72 @@ fun CardView(
     val actualBorderWidth = if (isSelected) 4.dp else 2.dp
     val actualBorderColor = if (isSelected) Color(0xFFFFD700) else borderColor
 
-    Card(
-        modifier =
-            modifier
-                .size(width = cardWidth, height = cardHeight)
-                .semantics { contentDescription = accessibilityDescription },
-        colors =
-            CardDefaults.cardColors(
-                containerColor = backgroundColor,
-            ),
-        border = BorderStroke(actualBorderWidth, actualBorderColor),
-        onClick = onClick ?: {},
-    ) {
-        Column(
+    Box(modifier = modifier) {
+        Card(
             modifier =
                 Modifier
-                    .fillMaxWidth()
-                    .padding(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceBetween,
+                    .size(width = cardWidth, height = cardHeight)
+                    .semantics { contentDescription = accessibilityDescription },
+            colors =
+                CardDefaults.cardColors(
+                    containerColor = backgroundColor,
+                ),
+            border = BorderStroke(actualBorderWidth, actualBorderColor),
+            onClick = onClick ?: {},
         ) {
-            // Suit symbol
-            Text(
-                text = card.suit.symbol,
-                style = MaterialTheme.typography.displayMedium,
-                color = textColor,
-            )
+            Column(
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .padding(12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceBetween,
+            ) {
+                // Suit symbol
+                Text(
+                    text = card.suit.symbol,
+                    style = MaterialTheme.typography.displayMedium,
+                    color = textColor,
+                )
 
-            // Rank
-            Text(
-                text = card.rank.displayName,
-                style = MaterialTheme.typography.headlineLarge,
-                fontWeight = FontWeight.Bold,
-                color = textColor,
-            )
+                // Rank
+                Text(
+                    text = card.rank.displayName,
+                    style = MaterialTheme.typography.headlineLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = textColor,
+                )
 
-            // Value
-            Text(
-                text = "${card.value}",
-                style = MaterialTheme.typography.bodyLarge,
-                color = textColor,
-            )
+                // Value
+                Text(
+                    text = "${card.value}",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = textColor,
+                )
+            }
+        }
+
+        // Selection order badge
+        if (selectionOrder != null) {
+            Box(
+                modifier =
+                    Modifier
+                        .align(Alignment.TopEnd)
+                        .offset(x = 4.dp, y = (-4).dp)
+                        .size(24.dp)
+                        .background(
+                            color = Color(0xFFFFD700),
+                            shape = CircleShape,
+                        ),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = "$selectionOrder",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black,
+                )
+            }
         }
     }
 }
