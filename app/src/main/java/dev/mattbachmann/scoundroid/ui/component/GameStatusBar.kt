@@ -65,14 +65,24 @@ fun GameStatusBar(
                         horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
                         StatusItem(label = "Health", value = "$health / 20", isCompact = true)
-                        StatusItem(label = "Score", value = "$score", isCompact = true)
+                        StatusItem(
+                            label = "Score",
+                            value = "$score",
+                            isCompact = true,
+                            horizontalAlignment = Alignment.End,
+                        )
                     }
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
                         StatusItem(label = "Deck", value = "$deckSize cards", isCompact = true)
-                        StatusItem(label = "Defeated", value = "$defeatedMonstersCount", isCompact = true)
+                        StatusItem(
+                            label = "Defeated",
+                            value = "$defeatedMonstersCount",
+                            isCompact = true,
+                            horizontalAlignment = Alignment.End,
+                        )
                     }
                 }
                 StatusBarLayout.INLINE -> {
@@ -133,9 +143,10 @@ private fun StatusItem(
     label: String,
     value: String,
     isCompact: Boolean = false,
+    horizontalAlignment: Alignment.Horizontal = Alignment.Start,
 ) {
     Column(
-        horizontalAlignment = Alignment.Start,
+        horizontalAlignment = horizontalAlignment,
     ) {
         Text(
             text = label,
