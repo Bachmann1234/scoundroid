@@ -39,7 +39,7 @@ fun RoomDisplay(
         Text(
             text =
                 when {
-                    cards.isEmpty() && showPlaceholders -> "Draw a Room"
+                    cards.isEmpty() && showPlaceholders -> "Draw Room"
                     cards.size == 1 -> "Leftover Card"
                     else -> "Current Room (${cards.size} cards)"
                 },

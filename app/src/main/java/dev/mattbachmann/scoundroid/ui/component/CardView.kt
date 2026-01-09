@@ -147,7 +147,8 @@ fun PlaceholderCardView(
     Card(
         modifier =
             modifier
-                .size(width = cardWidth, height = cardHeight),
+                .size(width = cardWidth, height = cardHeight)
+                .semantics { contentDescription = "Empty card slot" },
         colors =
             CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
