@@ -377,7 +377,7 @@ private fun GameContent(
             // No room - show placeholders and draw button
             RoomDisplay(
                 cards = emptyList(),
-                selectedCards = emptySet(),
+                selectedCards = emptyList(),
                 onCardClick = null,
                 isExpanded = isExpandedScreen,
                 showPlaceholders = true,
