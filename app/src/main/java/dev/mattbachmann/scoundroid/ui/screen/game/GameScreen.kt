@@ -400,6 +400,158 @@ private fun GameContent(
     }
 }
 
+/**
+ * Cards section for expanded mode - displays just the room cards.
+ */
+@Composable
+private fun ExpandedCardsSection(
+    uiState: GameUiState,
+    selectedCards: List<Card>,
+    onSelectedCardsChange: (List<Card>) -> Unit,
+) {
+    if (uiState.isGameOver) {
+        GameOverScreen(
+            score = uiState.score,
+            highestScore = uiState.highestScore,
+            isNewHighScore = uiState.isNewHighScore,
+            onNewGame = {},
+        )
+    } else if (uiState.isGameWon) {
+        GameWonScreen(
+            score = uiState.score,
+            highestScore = uiState.highestScore,
+            isNewHighScore = uiState.isNewHighScore,
+            onNewGame = {},
+        )
+    } else {
+        val currentRoom = uiState.currentRoom
+        if (currentRoom != null) {
+            if (currentRoom.size == 1) {
+                RoomDisplay(
+                    cards = currentRoom,
+                    selectedCards = emptyList(),
+                    onCardClick = null,
+                    isExpanded = true,
+                )
+            } else {
+                RoomDisplay(
+                    cards = currentRoom,
+                    selectedCards = selectedCards,
+                    onCardClick = { card ->
+                        onSelectedCardsChange(
+                            if (card in selectedCards) {
+                                selectedCards - card
+                            } else if (selectedCards.size < 3) {
+                                selectedCards + card
+                            } else {
+                                selectedCards
+                            },
+                        )
+                    },
+                    isExpanded = true,
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Controls section for expanded mode - action buttons.
+ */
+@Composable
+private fun ExpandedControlsSection(
+    uiState: GameUiState,
+    selectedCards: List<Card>,
+    onSelectedCardsChange: (List<Card>) -> Unit,
+    onIntent: (GameIntent) -> Unit,
+    simulateProcessing: (List<Card>) -> List<LogEntry>,
+) {
+    if (uiState.isGameOver || uiState.isGameWon) {
+        Button(
+            onClick = {
+                onIntent(GameIntent.NewGame)
+                onSelectedCardsChange(emptyList())
+            },
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(
+                text = "New Game",
+                style = MaterialTheme.typography.titleLarge,
+            )
+        }
+    } else {
+        val currentRoom = uiState.currentRoom
+        if (currentRoom != null) {
+            // Preview panel - show what will happen when processing selected cards
+            if (currentRoom.size == 4) {
+                PreviewPanel(
+                    previewEntries = simulateProcessing(selectedCards),
+                )
+            }
+
+            if (currentRoom.size == 4) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    if (uiState.canAvoidRoom) {
+                        OutlinedButton(
+                            onClick = {
+                                onIntent(GameIntent.AvoidRoom)
+                                onSelectedCardsChange(emptyList())
+                            },
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            Text("Avoid Room")
+                        }
+                    }
+
+                    Button(
+                        onClick = {
+                            onIntent(GameIntent.ProcessSelectedCards(selectedCards))
+                            onSelectedCardsChange(emptyList())
+                        },
+                        enabled = selectedCards.size == 3,
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text("Process ${selectedCards.size}/3 Cards")
+                    }
+
+                    OutlinedButton(
+                        onClick = {
+                            onIntent(GameIntent.NewGame)
+                            onSelectedCardsChange(emptyList())
+                        },
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text("New Game")
+                    }
+                }
+            } else if (currentRoom.size == 1) {
+                Button(
+                    onClick = { onIntent(GameIntent.DrawRoom) },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(
+                        text = "Draw Next Room",
+                        style = MaterialTheme.typography.titleLarge,
+                    )
+                }
+            }
+        } else {
+            Button(
+                onClick = { onIntent(GameIntent.DrawRoom) },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(
+                    text = "Draw Room",
+                    style = MaterialTheme.typography.titleLarge,
+                )
+            }
+        }
+    }
+}
+
 @Composable
 private fun GameOverScreen(
     score: Int,
