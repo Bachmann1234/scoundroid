@@ -108,7 +108,8 @@ class GameViewModelTest {
     @Test
     fun `drawRoom after card selection draws 3 more cards`() =
         runTest {
-            val viewModel = GameViewModel()
+            // Seed 33 produces first room [8♦, 6♦, 4♦, 2♥] - all weapons/potions, no monsters
+            val viewModel = GameViewModel(randomSeed = 33L)
 
             viewModel.uiState.test {
                 awaitItem() // Initial state
@@ -117,25 +118,15 @@ class GameViewModelTest {
                 viewModel.onIntent(GameIntent.DrawRoom)
                 testDispatcher.scheduler.advanceUntilIdle()
                 val state = awaitItem()
+                assertEquals(4, state.currentRoom!!.size)
                 val cardsToSelect = state.currentRoom!!.take(3)
 
-                // Select and process 3 cards, leaving 1
+                // Select and process 3 cards (all weapons/potions, no combat choices)
                 viewModel.onIntent(GameIntent.ProcessSelectedCards(cardsToSelect))
                 testDispatcher.scheduler.advanceUntilIdle()
 
-                // Process may pause for combat choices. Loop until room has 1 card (processing complete)
-                var currentState = awaitItem()
-                var safetyCounter = 0
-                val maxIterations = 100
-                while (currentState.currentRoom?.size != 1 && safetyCounter < maxIterations) {
-                    if (currentState.pendingCombatChoice != null) {
-                        viewModel.onIntent(GameIntent.ResolveCombatChoice(useWeapon = true))
-                        testDispatcher.scheduler.advanceUntilIdle()
-                        safetyCounter++
-                    }
-                    currentState = awaitItem()
-                }
-                assertTrue(safetyCounter < maxIterations, "Exceeded max iterations; possible infinite loop")
+                val afterProcessing = awaitItem()
+                assertEquals(1, afterProcessing.currentRoom!!.size)
 
                 // Draw next room (should draw 3 more + 1 remaining = 4 total)
                 viewModel.onIntent(GameIntent.DrawRoom)
