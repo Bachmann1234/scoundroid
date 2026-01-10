@@ -29,13 +29,14 @@ class GameViewModel(
 
     private fun createRandom(): Random = Random(currentGameSeed)
 
-    private val _gameState = MutableStateFlow(GameState.newGame(createRandom()))
+    private val initialGameState = GameState.newGame(createRandom())
+    private val _gameState = MutableStateFlow(initialGameState)
     private val gameState: StateFlow<GameState> = _gameState.asStateFlow()
 
     private val initialGameStarted = LogEntry.GameStarted(timestamp = System.currentTimeMillis())
     private val _uiState =
         MutableStateFlow(
-            GameState.newGame(createRandom())
+            initialGameState
                 .toUiState()
                 .copy(actionLog = listOf(initialGameStarted)),
         )
