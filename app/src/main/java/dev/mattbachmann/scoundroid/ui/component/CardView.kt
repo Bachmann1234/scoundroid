@@ -178,14 +178,19 @@ fun CardView(
             }
         }
 
-        // Selection order badge
+        // Selection order badge - positioned at bottom-right with border for visibility
         if (selectionOrder != null) {
             Box(
                 modifier =
                     Modifier
-                        .align(Alignment.TopEnd)
-                        .offset(x = 4.dp, y = (-4).dp)
-                        .size(24.dp)
+                        .align(Alignment.BottomEnd)
+                        .offset(x = 6.dp, y = 6.dp)
+                        .size(26.dp)
+                        .background(
+                            color = Color.White,
+                            shape = CircleShape,
+                        )
+                        .padding(2.dp)
                         .background(
                             color = Color(0xFF009688),
                             shape = CircleShape,
@@ -196,7 +201,7 @@ fun CardView(
                     text = "$selectionOrder",
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black,
+                    color = Color.White,
                 )
             }
         }
