@@ -218,45 +218,61 @@ fun RoomDisplay(
     }
 }
 
-@Preview(showBackground = true, widthDp = 400, heightDp = 800)
+private val previewRoomCards =
+    listOf(
+        Card(Suit.CLUBS, Rank.QUEEN),
+        Card(Suit.DIAMONDS, Rank.FIVE),
+        Card(Suit.HEARTS, Rank.SEVEN),
+        Card(Suit.SPADES, Rank.TEN),
+    )
+
+@Preview(
+    showBackground = true,
+    name = "Small Phone (COMPACT)",
+    device = "spec:width=360dp,height=640dp,dpi=420",
+)
 @Composable
-fun RoomDisplayPreview() {
-    val roomCards =
-        listOf(
-            Card(Suit.CLUBS, Rank.QUEEN),
-            Card(Suit.DIAMONDS, Rank.FIVE),
-            Card(Suit.HEARTS, Rank.SEVEN),
-            Card(Suit.SPADES, Rank.TEN),
-        )
+fun RoomDisplayCompactPreview() {
     ScoundroidTheme {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            // 4-card room with 2 selected
-            RoomDisplay(
-                cards = roomCards,
-                selectedCards = listOf(roomCards[0], roomCards[2]),
-                onCardClick = {},
-            )
+        RoomDisplay(
+            cards = previewRoomCards,
+            selectedCards = listOf(previewRoomCards[0], previewRoomCards[2]),
+            onCardClick = {},
+            screenSizeClass = ScreenSizeClass.COMPACT,
+        )
+    }
+}
 
-            // 1-card remaining
-            RoomDisplay(
-                cards =
-                    listOf(
-                        Card(Suit.CLUBS, Rank.ACE),
-                    ),
-                selectedCards = emptyList(),
-                onCardClick = {},
-            )
+@Preview(
+    showBackground = true,
+    name = "Regular Phone (MEDIUM)",
+    device = "spec:width=411dp,height=891dp,dpi=420",
+)
+@Composable
+fun RoomDisplayMediumPreview() {
+    ScoundroidTheme {
+        RoomDisplay(
+            cards = previewRoomCards,
+            selectedCards = listOf(previewRoomCards[0], previewRoomCards[2]),
+            onCardClick = {},
+            screenSizeClass = ScreenSizeClass.MEDIUM,
+        )
+    }
+}
 
-            // Placeholder state
-            RoomDisplay(
-                cards = emptyList(),
-                selectedCards = emptyList(),
-                onCardClick = null,
-                showPlaceholders = true,
-            )
-        }
+@Preview(
+    showBackground = true,
+    name = "Tablet/Unfolded (EXPANDED)",
+    device = "spec:width=600dp,height=900dp,dpi=420",
+)
+@Composable
+fun RoomDisplayExpandedPreview() {
+    ScoundroidTheme {
+        RoomDisplay(
+            cards = previewRoomCards,
+            selectedCards = listOf(previewRoomCards[0], previewRoomCards[2]),
+            onCardClick = {},
+            screenSizeClass = ScreenSizeClass.EXPANDED,
+        )
     }
 }

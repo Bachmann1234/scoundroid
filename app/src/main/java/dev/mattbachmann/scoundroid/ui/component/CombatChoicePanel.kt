@@ -224,23 +224,67 @@ fun CombatChoicePanel(
     }
 }
 
-@Preview(showBackground = true)
+private val previewCombatChoice =
+    PendingCombatChoice(
+        monster = GameCard(Suit.SPADES, Rank.TEN),
+        weapon = GameCard(Suit.DIAMONDS, Rank.FIVE),
+        weaponDamage = 5,
+        barehandedDamage = 10,
+        weaponDegradedTo = 10,
+        remainingCards = listOf(GameCard(Suit.HEARTS, Rank.THREE)),
+    )
+
+@Preview(
+    showBackground = true,
+    name = "Small Phone (COMPACT)",
+    device = "spec:width=360dp,height=640dp,dpi=420",
+)
 @Composable
-fun CombatChoicePanelPreview() {
+fun CombatChoicePanelCompactPreview() {
     ScoundroidTheme {
         CombatChoicePanel(
-            choice =
-                PendingCombatChoice(
-                    monster = GameCard(Suit.SPADES, Rank.TEN),
-                    weapon = GameCard(Suit.DIAMONDS, Rank.FIVE),
-                    weaponDamage = 5,
-                    barehandedDamage = 10,
-                    weaponDegradedTo = 10,
-                    remainingCards = listOf(GameCard(Suit.HEARTS, Rank.THREE)),
-                ),
+            choice = previewCombatChoice,
             onUseWeapon = {},
             onFightBarehanded = {},
             modifier = Modifier.padding(16.dp),
+            screenSizeClass = ScreenSizeClass.COMPACT,
+        )
+    }
+}
+
+@Preview(
+    showBackground = true,
+    name = "Regular Phone (MEDIUM)",
+    device = "spec:width=411dp,height=891dp,dpi=420",
+)
+@Composable
+fun CombatChoicePanelMediumPreview() {
+    ScoundroidTheme {
+        CombatChoicePanel(
+            choice = previewCombatChoice,
+            onUseWeapon = {},
+            onFightBarehanded = {},
+            modifier = Modifier.padding(16.dp),
+            screenSizeClass = ScreenSizeClass.MEDIUM,
+        )
+    }
+}
+
+@Preview(
+    showBackground = true,
+    name = "Tablet/Unfolded (EXPANDED) - Cards Only",
+    device = "spec:width=600dp,height=900dp,dpi=420",
+)
+@Composable
+fun CombatChoicePanelExpandedPreview() {
+    ScoundroidTheme {
+        CombatChoicePanel(
+            choice = previewCombatChoice,
+            onUseWeapon = {},
+            onFightBarehanded = {},
+            modifier = Modifier.padding(16.dp),
+            screenSizeClass = ScreenSizeClass.EXPANDED,
+            showButtons = false,
         )
     }
 }
