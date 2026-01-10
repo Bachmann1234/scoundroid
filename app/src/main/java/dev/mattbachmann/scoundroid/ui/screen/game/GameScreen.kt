@@ -341,8 +341,8 @@ private fun RoomActionButtons(
         ButtonDefaults.buttonColors(
             containerColor = ButtonPrimary,
             contentColor = Color.White,
-            disabledContainerColor = ButtonPrimary.copy(alpha = 0.5f),
-            disabledContentColor = Color.White.copy(alpha = 0.7f),
+            disabledContainerColor = Color.DarkGray.copy(alpha = 0.5f),
+            disabledContentColor = Color.White.copy(alpha = 0.4f),
         )
     val primaryButtonElevation =
         ButtonDefaults.buttonElevation(
@@ -405,7 +405,7 @@ private fun RoomActionButtons(
                             elevation = primaryButtonElevation,
                         ) {
                             Text(
-                                text = "Process ${selectedCards.size}/3 Cards",
+                                text = if (selectedCards.size == 3) "Go" else "Pick ${3 - selectedCards.size}",
                                 style = buttonTextStyle,
                             )
                         }

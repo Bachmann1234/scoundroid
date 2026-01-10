@@ -78,9 +78,9 @@ class GameFlowTest {
         // Draw a room
         composeTestRule.drawRoom()
 
-        // Initially process button should show 0/3 and be disabled
-        composeTestRule.onNode(hasText("Process 0/3 Cards") and hasClickAction()).assertIsDisplayed()
-        composeTestRule.onNode(hasText("Process 0/3 Cards") and hasClickAction()).assertIsNotEnabled()
+        // Initially process button should show "Pick 3" and be disabled
+        composeTestRule.onNode(hasText("Pick 3") and hasClickAction()).assertIsDisplayed()
+        composeTestRule.onNode(hasText("Pick 3") and hasClickAction()).assertIsNotEnabled()
 
         // Get all card nodes
         val cards =
@@ -94,9 +94,9 @@ class GameFlowTest {
             composeTestRule.waitForIdle()
         }
 
-        // Process button should now show 3/3 and be enabled
-        composeTestRule.onNode(hasText("Process 3/3 Cards") and hasClickAction()).assertIsDisplayed()
-        composeTestRule.onNode(hasText("Process 3/3 Cards") and hasClickAction()).assertIsEnabled()
+        // Process button should now show "Go" and be enabled
+        composeTestRule.onNode(hasText("Go") and hasClickAction()).assertIsDisplayed()
+        composeTestRule.onNode(hasText("Go") and hasClickAction()).assertIsEnabled()
     }
 
     @Test
