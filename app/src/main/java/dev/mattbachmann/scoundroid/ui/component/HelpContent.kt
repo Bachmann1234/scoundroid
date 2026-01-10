@@ -89,6 +89,22 @@ fun HelpContent(modifier: Modifier = Modifier) {
                 """.trimIndent(),
         )
 
+        HelpSection(
+            title = "Playing with Real Cards",
+            content =
+                """
+                Setup: Remove all Jokers, red face cards (J/Q/K of Hearts and Diamonds), and red Aces. You should have 44 cards.
+
+                Track health: Use a d20 die, paper, or 20 tokens (remove as you take damage).
+
+                Track weapon degradation: Keep the last defeated monster under your weapon as a reminder of its limit.
+
+                Room layout: Draw 4 cards in a row. When leaving one behind, slide it left and draw 3 more for the next room.
+
+                Skip tracking: Use a coin—heads means you can skip, tails means you must play. Flip after each room.
+                """.trimIndent(),
+        )
+
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
