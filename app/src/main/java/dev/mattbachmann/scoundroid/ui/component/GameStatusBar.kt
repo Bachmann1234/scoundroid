@@ -215,7 +215,7 @@ fun GameStatusBar(
                 Text(
                     text = "WEAPON",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f),
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
                     fontWeight = FontWeight.Medium,
                 )
                 if (weaponState != null) {
@@ -267,7 +267,7 @@ private fun StatusItem(
         Text(
             text = label.uppercase(),
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f),
+            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
             fontWeight = FontWeight.Medium,
         )
         Text(
