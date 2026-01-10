@@ -39,7 +39,7 @@ Current project status and immediate next steps. Check this when resuming work.
 - **Target Device**: Pixel 10 Pro Fold
 - **Tech**: Kotlin + Jetpack Compose
 - **Game**: Scoundrel by Zach Gage and Kurt Bieg
-- **Rules**: See `../docs/Scoundrel.pdf`
+- **Rules**: See `../docs/rules.md`
 
 ## How to Use These Plans
 

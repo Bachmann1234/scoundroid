@@ -17,7 +17,7 @@ Scoundroid brings the strategic card game Scoundrel to Android, optimized for th
 
 Key mechanic: Weapons can only be used on monsters of equal or lesser value than the last monster they defeated.
 
-Original game rules: See [`docs/Scoundrel.pdf`](docs/Scoundrel.pdf) or [online](http://www.stfj.net/scoundrel/)
+Game rules: See [`docs/rules.md`](docs/rules.md) (based on [Scoundrel](http://www.stfj.net/scoundrel/) by Zach Gage and Kurt Bieg)
 
 ## Tech Stack
 
