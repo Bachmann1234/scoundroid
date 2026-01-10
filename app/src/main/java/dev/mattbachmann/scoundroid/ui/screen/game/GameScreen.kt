@@ -340,6 +340,8 @@ private fun RoomActionButtons(
         ButtonDefaults.buttonColors(
             containerColor = ButtonPrimary,
             contentColor = Color.White,
+            disabledContainerColor = ButtonPrimary.copy(alpha = 0.5f),
+            disabledContentColor = Color.White.copy(alpha = 0.7f),
         )
     val primaryButtonElevation =
         ButtonDefaults.buttonElevation(
