@@ -34,6 +34,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -301,6 +302,7 @@ private fun RoomActionButtons(
     val primaryButtonColors =
         ButtonDefaults.buttonColors(
             containerColor = ButtonPrimary,
+            contentColor = Color.White,
         )
     val primaryButtonElevation =
         ButtonDefaults.buttonElevation(
@@ -739,7 +741,7 @@ private fun GameOverScreen(
 
         if (showButton) {
             val buttonShape = remember { RoundedCornerShape(12.dp) }
-            val buttonColors = ButtonDefaults.buttonColors(containerColor = ButtonPrimary)
+            val buttonColors = ButtonDefaults.buttonColors(containerColor = ButtonPrimary, contentColor = Color.White)
             val buttonElevation =
                 ButtonDefaults.buttonElevation(defaultElevation = 4.dp, pressedElevation = 8.dp)
             Button(
@@ -804,7 +806,7 @@ private fun GameWonScreen(
 
         if (showButton) {
             val buttonShape = remember { RoundedCornerShape(12.dp) }
-            val buttonColors = ButtonDefaults.buttonColors(containerColor = ButtonPrimary)
+            val buttonColors = ButtonDefaults.buttonColors(containerColor = ButtonPrimary, contentColor = Color.White)
             val buttonElevation =
                 ButtonDefaults.buttonElevation(defaultElevation = 4.dp, pressedElevation = 8.dp)
             Button(
