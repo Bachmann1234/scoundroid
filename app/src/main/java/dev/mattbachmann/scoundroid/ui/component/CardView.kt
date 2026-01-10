@@ -49,8 +49,8 @@ import dev.mattbachmann.scoundroid.ui.theme.ScoundroidTheme
  *
  * Card colors:
  * - Monsters (♣ ♠): Red background with black text
- * - Weapons (♦): Blue background with white text
- * - Potions (♥): Green background with white text
+ * - Weapons (♦): Blue background with dark blue text
+ * - Potions (♥): Green background with dark green text
  */
 @Composable
 fun CardView(
