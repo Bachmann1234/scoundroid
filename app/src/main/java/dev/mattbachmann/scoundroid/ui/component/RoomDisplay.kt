@@ -51,7 +51,7 @@ fun RoomDisplay(
                 when {
                     cards.isEmpty() && showPlaceholders -> "Draw Room"
                     cards.size == 1 -> "Leftover Card"
-                    else -> "Current Room (${cards.size} cards)"
+                    else -> "Current Room"
                 },
             style = if (isExpanded) MaterialTheme.typography.titleLarge else MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
