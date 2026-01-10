@@ -154,101 +154,110 @@ class GameViewModel(
     }
 
     /**
-     * Processes the next card in the pending list.
-     * May pause if a combat choice is needed.
+     * Processes cards in the pending list iteratively.
+     * May pause and return if a combat choice is needed.
      */
     private fun processNextCard() {
-        val state = processingState ?: return
-        if (pendingCardsToProcess.isEmpty()) {
-            // All cards processed, finalize
-            updateGameState(state)
-            processingState = null
-            return
-        }
+        while (true) {
+            val state = processingState ?: return
+            if (pendingCardsToProcess.isEmpty()) {
+                // All cards processed, finalize
+                updateGameState(state)
+                processingState = null
+                return
+            }
 
-        val card = pendingCardsToProcess.first()
-        val healthBefore = state.health
-        val weaponBefore = state.weaponState?.weapon
-        val usedPotionBefore = state.usedPotionThisTurn
+            val card = pendingCardsToProcess.first()
+            val healthBefore = state.health
+            val weaponBefore = state.weaponState?.weapon
+            val usedPotionBefore = state.usedPotionThisTurn
 
-        when (card.type) {
-            CardType.MONSTER -> {
-                val canUseWeapon = state.weaponState?.canDefeat(card) == true
+            when (card.type) {
+                CardType.MONSTER -> {
+                    val canUseWeapon = state.weaponState?.canDefeat(card) == true
 
-                if (canUseWeapon) {
-                    // Player has a choice - pause for combat decision
-                    val weapon = state.weaponState!!.weapon
-                    val weaponDamage = (card.value - weapon.value).coerceAtLeast(0)
-                    val barehandedDamage = card.value
+                    if (canUseWeapon) {
+                        // Player has a choice - pause for combat decision
+                        val weapon = state.weaponState!!.weapon
+                        val weaponDamage = (card.value - weapon.value).coerceAtLeast(0)
+                        val barehandedDamage = card.value
 
-                    val pendingChoice =
-                        PendingCombatChoice(
-                            monster = card,
-                            weapon = weapon,
-                            weaponDamage = weaponDamage,
-                            barehandedDamage = barehandedDamage,
-                            weaponDegradedTo = card.value,
-                            remainingCards = pendingCardsToProcess.drop(1),
+                        val pendingChoice =
+                            PendingCombatChoice(
+                                monster = card,
+                                weapon = weapon,
+                                weaponDamage = weaponDamage,
+                                barehandedDamage = barehandedDamage,
+                                weaponDegradedTo = card.value,
+                                remainingCards = pendingCardsToProcess.drop(1),
+                            )
+
+                        // Update UI to show combat choice with current processing state
+                        // (health/weapon may have changed from earlier cards in this batch)
+                        _uiState.value =
+                            state.toUiState().copy(
+                                highestScore = highestScore,
+                                isNewHighScore =
+                                    highestScore?.let { state.calculateScore() > it }
+                                        ?: (highScoreRepository != null),
+                                showHelp = _uiState.value.showHelp,
+                                showActionLog = _uiState.value.showActionLog,
+                                pendingCombatChoice = pendingChoice,
+                                actionLog = actionLogEntries.toList(),
+                            )
+                        // Don't remove from pending yet - will be processed when choice is made
+                        return
+                    } else {
+                        // No weapon or can't use it - fight barehanded automatically
+                        val newState = state.fightMonsterBarehanded(card)
+                        actionLogEntries.add(
+                            LogEntry.MonsterFought(
+                                timestamp = System.currentTimeMillis(),
+                                monster = card,
+                                weaponUsed = null,
+                                damageBlocked = 0,
+                                damageTaken = card.value,
+                                healthBefore = healthBefore,
+                                healthAfter = newState.health,
+                            ),
                         )
-
-                    // Update UI to show combat choice (include updated action log)
-                    _uiState.value =
-                        _uiState.value.copy(
-                            pendingCombatChoice = pendingChoice,
-                            actionLog = actionLogEntries.toList(),
-                        )
-                    // Don't remove from pending yet - will be processed when choice is made
-                    return
-                } else {
-                    // No weapon or can't use it - fight barehanded automatically
-                    val newState = state.fightMonsterBarehanded(card)
+                        processingState = newState
+                        pendingCardsToProcess.removeAt(0)
+                        // Continue loop to process next card
+                    }
+                }
+                CardType.WEAPON -> {
+                    val newState = state.equipWeapon(card)
                     actionLogEntries.add(
-                        LogEntry.MonsterFought(
+                        LogEntry.WeaponEquipped(
                             timestamp = System.currentTimeMillis(),
-                            monster = card,
-                            weaponUsed = null,
-                            damageBlocked = 0,
-                            damageTaken = card.value,
-                            healthBefore = healthBefore,
-                            healthAfter = newState.health,
+                            weapon = card,
+                            replacedWeapon = weaponBefore,
                         ),
                     )
                     processingState = newState
                     pendingCardsToProcess.removeAt(0)
-                    processNextCard()
+                    // Continue loop to process next card
                 }
-            }
-            CardType.WEAPON -> {
-                val newState = state.equipWeapon(card)
-                actionLogEntries.add(
-                    LogEntry.WeaponEquipped(
-                        timestamp = System.currentTimeMillis(),
-                        weapon = card,
-                        replacedWeapon = weaponBefore,
-                    ),
-                )
-                processingState = newState
-                pendingCardsToProcess.removeAt(0)
-                processNextCard()
-            }
-            CardType.POTION -> {
-                val wasDiscarded = usedPotionBefore
-                val newState = state.usePotion(card)
-                val healthRestored = if (wasDiscarded) 0 else newState.health - healthBefore
+                CardType.POTION -> {
+                    val wasDiscarded = usedPotionBefore
+                    val newState = state.usePotion(card)
+                    val healthRestored = if (wasDiscarded) 0 else newState.health - healthBefore
 
-                actionLogEntries.add(
-                    LogEntry.PotionUsed(
-                        timestamp = System.currentTimeMillis(),
-                        potion = card,
-                        healthRestored = healthRestored,
-                        healthBefore = healthBefore,
-                        healthAfter = newState.health,
-                        wasDiscarded = wasDiscarded,
-                    ),
-                )
-                processingState = newState
-                pendingCardsToProcess.removeAt(0)
-                processNextCard()
+                    actionLogEntries.add(
+                        LogEntry.PotionUsed(
+                            timestamp = System.currentTimeMillis(),
+                            potion = card,
+                            healthRestored = healthRestored,
+                            healthBefore = healthBefore,
+                            healthAfter = newState.health,
+                            wasDiscarded = wasDiscarded,
+                        ),
+                    )
+                    processingState = newState
+                    pendingCardsToProcess.removeAt(0)
+                    // Continue loop to process next card
+                }
             }
         }
     }

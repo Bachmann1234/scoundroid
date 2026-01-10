@@ -131,9 +131,9 @@ class GameViewModelTest {
                     if (currentState.pendingCombatChoice != null) {
                         viewModel.onIntent(GameIntent.ResolveCombatChoice(useWeapon = true))
                         testDispatcher.scheduler.advanceUntilIdle()
+                        safetyCounter++
                     }
                     currentState = awaitItem()
-                    safetyCounter++
                 }
                 assertTrue(safetyCounter < maxIterations, "Exceeded max iterations; possible infinite loop")
 
@@ -246,9 +246,9 @@ class GameViewModelTest {
                     if (currentState.pendingCombatChoice != null) {
                         viewModel.onIntent(GameIntent.ResolveCombatChoice(useWeapon = true))
                         testDispatcher.scheduler.advanceUntilIdle()
+                        safetyCounter++
                     }
                     currentState = awaitItem()
-                    safetyCounter++
                 }
                 assertTrue(safetyCounter < maxIterations, "Exceeded max iterations; possible infinite loop")
 
