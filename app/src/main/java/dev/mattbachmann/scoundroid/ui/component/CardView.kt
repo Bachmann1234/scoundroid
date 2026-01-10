@@ -1,6 +1,7 @@
 package dev.mattbachmann.scoundroid.ui.component
 
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
@@ -119,6 +120,17 @@ fun CardView(
         label = "cardScale",
     )
 
+    // Elevation animation for lift effect when selected
+    val elevation by animateDpAsState(
+        targetValue = if (isSelected) 12.dp else 4.dp,
+        animationSpec =
+            spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessMedium,
+            ),
+        label = "cardElevation",
+    )
+
     // Scale font sizes and padding proportionally to card dimensions
     val suitFontSize = (cardWidth.value * 0.45f).sp
     val rankFontSize = (cardWidth.value * 0.32f).sp
@@ -136,7 +148,7 @@ fun CardView(
                 ),
             elevation =
                 CardDefaults.cardElevation(
-                    defaultElevation = 6.dp,
+                    defaultElevation = elevation,
                 ),
             border = BorderStroke(actualBorderWidth, actualBorderColor),
             onClick = onClick ?: {},
@@ -210,6 +222,10 @@ fun PlaceholderCardView(
             CardDefaults.cardColors(
                 // Dark red
                 containerColor = Color(0xFF8B0000),
+            ),
+        elevation =
+            CardDefaults.cardElevation(
+                defaultElevation = 4.dp,
             ),
         // Cream border
         border = BorderStroke(2.dp, Color(0xFFF5F5DC)),
