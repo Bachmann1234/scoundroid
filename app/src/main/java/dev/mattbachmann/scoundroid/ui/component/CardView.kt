@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -178,13 +177,13 @@ fun CardView(
             }
         }
 
-        // Selection order badge - positioned at bottom-right with border for visibility
+        // Selection order badge - positioned at bottom-right, inside card bounds
         if (selectionOrder != null) {
             Box(
                 modifier =
                     Modifier
                         .align(Alignment.BottomEnd)
-                        .offset(x = 6.dp, y = 6.dp)
+                        .padding(4.dp)
                         .size(26.dp)
                         .background(
                             color = Color.White,
