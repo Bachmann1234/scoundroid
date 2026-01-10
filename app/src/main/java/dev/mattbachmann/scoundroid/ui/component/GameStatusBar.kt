@@ -213,9 +213,10 @@ fun GameStatusBar(
             // Weapon status - use consistent Column structure to prevent layout jumping
             Column {
                 Text(
-                    text = "Weapon:",
+                    text = "WEAPON",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
+                    fontWeight = FontWeight.Medium,
                 )
                 if (weaponState != null) {
                     val weaponInfo =
@@ -264,13 +265,14 @@ private fun StatusItem(
         horizontalAlignment = horizontalAlignment,
     ) {
         Text(
-            text = label,
+            text = label.uppercase(),
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
+            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
+            fontWeight = FontWeight.Medium,
         )
         Text(
             text = value,
-            style = if (isCompact) MaterialTheme.typography.titleSmall else MaterialTheme.typography.titleMedium,
+            style = if (isCompact) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
             color = valueColor ?: MaterialTheme.colorScheme.onPrimaryContainer,
             modifier = if (valueTestTag != null) Modifier.testTag(valueTestTag) else Modifier,

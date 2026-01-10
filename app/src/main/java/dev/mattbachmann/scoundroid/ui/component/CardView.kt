@@ -1,15 +1,17 @@
 package dev.mattbachmann.scoundroid.ui.component
 
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -19,12 +21,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.contentDescription
@@ -45,8 +49,8 @@ import dev.mattbachmann.scoundroid.ui.theme.ScoundroidTheme
  *
  * Card colors:
  * - Monsters (♣ ♠): Red background with black text
- * - Weapons (♦): Blue background with white text
- * - Potions (♥): Green background with white text
+ * - Weapons (♦): Blue background with dark blue text
+ * - Potions (♥): Green background with dark green text
  */
 @Composable
 fun CardView(
@@ -67,18 +71,18 @@ fun CardView(
                     Color.Black,
                     Color(0xFFD32F2F),
                 )
-            // Blue
+            // Blue - dark blue text for contrast
             CardType.WEAPON ->
                 Triple(
                     Color(0xFF64B5F6),
-                    Color.White,
+                    Color(0xFF0D47A1),
                     Color(0xFF1976D2),
                 )
-            // Green
+            // Green - dark green text for contrast
             CardType.POTION ->
                 Triple(
                     Color(0xFF81C784),
-                    Color.White,
+                    Color(0xFF1B5E20),
                     Color(0xFF388E3C),
                 )
         }
@@ -119,6 +123,22 @@ fun CardView(
         label = "cardScale",
     )
 
+    // Interaction source for press state detection
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    // Elevation animation: lifted when selected, pushed down when pressed
+    val baseElevation = if (isSelected) 12.dp else 4.dp
+    val elevation by animateDpAsState(
+        targetValue = if (isPressed) 1.dp else baseElevation,
+        animationSpec =
+            spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessHigh,
+            ),
+        label = "cardElevation",
+    )
+
     // Scale font sizes and padding proportionally to card dimensions
     val suitFontSize = (cardWidth.value * 0.45f).sp
     val rankFontSize = (cardWidth.value * 0.32f).sp
@@ -136,44 +156,68 @@ fun CardView(
                 ),
             elevation =
                 CardDefaults.cardElevation(
-                    defaultElevation = 6.dp,
+                    defaultElevation = elevation,
                 ),
             border = BorderStroke(actualBorderWidth, actualBorderColor),
+            interactionSource = interactionSource,
             onClick = onClick ?: {},
         ) {
-            Column(
+            // Gradient overlay for depth
+            Box(
                 modifier =
                     Modifier
                         .fillMaxSize()
-                        .padding(cardPadding),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.SpaceBetween,
+                        .background(
+                            brush =
+                                Brush.verticalGradient(
+                                    colors =
+                                        listOf(
+                                            Color.White.copy(alpha = 0.15f),
+                                            Color.Transparent,
+                                            Color.Black.copy(alpha = 0.1f),
+                                        ),
+                                ),
+                        ),
             ) {
-                // Suit symbol
-                Text(
-                    text = card.suit.symbol,
-                    fontSize = suitFontSize,
-                    color = textColor,
-                )
+                Column(
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .padding(cardPadding),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    // Suit symbol
+                    Text(
+                        text = card.suit.symbol,
+                        fontSize = suitFontSize,
+                        color = textColor,
+                    )
 
-                // Rank
-                Text(
-                    text = card.rank.displayName,
-                    fontSize = rankFontSize,
-                    fontWeight = FontWeight.Bold,
-                    color = textColor,
-                )
+                    // Rank
+                    Text(
+                        text = card.rank.displayName,
+                        fontSize = rankFontSize,
+                        fontWeight = FontWeight.Bold,
+                        color = textColor,
+                    )
+                }
             }
         }
 
-        // Selection order badge
+        // Selection order badge - positioned at bottom-right, inside card bounds
         if (selectionOrder != null) {
             Box(
                 modifier =
                     Modifier
-                        .align(Alignment.TopEnd)
-                        .offset(x = 4.dp, y = (-4).dp)
-                        .size(24.dp)
+                        .align(Alignment.BottomEnd)
+                        .padding(4.dp)
+                        .size(26.dp)
+                        .background(
+                            color = Color.White,
+                            shape = CircleShape,
+                        )
+                        .padding(2.dp)
                         .background(
                             color = Color(0xFF009688),
                             shape = CircleShape,
@@ -184,7 +228,7 @@ fun CardView(
                     text = "$selectionOrder",
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black,
+                    color = Color.White,
                 )
             }
         }
@@ -210,6 +254,10 @@ fun PlaceholderCardView(
             CardDefaults.cardColors(
                 // Dark red
                 containerColor = Color(0xFF8B0000),
+            ),
+        elevation =
+            CardDefaults.cardElevation(
+                defaultElevation = 4.dp,
             ),
         // Cream border
         border = BorderStroke(2.dp, Color(0xFFF5F5DC)),
