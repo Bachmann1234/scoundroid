@@ -80,8 +80,11 @@ fun ComposeTestRule.processCards() {
 fun ComposeTestRule.handleCombatChoices() {
     var maxAttempts = 10 // Safety limit
     while (maxAttempts > 0) {
+        // Wait for any pending UI updates
+        waitForIdle()
+
         try {
-            // Check if combat choice panel is showing
+            // Check if combat choice panel is showing and click it
             onNode(hasText("Use Weapon") and hasClickAction())
                 .performClick()
             waitForIdle()

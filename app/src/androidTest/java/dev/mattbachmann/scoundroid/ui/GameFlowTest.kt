@@ -47,6 +47,9 @@ class GameFlowTest {
 
     @Test
     fun newGame_showsInitialState() {
+        // Wait for UI to render
+        composeTestRule.waitForIdle()
+
         // Verify initial game state
         composeTestRule.assertHealth(20)
         composeTestRule.assertDeckSize(44)
@@ -113,6 +116,9 @@ class GameFlowTest {
 
         // Process the cards
         composeTestRule.processCards()
+
+        // Wait for UI to settle after processing
+        composeTestRule.waitForIdle()
 
         // After processing, room should have 1 card remaining and "Draw Next Room" button should appear
         composeTestRule.onNode(hasText("Draw Next Room") and hasClickAction()).assertIsDisplayed()
