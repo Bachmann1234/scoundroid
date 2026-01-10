@@ -33,6 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import dev.mattbachmann.scoundroid.data.model.Card
 import dev.mattbachmann.scoundroid.data.model.CardType
 import dev.mattbachmann.scoundroid.data.model.Rank
@@ -118,6 +119,11 @@ fun CardView(
         label = "cardScale",
     )
 
+    // Scale font sizes and padding proportionally to card dimensions
+    val suitFontSize = (cardWidth.value * 0.45f).sp
+    val rankFontSize = (cardWidth.value * 0.32f).sp
+    val cardPadding = (cardWidth.value * 0.12f).dp
+
     Box(modifier = modifier.scale(scale)) {
         Card(
             modifier =
@@ -139,21 +145,21 @@ fun CardView(
                 modifier =
                     Modifier
                         .fillMaxSize()
-                        .padding(12.dp),
+                        .padding(cardPadding),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.SpaceBetween,
             ) {
                 // Suit symbol
                 Text(
                     text = card.suit.symbol,
-                    style = MaterialTheme.typography.displayMedium,
+                    fontSize = suitFontSize,
                     color = textColor,
                 )
 
                 // Rank
                 Text(
                     text = card.rank.displayName,
-                    style = MaterialTheme.typography.headlineLarge,
+                    fontSize = rankFontSize,
                     fontWeight = FontWeight.Bold,
                     color = textColor,
                 )

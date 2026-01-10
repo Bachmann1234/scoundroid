@@ -18,7 +18,6 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
-import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -729,7 +728,8 @@ class GameViewModelTest {
     @Test
     fun `fighting monster barehanded creates log entry with full damage`() =
         runTest {
-            val viewModel = GameViewModel()
+            // Seed 1L produces first room with monsters (deterministic)
+            val viewModel = GameViewModel(randomSeed = 1L)
 
             viewModel.uiState.test {
                 skipItems(1) // Skip initial state
@@ -742,14 +742,14 @@ class GameViewModelTest {
                 assertNotNull(roomState.currentRoom)
                 val room = roomState.currentRoom!!
 
-                // Find a monster in the room - skip test if none found
+                // Find a monster in the room (seed 1L guarantees at least one)
                 val monster = room.find { it.type == CardType.MONSTER }
-                assumeTrue(monster != null)
+                assertNotNull(monster, "Seed 1L should produce a room with at least one monster")
 
                 // Select 3 cards with monster FIRST to ensure barehanded fighting
                 // (weapons process in order, so monster first means no weapon equipped yet)
                 val otherCards = room.filter { it != monster }.take(2)
-                val cardsToSelect = listOf(monster!!) + otherCards
+                val cardsToSelect = listOf(monster) + otherCards
                 viewModel.onIntent(GameIntent.ProcessSelectedCards(cardsToSelect))
                 testDispatcher.scheduler.advanceUntilIdle()
 
@@ -782,7 +782,8 @@ class GameViewModelTest {
     @Test
     fun `equipping weapon creates log entry`() =
         runTest {
-            val viewModel = GameViewModel()
+            // Seed 33L produces first room [8♦, 6♦, 4♦, 2♥] - 3 weapons, 1 potion
+            val viewModel = GameViewModel(randomSeed = 33L)
 
             viewModel.uiState.test {
                 skipItems(1) // Skip initial state
@@ -794,13 +795,13 @@ class GameViewModelTest {
                 assertNotNull(roomState.currentRoom)
                 val room = roomState.currentRoom!!
 
-                // Find a weapon in the room - skip test if none found
+                // Find a weapon in the room (seed 33L guarantees weapons)
                 val weapon = room.find { it.type == CardType.WEAPON }
-                assumeTrue(weapon != null)
+                assertNotNull(weapon, "Seed 33L should produce a room with weapons")
 
                 val cardsToSelect = room.take(3).toMutableList()
                 if (weapon !in cardsToSelect) {
-                    cardsToSelect[0] = weapon!!
+                    cardsToSelect[0] = weapon
                 }
                 viewModel.onIntent(GameIntent.ProcessSelectedCards(cardsToSelect))
                 testDispatcher.scheduler.advanceUntilIdle()
@@ -828,7 +829,8 @@ class GameViewModelTest {
     @Test
     fun `using potion creates log entry`() =
         runTest {
-            val viewModel = GameViewModel()
+            // Seed 33L produces first room [8♦, 6♦, 4♦, 2♥] - 3 weapons, 1 potion
+            val viewModel = GameViewModel(randomSeed = 33L)
 
             viewModel.uiState.test {
                 skipItems(1) // Skip initial state
@@ -840,13 +842,13 @@ class GameViewModelTest {
                 assertNotNull(roomState.currentRoom)
                 val room = roomState.currentRoom!!
 
-                // Find a potion in the room - skip test if none found
+                // Find a potion in the room (seed 33L guarantees a potion - 2♥)
                 val potion = room.find { it.type == CardType.POTION }
-                assumeTrue(potion != null)
+                assertNotNull(potion, "Seed 33L should produce a room with a potion")
 
                 val cardsToSelect = room.take(3).toMutableList()
                 if (potion !in cardsToSelect) {
-                    cardsToSelect[0] = potion!!
+                    cardsToSelect[0] = potion
                 }
                 viewModel.onIntent(GameIntent.ProcessSelectedCards(cardsToSelect))
                 testDispatcher.scheduler.advanceUntilIdle()
