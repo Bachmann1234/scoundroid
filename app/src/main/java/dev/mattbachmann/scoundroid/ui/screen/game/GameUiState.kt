@@ -41,6 +41,8 @@ data class GameUiState(
     val showActionLog: Boolean = false,
     /** Pending combat choice when player must decide weapon vs barehanded */
     val pendingCombatChoice: PendingCombatChoice? = null,
+    /** The seed used for this game's deck shuffle */
+    val gameSeed: Long = 0L,
 )
 
 /**

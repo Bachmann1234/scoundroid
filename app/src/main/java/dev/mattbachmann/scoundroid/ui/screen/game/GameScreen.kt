@@ -1,5 +1,6 @@
 package dev.mattbachmann.scoundroid.ui.screen.game
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -7,12 +8,16 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -21,8 +26,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -35,8 +42,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -71,6 +82,9 @@ fun GameScreen(
     var selectedCards by remember { mutableStateOf(listOf<Card>()) }
     var scoreSaved by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
+    var showSeedDialog by remember { mutableStateOf(false) }
+    val clipboardManager = LocalClipboardManager.current
+    val context = LocalContext.current
 
     // Save score when game ends, reset flag when new game starts
     LaunchedEffect(uiState.isGameOver, uiState.isGameWon) {
@@ -100,6 +114,18 @@ fun GameScreen(
         ) {
             ActionLogPanel(actionLog = uiState.actionLog)
         }
+    }
+
+    // Seed entry dialog
+    if (showSeedDialog) {
+        SeedEntryDialog(
+            onDismiss = { showSeedDialog = false },
+            onConfirm = { seed ->
+                viewModel.onIntent(GameIntent.NewGameWithSeed(seed))
+                selectedCards = emptyList()
+                showSeedDialog = false
+            },
+        )
     }
 
     Scaffold(
@@ -195,6 +221,11 @@ fun GameScreen(
                         onSelectedCardsChange = { selectedCards = it },
                         onIntent = viewModel::onIntent,
                         simulateProcessing = viewModel::simulateProcessing,
+                        onCopySeed = {
+                            clipboardManager.setText(AnnotatedString(uiState.gameSeed.toString()))
+                            Toast.makeText(context, "Seed copied!", Toast.LENGTH_SHORT).show()
+                        },
+                        onPlaySeed = { showSeedDialog = true },
                     )
                 }
             }
@@ -257,6 +288,11 @@ fun GameScreen(
                     onIntent = viewModel::onIntent,
                     simulateProcessing = viewModel::simulateProcessing,
                     isExpandedScreen = false,
+                    onCopySeed = {
+                        clipboardManager.setText(AnnotatedString(uiState.gameSeed.toString()))
+                        Toast.makeText(context, "Seed copied!", Toast.LENGTH_SHORT).show()
+                    },
+                    onPlaySeed = { showSeedDialog = true },
                 )
             }
         }
@@ -293,6 +329,7 @@ private fun RoomActionButtons(
     onProcessCards: () -> Unit,
     onDrawRoom: () -> Unit,
     onNewGame: () -> Unit,
+    onPlaySeed: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     isCompact: Boolean = false,
 ) {
@@ -425,16 +462,36 @@ private fun RoomActionButtons(
                 )
             }
 
-            OutlinedButton(
-                onClick = onNewGame,
+            // New Game and Play Custom Seed in a row
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                shape = buttonShape,
-                colors = outlinedButtonColors,
+                horizontalArrangement = Arrangement.spacedBy(buttonSpacing),
             ) {
-                Text(
-                    text = "New Game",
-                    style = buttonTextStyle,
-                )
+                OutlinedButton(
+                    onClick = onNewGame,
+                    modifier = Modifier.weight(1f),
+                    shape = buttonShape,
+                    colors = outlinedButtonColors,
+                ) {
+                    Text(
+                        text = "New Game",
+                        style = buttonTextStyle,
+                    )
+                }
+
+                if (onPlaySeed != null) {
+                    OutlinedButton(
+                        onClick = onPlaySeed,
+                        modifier = Modifier.weight(1f),
+                        shape = buttonShape,
+                        colors = outlinedButtonColors,
+                    ) {
+                        Text(
+                            text = "Custom Seed",
+                            style = buttonTextStyle,
+                        )
+                    }
+                }
             }
         }
     }
@@ -489,6 +546,8 @@ private fun GameContent(
     onIntent: (GameIntent) -> Unit,
     simulateProcessing: (List<Card>) -> List<LogEntry>,
     isExpandedScreen: Boolean,
+    onCopySeed: () -> Unit,
+    onPlaySeed: () -> Unit,
 ) {
     // Game over / won message
     if (uiState.isGameOver) {
@@ -496,20 +555,34 @@ private fun GameContent(
             score = uiState.score,
             highestScore = uiState.highestScore,
             isNewHighScore = uiState.isNewHighScore,
+            gameSeed = uiState.gameSeed,
             onNewGame = {
                 onIntent(GameIntent.NewGame)
                 onSelectedCardsChange(emptyList())
             },
+            onRetryGame = {
+                onIntent(GameIntent.RetryGame)
+                onSelectedCardsChange(emptyList())
+            },
+            onCopySeed = onCopySeed,
+            onPlaySeed = onPlaySeed,
         )
     } else if (uiState.isGameWon) {
         GameWonScreen(
             score = uiState.score,
             highestScore = uiState.highestScore,
             isNewHighScore = uiState.isNewHighScore,
+            gameSeed = uiState.gameSeed,
             onNewGame = {
                 onIntent(GameIntent.NewGame)
                 onSelectedCardsChange(emptyList())
             },
+            onRetryGame = {
+                onIntent(GameIntent.RetryGame)
+                onSelectedCardsChange(emptyList())
+            },
+            onCopySeed = onCopySeed,
+            onPlaySeed = onPlaySeed,
         )
     } else if (uiState.pendingCombatChoice != null) {
         // Combat choice needed - show the choice panel
@@ -577,6 +650,7 @@ private fun GameContent(
                 onIntent(GameIntent.NewGame)
                 onSelectedCardsChange(emptyList())
             },
+            onPlaySeed = onPlaySeed,
         )
     }
 }
@@ -596,7 +670,11 @@ private fun ExpandedCardsSection(
             score = uiState.score,
             highestScore = uiState.highestScore,
             isNewHighScore = uiState.isNewHighScore,
+            gameSeed = uiState.gameSeed,
             onNewGame = {},
+            onRetryGame = {},
+            onCopySeed = {},
+            onPlaySeed = {},
             showButton = false,
         )
     } else if (uiState.isGameWon) {
@@ -604,7 +682,11 @@ private fun ExpandedCardsSection(
             score = uiState.score,
             highestScore = uiState.highestScore,
             isNewHighScore = uiState.isNewHighScore,
+            gameSeed = uiState.gameSeed,
             onNewGame = {},
+            onRetryGame = {},
+            onCopySeed = {},
+            onPlaySeed = {},
             showButton = false,
         )
     } else if (uiState.pendingCombatChoice != null) {
@@ -636,31 +718,141 @@ private fun ExpandedControlsSection(
     onSelectedCardsChange: (List<Card>) -> Unit,
     onIntent: (GameIntent) -> Unit,
     simulateProcessing: (List<Card>) -> List<LogEntry>,
+    onCopySeed: () -> Unit,
+    onPlaySeed: () -> Unit,
 ) {
     // Don't show controls during combat choice (handled in ExpandedCardsSection)
     if (uiState.pendingCombatChoice != null) {
         return
     }
 
+    val buttonShape = remember { RoundedCornerShape(12.dp) }
+    val primaryButtonColors = ButtonDefaults.buttonColors(containerColor = ButtonPrimary, contentColor = Color.White)
+    val primaryButtonElevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp, pressedElevation = 8.dp)
+    val outlinedButtonColors = ButtonDefaults.outlinedButtonColors(contentColor = Purple80)
+
     // Always show preview panel to prevent layout jumping
     val currentRoom = uiState.currentRoom
     when {
         uiState.isGameOver || uiState.isGameWon -> {
-            // Show empty preview panel during game over to maintain layout
-            PreviewPanel(
-                previewEntries = emptyList(),
-                placeholderText = "Start a new game",
-            )
+            // Show seed display and buttons during game over
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                // Seed display with copy button
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = "Seed: ${uiState.gameSeed}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    IconButton(
+                        onClick = onCopySeed,
+                        modifier = Modifier.size(32.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ContentCopy,
+                            contentDescription = "Copy seed",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(18.dp),
+                        )
+                    }
+                }
+
+                // Retry button
+                OutlinedButton(
+                    onClick = {
+                        onIntent(GameIntent.RetryGame)
+                        onSelectedCardsChange(emptyList())
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = buttonShape,
+                    colors = outlinedButtonColors,
+                ) {
+                    Text(
+                        text = "Retry",
+                        style = MaterialTheme.typography.titleLarge,
+                    )
+                }
+
+                // New Game button
+                Button(
+                    onClick = {
+                        onIntent(GameIntent.NewGame)
+                        onSelectedCardsChange(emptyList())
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = buttonShape,
+                    colors = primaryButtonColors,
+                    elevation = primaryButtonElevation,
+                ) {
+                    Text(
+                        text = "New Game",
+                        style = MaterialTheme.typography.titleLarge,
+                    )
+                }
+
+                // Play Custom Seed button
+                TextButton(
+                    onClick = onPlaySeed,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(
+                        text = "Play Custom Seed",
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                }
+            }
         }
         currentRoom != null && currentRoom.size == 4 -> {
             PreviewPanel(
                 previewEntries = simulateProcessing(selectedCards),
+            )
+            RoomActionButtons(
+                currentRoom = currentRoom,
+                selectedCards = selectedCards,
+                canAvoidRoom = uiState.canAvoidRoom,
+                isGameOver = false,
+                isGameWon = false,
+                onAvoidRoom = {
+                    onIntent(GameIntent.AvoidRoom)
+                    onSelectedCardsChange(emptyList())
+                },
+                onProcessCards = {
+                    onIntent(GameIntent.ProcessSelectedCards(selectedCards))
+                    onSelectedCardsChange(emptyList())
+                },
+                onDrawRoom = { onIntent(GameIntent.DrawRoom) },
+                onNewGame = {
+                    onIntent(GameIntent.NewGame)
+                    onSelectedCardsChange(emptyList())
+                },
             )
         }
         currentRoom == null -> {
             PreviewPanel(
                 previewEntries = emptyList(),
                 placeholderText = "Draw a room to see preview",
+            )
+            RoomActionButtons(
+                currentRoom = null,
+                selectedCards = selectedCards,
+                canAvoidRoom = false,
+                isGameOver = false,
+                isGameWon = false,
+                onAvoidRoom = {},
+                onProcessCards = {},
+                onDrawRoom = { onIntent(GameIntent.DrawRoom) },
+                onNewGame = {
+                    onIntent(GameIntent.NewGame)
+                    onSelectedCardsChange(emptyList())
+                },
+                onPlaySeed = onPlaySeed,
             )
         }
         else -> {
@@ -669,30 +861,22 @@ private fun ExpandedControlsSection(
                 previewEntries = emptyList(),
                 placeholderText = "Draw next room to see preview",
             )
+            RoomActionButtons(
+                currentRoom = currentRoom,
+                selectedCards = selectedCards,
+                canAvoidRoom = false,
+                isGameOver = false,
+                isGameWon = false,
+                onAvoidRoom = {},
+                onProcessCards = {},
+                onDrawRoom = { onIntent(GameIntent.DrawRoom) },
+                onNewGame = {
+                    onIntent(GameIntent.NewGame)
+                    onSelectedCardsChange(emptyList())
+                },
+            )
         }
     }
-
-    // Action buttons
-    RoomActionButtons(
-        currentRoom = uiState.currentRoom,
-        selectedCards = selectedCards,
-        canAvoidRoom = uiState.canAvoidRoom,
-        isGameOver = uiState.isGameOver,
-        isGameWon = uiState.isGameWon,
-        onAvoidRoom = {
-            onIntent(GameIntent.AvoidRoom)
-            onSelectedCardsChange(emptyList())
-        },
-        onProcessCards = {
-            onIntent(GameIntent.ProcessSelectedCards(selectedCards))
-            onSelectedCardsChange(emptyList())
-        },
-        onDrawRoom = { onIntent(GameIntent.DrawRoom) },
-        onNewGame = {
-            onIntent(GameIntent.NewGame)
-            onSelectedCardsChange(emptyList())
-        },
-    )
 }
 
 @Composable
@@ -700,7 +884,11 @@ private fun GameOverScreen(
     score: Int,
     highestScore: Int?,
     isNewHighScore: Boolean,
+    gameSeed: Long,
     onNewGame: () -> Unit,
+    onRetryGame: () -> Unit,
+    onCopySeed: () -> Unit,
+    onPlaySeed: () -> Unit,
     showButton: Boolean = true,
 ) {
     Column(
@@ -740,10 +928,48 @@ private fun GameOverScreen(
         }
 
         if (showButton) {
+            // Seed display with copy button
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = "Seed: $gameSeed",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                IconButton(
+                    onClick = onCopySeed,
+                    modifier = Modifier.size(32.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ContentCopy,
+                        contentDescription = "Copy seed",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
+            }
+
             val buttonShape = remember { RoundedCornerShape(12.dp) }
             val buttonColors = ButtonDefaults.buttonColors(containerColor = ButtonPrimary, contentColor = Color.White)
-            val buttonElevation =
-                ButtonDefaults.buttonElevation(defaultElevation = 4.dp, pressedElevation = 8.dp)
+            val buttonElevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp, pressedElevation = 8.dp)
+            val outlinedButtonColors = ButtonDefaults.outlinedButtonColors(contentColor = Purple80)
+
+            // Retry button
+            OutlinedButton(
+                onClick = onRetryGame,
+                modifier = Modifier.fillMaxWidth(),
+                shape = buttonShape,
+                colors = outlinedButtonColors,
+            ) {
+                Text(
+                    text = "Retry",
+                    style = MaterialTheme.typography.titleLarge,
+                )
+            }
+
+            // New Game button
             Button(
                 onClick = onNewGame,
                 modifier = Modifier.fillMaxWidth(),
@@ -756,6 +982,17 @@ private fun GameOverScreen(
                     style = MaterialTheme.typography.titleLarge,
                 )
             }
+
+            // Play Custom Seed button
+            TextButton(
+                onClick = onPlaySeed,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(
+                    text = "Play Custom Seed",
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+            }
         }
     }
 }
@@ -765,7 +1002,11 @@ private fun GameWonScreen(
     score: Int,
     highestScore: Int?,
     isNewHighScore: Boolean,
+    gameSeed: Long,
     onNewGame: () -> Unit,
+    onRetryGame: () -> Unit,
+    onCopySeed: () -> Unit,
+    onPlaySeed: () -> Unit,
     showButton: Boolean = true,
 ) {
     Column(
@@ -805,10 +1046,48 @@ private fun GameWonScreen(
         }
 
         if (showButton) {
+            // Seed display with copy button
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = "Seed: $gameSeed",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                IconButton(
+                    onClick = onCopySeed,
+                    modifier = Modifier.size(32.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ContentCopy,
+                        contentDescription = "Copy seed",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
+            }
+
             val buttonShape = remember { RoundedCornerShape(12.dp) }
             val buttonColors = ButtonDefaults.buttonColors(containerColor = ButtonPrimary, contentColor = Color.White)
-            val buttonElevation =
-                ButtonDefaults.buttonElevation(defaultElevation = 4.dp, pressedElevation = 8.dp)
+            val buttonElevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp, pressedElevation = 8.dp)
+            val outlinedButtonColors = ButtonDefaults.outlinedButtonColors(contentColor = Purple80)
+
+            // Retry button
+            OutlinedButton(
+                onClick = onRetryGame,
+                modifier = Modifier.fillMaxWidth(),
+                shape = buttonShape,
+                colors = outlinedButtonColors,
+            ) {
+                Text(
+                    text = "Retry",
+                    style = MaterialTheme.typography.titleLarge,
+                )
+            }
+
+            // New Game button
             Button(
                 onClick = onNewGame,
                 modifier = Modifier.fillMaxWidth(),
@@ -821,8 +1100,75 @@ private fun GameWonScreen(
                     style = MaterialTheme.typography.titleLarge,
                 )
             }
+
+            // Play Custom Seed button
+            TextButton(
+                onClick = onPlaySeed,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(
+                    text = "Play Custom Seed",
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+            }
         }
     }
+}
+
+/**
+ * Dialog for entering a custom seed to start a game.
+ */
+@Composable
+private fun SeedEntryDialog(
+    onDismiss: () -> Unit,
+    onConfirm: (Long) -> Unit,
+) {
+    var seedText by remember { mutableStateOf("") }
+    var isError by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Enter Seed") },
+        text = {
+            OutlinedTextField(
+                value = seedText,
+                onValueChange = {
+                    seedText = it
+                    isError = false
+                },
+                label = { Text("Seed") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                isError = isError,
+                supportingText =
+                    if (isError) {
+                        { Text("Invalid seed - please enter a number") }
+                    } else {
+                        null
+                    },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    val seed = seedText.toLongOrNull()
+                    if (seed != null) {
+                        onConfirm(seed)
+                    } else {
+                        isError = true
+                    }
+                },
+            ) {
+                Text("Start Game")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        },
+    )
 }
 
 @Preview(showBackground = true)

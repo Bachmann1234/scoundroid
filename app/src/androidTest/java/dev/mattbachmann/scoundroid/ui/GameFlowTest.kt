@@ -337,6 +337,67 @@ class GameFlowTest {
         composeTestRule.assertAvoidRoomButtonNotVisible()
     }
 
+    // ========== Seeded Runs Tests ==========
+
+    @Test
+    fun customSeedButton_visibleOnInitialScreen() {
+        // Custom Seed button should be visible on initial game screen
+        composeTestRule.waitForIdle()
+        composeTestRule.onNode(hasText("Custom Seed") and hasClickAction()).assertIsDisplayed()
+    }
+
+    @Test
+    fun retryButton_visibleOnGameOver() {
+        // Play until game over (take damage without healing)
+        // With seed 42, we need to process multiple rooms to trigger game over
+        composeTestRule.drawRoom()
+        selectAndProcessThreeCards()
+
+        // Keep playing rooms until game is over
+        repeat(15) {
+            try {
+                composeTestRule.onNodeWithTag("game_over_screen").assertIsDisplayed()
+                // Game over reached
+                return@repeat
+            } catch (_: AssertionError) {
+                // Not game over yet, continue playing
+                try {
+                    composeTestRule.drawNextRoom()
+                    selectAndProcessThreeCards()
+                } catch (_: AssertionError) {
+                    // May have hit game over during processing
+                }
+            }
+        }
+
+        // Verify retry button is visible on game over screen
+        composeTestRule.onNode(hasText("Retry") and hasClickAction()).assertIsDisplayed()
+    }
+
+    @Test
+    fun seedDisplay_visibleOnGameOver() {
+        // Play until game over
+        composeTestRule.drawRoom()
+        selectAndProcessThreeCards()
+
+        repeat(15) {
+            try {
+                composeTestRule.onNodeWithTag("game_over_screen").assertIsDisplayed()
+                return@repeat
+            } catch (_: AssertionError) {
+                try {
+                    composeTestRule.drawNextRoom()
+                    selectAndProcessThreeCards()
+                } catch (_: AssertionError) {
+                    // May have hit game over during processing
+                }
+            }
+        }
+
+        // Verify seed is displayed (starts with "Seed:")
+        composeTestRule.onNode(hasText("Seed:", substring = true)).assertIsDisplayed()
+    }
+
     // ========== Helper Methods ==========
 
     private fun selectAndProcessThreeCards() {

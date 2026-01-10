@@ -24,7 +24,10 @@ class GameViewModel(
     private val highScoreRepository: HighScoreRepository? = null,
     private val randomSeed: Long? = null,
 ) : ViewModel() {
-    private fun createRandom(): Random = randomSeed?.let { Random(it) } ?: Random
+    // The seed used for the current game's deck shuffle
+    private var currentGameSeed: Long = randomSeed ?: System.currentTimeMillis()
+
+    private fun createRandom(): Random = Random(currentGameSeed)
 
     private val _gameState = MutableStateFlow(GameState.newGame(createRandom()))
     private val gameState: StateFlow<GameState> = _gameState.asStateFlow()
@@ -87,11 +90,42 @@ class GameViewModel(
                 is GameIntent.ShowActionLog -> handleShowActionLog()
                 is GameIntent.HideActionLog -> handleHideActionLog()
                 is GameIntent.ResolveCombatChoice -> handleResolveCombatChoice(intent.useWeapon)
+                is GameIntent.RetryGame -> handleRetryGame()
+                is GameIntent.NewGameWithSeed -> handleNewGameWithSeed(intent.seed)
             }
         }
     }
 
     private fun handleNewGame() {
+        // Generate a new seed for the new game
+        currentGameSeed = System.currentTimeMillis()
+
+        // Clear any pending combat state
+        pendingCardsToProcess.clear()
+        processingState = null
+        _uiState.value = _uiState.value.copy(pendingCombatChoice = null)
+
+        actionLogEntries.clear()
+        actionLogEntries.add(LogEntry.GameStarted(timestamp = System.currentTimeMillis()))
+        updateGameState(GameState.newGame(createRandom()))
+    }
+
+    private fun handleRetryGame() {
+        // Keep the same seed - just reset the game state
+        // Clear any pending combat state
+        pendingCardsToProcess.clear()
+        processingState = null
+        _uiState.value = _uiState.value.copy(pendingCombatChoice = null)
+
+        actionLogEntries.clear()
+        actionLogEntries.add(LogEntry.GameStarted(timestamp = System.currentTimeMillis()))
+        updateGameState(GameState.newGame(createRandom()))
+    }
+
+    private fun handleNewGameWithSeed(seed: Long) {
+        // Use the provided seed
+        currentGameSeed = seed
+
         // Clear any pending combat state
         pendingCardsToProcess.clear()
         processingState = null
@@ -453,6 +487,7 @@ class GameViewModel(
             isGameWon = isGameWon,
             lastRoomAvoided = lastRoomAvoided,
             canAvoidRoom = currentRoom != null && !lastRoomAvoided,
+            gameSeed = currentGameSeed,
         )
     }
 }

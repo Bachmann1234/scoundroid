@@ -1039,4 +1039,125 @@ class GameViewModelTest {
             assertNull(bigFight.weaponUsed)
             assertEquals(12, bigFight.damageTaken) // Full damage
         }
+
+    // ========== Seeded Runs Tests ==========
+
+    @Test
+    fun `initial state includes game seed`() =
+        runTest {
+            val viewModel = GameViewModel()
+
+            viewModel.uiState.test {
+                val state = awaitItem()
+                // Seed should be a non-zero value
+                assertTrue(state.gameSeed != 0L)
+            }
+        }
+
+    @Test
+    fun `game seed is deterministic - same seed produces same deck order`() =
+        runTest {
+            val seed = 12345L
+            val viewModel1 = GameViewModel(randomSeed = seed)
+            val viewModel2 = GameViewModel(randomSeed = seed)
+
+            // Draw room in both
+            viewModel1.onIntent(GameIntent.DrawRoom)
+            viewModel2.onIntent(GameIntent.DrawRoom)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            viewModel1.uiState.test {
+                val state1 = awaitItem()
+                viewModel2.uiState.test {
+                    val state2 = awaitItem()
+                    // Same seed should produce same room cards
+                    assertEquals(state1.currentRoom, state2.currentRoom)
+                }
+            }
+        }
+
+    @Test
+    fun `RetryGame intent starts new game with same seed`() =
+        runTest {
+            val viewModel = GameViewModel()
+
+            viewModel.uiState.test {
+                val initialState = awaitItem()
+                val originalSeed = initialState.gameSeed
+
+                // Draw first room to see initial cards
+                viewModel.onIntent(GameIntent.DrawRoom)
+                testDispatcher.scheduler.advanceUntilIdle()
+                val roomState = awaitItem()
+                val originalRoom = roomState.currentRoom
+
+                // Retry the game
+                viewModel.onIntent(GameIntent.RetryGame)
+                testDispatcher.scheduler.advanceUntilIdle()
+                val retryState = awaitItem()
+
+                // Seed should be the same
+                assertEquals(originalSeed, retryState.gameSeed)
+                // Health reset to 20
+                assertEquals(20, retryState.health)
+                // Deck size reset to 44
+                assertEquals(44, retryState.deckSize)
+
+                // Draw room again - should get same cards
+                viewModel.onIntent(GameIntent.DrawRoom)
+                testDispatcher.scheduler.advanceUntilIdle()
+                val retryRoomState = awaitItem()
+                assertEquals(originalRoom, retryRoomState.currentRoom)
+            }
+        }
+
+    @Test
+    fun `NewGameWithSeed intent starts game with provided seed`() =
+        runTest {
+            val viewModel = GameViewModel()
+            val customSeed = 99999L
+
+            viewModel.uiState.test {
+                awaitItem() // Initial state
+
+                viewModel.onIntent(GameIntent.NewGameWithSeed(customSeed))
+                testDispatcher.scheduler.advanceUntilIdle()
+                val state = awaitItem()
+
+                assertEquals(customSeed, state.gameSeed)
+                assertEquals(20, state.health)
+                assertEquals(44, state.deckSize)
+            }
+        }
+
+    @Test
+    fun `NewGame intent generates a new different seed`() =
+        runTest {
+            val viewModel = GameViewModel()
+
+            viewModel.uiState.test {
+                val initialState = awaitItem()
+                val originalSeed = initialState.gameSeed
+
+                viewModel.onIntent(GameIntent.NewGame)
+                testDispatcher.scheduler.advanceUntilIdle()
+                val newState = awaitItem()
+
+                // New game should have a different seed
+                // (extremely unlikely to be the same with time-based seeds)
+                assertTrue(newState.gameSeed != originalSeed)
+            }
+        }
+
+    @Test
+    fun `seed is exposed in uiState correctly`() =
+        runTest {
+            val seed = 42L
+            val viewModel = GameViewModel(randomSeed = seed)
+
+            viewModel.uiState.test {
+                val state = awaitItem()
+                assertEquals(seed, state.gameSeed)
+            }
+        }
 }
