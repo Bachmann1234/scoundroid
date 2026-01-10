@@ -5,10 +5,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -67,7 +65,20 @@ import dev.mattbachmann.scoundroid.ui.theme.ButtonPrimary
 import dev.mattbachmann.scoundroid.ui.theme.GradientBottom
 import dev.mattbachmann.scoundroid.ui.theme.GradientTop
 import dev.mattbachmann.scoundroid.ui.theme.Purple80
+import dev.mattbachmann.scoundroid.ui.theme.PurpleGrey80
 import dev.mattbachmann.scoundroid.ui.theme.ScoundroidTheme
+
+/**
+ * Screen size classes for responsive layouts.
+ * - COMPACT: Small phones (height < 700dp) - aggressive space saving, 1x4 cards
+ * - MEDIUM: Fold cover screens, regular phones - comfortable layout, 2x2 cards
+ * - EXPANDED: Tablets, unfolded foldables - large cards in horizontal row
+ */
+enum class ScreenSizeClass {
+    COMPACT,
+    MEDIUM,
+    EXPANDED,
+}
 
 /**
  * Main game screen for Scoundrel.
@@ -79,8 +90,9 @@ import dev.mattbachmann.scoundroid.ui.theme.ScoundroidTheme
 fun GameScreen(
     modifier: Modifier = Modifier,
     viewModel: GameViewModel = viewModel(),
-    isExpandedScreen: Boolean = false,
+    screenSizeClass: ScreenSizeClass = ScreenSizeClass.MEDIUM,
 ) {
+    val isExpandedScreen = screenSizeClass == ScreenSizeClass.EXPANDED
     val uiState by viewModel.uiState.collectAsState()
     var selectedCards by remember { mutableStateOf(listOf<Card>()) }
     var scoreSaved by remember { mutableStateOf(false) }
@@ -274,14 +286,20 @@ fun GameScreen(
                     }
                 }
 
-                // Game status
+                // Game status - use COMPACT for small phones, MEDIUM for fold cover
+                val statusBarLayout =
+                    when (screenSizeClass) {
+                        ScreenSizeClass.COMPACT -> StatusBarLayout.COMPACT
+                        ScreenSizeClass.MEDIUM -> StatusBarLayout.MEDIUM
+                        ScreenSizeClass.EXPANDED -> StatusBarLayout.INLINE
+                    }
                 GameStatusBar(
                     health = uiState.health,
                     score = uiState.score,
                     deckSize = uiState.deckSize,
                     weaponState = uiState.weaponState,
                     defeatedMonstersCount = uiState.defeatedMonstersCount,
-                    layout = StatusBarLayout.COMPACT,
+                    layout = statusBarLayout,
                 )
 
                 GameContent(
@@ -290,7 +308,7 @@ fun GameScreen(
                     onSelectedCardsChange = { selectedCards = it },
                     onIntent = viewModel::onIntent,
                     simulateProcessing = viewModel::simulateProcessing,
-                    isExpandedScreen = false,
+                    screenSizeClass = screenSizeClass,
                     onCopySeed = {
                         clipboardManager.setText(AnnotatedString(uiState.gameSeed.toString()))
                         Toast.makeText(context, "Seed copied!", Toast.LENGTH_SHORT).show()
@@ -509,7 +527,7 @@ private fun RoomActionButtons(
 private fun RoomCardsDisplay(
     currentRoom: List<Card>?,
     selectedCards: List<Card>,
-    isExpanded: Boolean,
+    screenSizeClass: ScreenSizeClass,
     onCardClick: ((Card) -> Unit)?,
 ) {
     if (currentRoom != null) {
@@ -518,14 +536,14 @@ private fun RoomCardsDisplay(
                 cards = currentRoom,
                 selectedCards = emptyList(),
                 onCardClick = null,
-                isExpanded = isExpanded,
+                screenSizeClass = screenSizeClass,
             )
         } else {
             RoomDisplay(
                 cards = currentRoom,
                 selectedCards = selectedCards,
                 onCardClick = onCardClick,
-                isExpanded = isExpanded,
+                screenSizeClass = screenSizeClass,
             )
         }
     } else {
@@ -533,7 +551,7 @@ private fun RoomCardsDisplay(
             cards = emptyList(),
             selectedCards = emptyList(),
             onCardClick = null,
-            isExpanded = isExpanded,
+            screenSizeClass = screenSizeClass,
             showPlaceholders = true,
         )
     }
@@ -549,10 +567,12 @@ private fun GameContent(
     onSelectedCardsChange: (List<Card>) -> Unit,
     onIntent: (GameIntent) -> Unit,
     simulateProcessing: (List<Card>) -> List<LogEntry>,
-    isExpandedScreen: Boolean,
+    screenSizeClass: ScreenSizeClass,
     onCopySeed: () -> Unit,
     onPlaySeed: () -> Unit,
 ) {
+    val isExpandedScreen = screenSizeClass == ScreenSizeClass.EXPANDED
+
     // Game over / won message
     if (uiState.isGameOver) {
         GameOverScreen(
@@ -594,13 +614,14 @@ private fun GameContent(
             choice = uiState.pendingCombatChoice,
             onUseWeapon = { onIntent(GameIntent.ResolveCombatChoice(useWeapon = true)) },
             onFightBarehanded = { onIntent(GameIntent.ResolveCombatChoice(useWeapon = false)) },
+            screenSizeClass = screenSizeClass,
         )
     } else {
         // Active game - show room cards
         RoomCardsDisplay(
             currentRoom = uiState.currentRoom,
             selectedCards = selectedCards,
-            isExpanded = isExpandedScreen,
+            screenSizeClass = screenSizeClass,
             onCardClick = { card ->
                 onSelectedCardsChange(toggleCardSelection(card, selectedCards))
             },
@@ -694,17 +715,19 @@ private fun ExpandedCardsSection(
             showButton = false,
         )
     } else if (uiState.pendingCombatChoice != null) {
-        // Combat choice needed - show the choice panel in the cards area
+        // Combat choice needed - show cards only, buttons go in controls section
         CombatChoicePanel(
             choice = uiState.pendingCombatChoice,
             onUseWeapon = { onIntent(GameIntent.ResolveCombatChoice(useWeapon = true)) },
             onFightBarehanded = { onIntent(GameIntent.ResolveCombatChoice(useWeapon = false)) },
+            screenSizeClass = ScreenSizeClass.EXPANDED,
+            showButtons = false,
         )
     } else {
         RoomCardsDisplay(
             currentRoom = uiState.currentRoom,
             selectedCards = selectedCards,
-            isExpanded = true,
+            screenSizeClass = ScreenSizeClass.EXPANDED,
             onCardClick = { card ->
                 onSelectedCardsChange(toggleCardSelection(card, selectedCards))
             },
@@ -725,11 +748,81 @@ private fun ExpandedControlsSection(
     onCopySeed: () -> Unit,
     onPlaySeed: () -> Unit,
 ) {
-    // During combat choice, show a spacer to maintain consistent bottom section height
-    // This prevents the stats bar from jumping when entering/exiting combat
+    // During combat choice, show combat buttons
     if (uiState.pendingCombatChoice != null) {
-        // Approximate height of PreviewPanel (140dp) + RoomActionButtons (~100dp)
-        Spacer(modifier = Modifier.height(240.dp))
+        val choice = uiState.pendingCombatChoice
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            // Use Weapon button
+            Button(
+                onClick = { onIntent(GameIntent.ResolveCombatChoice(useWeapon = true)) },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors =
+                    ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF1976D2),
+                        contentColor = Color.White,
+                    ),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp),
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "Use Weapon",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Text(
+                        text =
+                            if (choice.weaponDamage == 0) {
+                                "No damage!"
+                            } else {
+                                "Take ${choice.weaponDamage} damage"
+                            },
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Text(
+                        text = "Degrades to ${choice.weaponDegradedTo}",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+            }
+
+            // Fight Barehanded button
+            OutlinedButton(
+                onClick = { onIntent(GameIntent.ResolveCombatChoice(useWeapon = false)) },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = Purple80),
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "Fight Barehanded",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Text(
+                        text = "Take ${choice.barehandedDamage} damage",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Text(
+                        text = "Keeps weapon",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+            }
+
+            // Additional context if there are more cards
+            if (choice.remainingCards.isNotEmpty()) {
+                Text(
+                    text = "${choice.remainingCards.size} more card(s) to process",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                )
+            }
+        }
         return
     }
 
@@ -917,6 +1010,7 @@ private fun GameOverScreen(
         Text(
             text = "Final Score: $score",
             style = MaterialTheme.typography.headlineLarge,
+            color = Color.White,
         )
 
         if (isNewHighScore) {
@@ -930,7 +1024,7 @@ private fun GameOverScreen(
             Text(
                 text = "High Score: $highestScore",
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = PurpleGrey80,
             )
         }
 
@@ -943,7 +1037,7 @@ private fun GameOverScreen(
                 Text(
                     text = "Seed: $gameSeed",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = PurpleGrey80,
                 )
                 IconButton(
                     onClick = onCopySeed,
@@ -952,7 +1046,7 @@ private fun GameOverScreen(
                     Icon(
                         imageVector = Icons.Default.ContentCopy,
                         contentDescription = "Copy seed",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        tint = PurpleGrey80,
                         modifier = Modifier.size(18.dp),
                     )
                 }
@@ -1035,6 +1129,7 @@ private fun GameWonScreen(
         Text(
             text = "Final Score: $score",
             style = MaterialTheme.typography.headlineLarge,
+            color = Color.White,
         )
 
         if (isNewHighScore) {
@@ -1048,7 +1143,7 @@ private fun GameWonScreen(
             Text(
                 text = "High Score: $highestScore",
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = PurpleGrey80,
             )
         }
 
@@ -1061,7 +1156,7 @@ private fun GameWonScreen(
                 Text(
                     text = "Seed: $gameSeed",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = PurpleGrey80,
                 )
                 IconButton(
                     onClick = onCopySeed,
@@ -1070,7 +1165,7 @@ private fun GameWonScreen(
                     Icon(
                         imageVector = Icons.Default.ContentCopy,
                         contentDescription = "Copy seed",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        tint = PurpleGrey80,
                         modifier = Modifier.size(18.dp),
                     )
                 }

@@ -49,10 +49,13 @@ private enum class HealthFlashState {
  * Layout modes for the status bar.
  */
 enum class StatusBarLayout {
-    /** Compact 2-row grid for narrow screens */
+    /** Single row with abbreviated labels for very small phones */
     COMPACT,
 
-    /** Horizontal inline for bottom panel */
+    /** 2-row grid for medium screens (fold cover, regular phones) */
+    MEDIUM,
+
+    /** Horizontal inline for expanded screens (tablets, unfolded) */
     INLINE,
 }
 
@@ -140,7 +143,41 @@ fun GameStatusBar(
         ) {
             when (layout) {
                 StatusBarLayout.COMPACT -> {
-                    // Compact mode: 2-row grid
+                    // Compact mode: single row with all 4 stats (abbreviated labels)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        StatusItem(
+                            label = "HP",
+                            value = "$health/20",
+                            isCompact = true,
+                            valueColor = healthTextColor,
+                            valueTestTag = "health_display",
+                        )
+                        StatusItem(
+                            label = "Score",
+                            value = "$score",
+                            isCompact = true,
+                            valueTestTag = "score_display",
+                        )
+                        StatusItem(
+                            label = "Deck",
+                            value = "$deckSize",
+                            isCompact = true,
+                            valueTestTag = "deck_size_display",
+                        )
+                        StatusItem(
+                            label = "Kills",
+                            value = "$defeatedMonstersCount",
+                            isCompact = true,
+                            horizontalAlignment = Alignment.End,
+                            valueTestTag = "defeated_display",
+                        )
+                    }
+                }
+                StatusBarLayout.MEDIUM -> {
+                    // Medium mode: 2-row grid with full labels
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -280,44 +317,63 @@ private fun StatusItem(
     }
 }
 
-@Preview(showBackground = true)
+@Preview(
+    showBackground = true,
+    name = "Small Phone (COMPACT)",
+    device = "spec:width=360dp,height=640dp,dpi=420",
+)
 @Composable
-fun GameStatusBarPreview() {
+fun GameStatusBarCompactPreview() {
     ScoundroidTheme {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            // No weapon
-            GameStatusBar(
-                health = 15,
-                score = 15,
-                deckSize = 30,
-                weaponState = null,
-                defeatedMonstersCount = 5,
-            )
+        GameStatusBar(
+            health = 15,
+            score = 15,
+            deckSize = 30,
+            weaponState = WeaponState(Card(Suit.DIAMONDS, Rank.SEVEN)),
+            defeatedMonstersCount = 5,
+            layout = StatusBarLayout.COMPACT,
+        )
+    }
+}
 
-            // With fresh weapon
-            GameStatusBar(
-                health = 18,
-                score = 18,
-                deckSize = 25,
-                weaponState = WeaponState(Card(Suit.DIAMONDS, Rank.SEVEN)),
-                defeatedMonstersCount = 3,
-            )
+@Preview(
+    showBackground = true,
+    name = "Regular Phone (MEDIUM)",
+    device = "spec:width=411dp,height=891dp,dpi=420",
+)
+@Composable
+fun GameStatusBarMediumPreview() {
+    ScoundroidTheme {
+        GameStatusBar(
+            health = 15,
+            score = 15,
+            deckSize = 30,
+            weaponState = WeaponState(Card(Suit.DIAMONDS, Rank.SEVEN)),
+            defeatedMonstersCount = 5,
+            layout = StatusBarLayout.MEDIUM,
+        )
+    }
+}
 
-            // With degraded weapon
-            GameStatusBar(
-                health = 12,
-                score = 12,
-                deckSize = 20,
-                weaponState =
-                    WeaponState(
-                        weapon = Card(Suit.DIAMONDS, Rank.FIVE),
-                        maxMonsterValue = 8,
-                    ),
-                defeatedMonstersCount = 8,
-            )
-        }
+@Preview(
+    showBackground = true,
+    name = "Tablet/Unfolded (INLINE)",
+    device = "spec:width=600dp,height=900dp,dpi=420",
+)
+@Composable
+fun GameStatusBarInlinePreview() {
+    ScoundroidTheme {
+        GameStatusBar(
+            health = 15,
+            score = 15,
+            deckSize = 30,
+            weaponState =
+                WeaponState(
+                    weapon = Card(Suit.DIAMONDS, Rank.FIVE),
+                    maxMonsterValue = 8,
+                ),
+            defeatedMonstersCount = 5,
+            layout = StatusBarLayout.INLINE,
+        )
     }
 }

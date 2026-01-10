@@ -29,9 +29,9 @@ import androidx.compose.ui.unit.dp
 import dev.mattbachmann.scoundroid.data.model.LogEntry
 
 // Fixed heights for preview panel to prevent layout jumping during gameplay.
-// Compact: fits title + 3 preview entries with small text (cover screen of Pixel 10 Pro Fold)
+// Compact: fits title + 3 preview entries with small text (small phones/cover screen)
 // Expanded: fits title + 3 preview entries with medium text (inner screen)
-private val PREVIEW_PANEL_HEIGHT_COMPACT = 95.dp
+private val PREVIEW_PANEL_HEIGHT_COMPACT = 100.dp
 private val PREVIEW_PANEL_HEIGHT_EXPANDED = 140.dp
 
 /**

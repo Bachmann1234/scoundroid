@@ -11,6 +11,7 @@ import dev.mattbachmann.scoundroid.data.persistence.AppDatabase
 import dev.mattbachmann.scoundroid.data.repository.HighScoreRepository
 import dev.mattbachmann.scoundroid.ui.screen.game.GameScreen
 import dev.mattbachmann.scoundroid.ui.screen.game.GameViewModelFactory
+import dev.mattbachmann.scoundroid.ui.screen.game.ScreenSizeClass
 import dev.mattbachmann.scoundroid.ui.theme.ScoundroidTheme
 
 class MainActivity : ComponentActivity() {
@@ -21,11 +22,11 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            val isExpanded = isExpandedScreen()
+            val screenSizeClass = getScreenSizeClass()
             ScoundroidTheme {
                 GameScreen(
                     viewModel = viewModel(factory = GameViewModelFactory(repository)),
-                    isExpandedScreen = isExpanded,
+                    screenSizeClass = screenSizeClass,
                 )
             }
         }
@@ -33,11 +34,17 @@ class MainActivity : ComponentActivity() {
 }
 
 /**
- * Determines if the screen is expanded (tablet/unfolded) based on screen width.
- * Uses 600dp as the breakpoint (standard Material Design compact/medium threshold).
+ * Determines the screen size class based on screen dimensions.
+ * - COMPACT: Small phones (height < 700dp) - aggressive space saving
+ * - MEDIUM: Fold cover screens, regular phones (height >= 700dp, width < 600dp)
+ * - EXPANDED: Tablets, unfolded foldables (width >= 600dp)
  */
 @Composable
-private fun isExpandedScreen(): Boolean {
+private fun getScreenSizeClass(): ScreenSizeClass {
     val configuration = LocalConfiguration.current
-    return configuration.screenWidthDp >= 600
+    return when {
+        configuration.screenWidthDp >= 600 -> ScreenSizeClass.EXPANDED
+        configuration.screenHeightDp < 700 -> ScreenSizeClass.COMPACT
+        else -> ScreenSizeClass.MEDIUM
+    }
 }

@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import dev.mattbachmann.scoundroid.data.model.Rank
 import dev.mattbachmann.scoundroid.data.model.Suit
 import dev.mattbachmann.scoundroid.ui.screen.game.PendingCombatChoice
+import dev.mattbachmann.scoundroid.ui.screen.game.ScreenSizeClass
 import dev.mattbachmann.scoundroid.ui.theme.ScoundroidTheme
 import dev.mattbachmann.scoundroid.data.model.Card as GameCard
 
@@ -37,7 +38,49 @@ fun CombatChoicePanel(
     onUseWeapon: () -> Unit,
     onFightBarehanded: () -> Unit,
     modifier: Modifier = Modifier,
+    screenSizeClass: ScreenSizeClass = ScreenSizeClass.MEDIUM,
+    showButtons: Boolean = true,
 ) {
+    val isExpanded = screenSizeClass == ScreenSizeClass.EXPANDED
+    val cardWidth = if (isExpanded) 140.dp else 90.dp
+    val cardHeight = if (isExpanded) 196.dp else 126.dp
+    val padding = if (isExpanded) 24.dp else 16.dp
+    val cardSpacing = if (isExpanded) 24.dp else 12.dp
+    val labelSpacing = if (isExpanded) 8.dp else 4.dp
+    val buttonSpacing = if (isExpanded) 24.dp else 16.dp
+
+    // Typography styles
+    val titleStyle =
+        if (isExpanded) {
+            MaterialTheme.typography.headlineMedium
+        } else {
+            MaterialTheme.typography.titleLarge
+        }
+    val labelStyle =
+        if (isExpanded) {
+            MaterialTheme.typography.titleMedium
+        } else {
+            MaterialTheme.typography.labelMedium
+        }
+    val vsStyle =
+        if (isExpanded) {
+            MaterialTheme.typography.headlineSmall
+        } else {
+            MaterialTheme.typography.titleMedium
+        }
+    val buttonTitleStyle =
+        if (isExpanded) {
+            MaterialTheme.typography.titleMedium
+        } else {
+            MaterialTheme.typography.bodyMedium
+        }
+    val buttonBodyStyle =
+        if (isExpanded) {
+            MaterialTheme.typography.bodyMedium
+        } else {
+            MaterialTheme.typography.bodySmall
+        }
+
     Card(
         modifier = modifier.fillMaxWidth(),
         colors =
@@ -50,16 +93,16 @@ fun CombatChoicePanel(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(padding),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
                 text = "Combat Choice",
-                style = MaterialTheme.typography.titleLarge,
+                style = titleStyle,
                 fontWeight = FontWeight.Bold,
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(cardSpacing))
 
             // Show the cards
             Row(
@@ -70,20 +113,20 @@ fun CombatChoicePanel(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = "Monster",
-                        style = MaterialTheme.typography.labelMedium,
+                        style = labelStyle,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(labelSpacing))
                     CardView(
                         card = choice.monster,
-                        cardWidth = 90.dp,
-                        cardHeight = 126.dp,
+                        cardWidth = cardWidth,
+                        cardHeight = cardHeight,
                     )
                 }
 
                 Text(
                     text = "VS",
-                    style = MaterialTheme.typography.titleMedium,
+                    style = vsStyle,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -91,109 +134,157 @@ fun CombatChoicePanel(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = "Weapon",
-                        style = MaterialTheme.typography.labelMedium,
+                        style = labelStyle,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(labelSpacing))
                     CardView(
                         card = choice.weapon,
-                        cardWidth = 90.dp,
-                        cardHeight = 126.dp,
+                        cardWidth = cardWidth,
+                        cardHeight = cardHeight,
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            if (showButtons) {
+                Spacer(modifier = Modifier.height(buttonSpacing))
 
-            // Choice buttons
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                // Use Weapon button
-                Button(
-                    onClick = onUseWeapon,
-                    modifier = Modifier.weight(1f),
-                    colors =
-                        ButtonDefaults.buttonColors(
-                            // Blue for weapon
-                            containerColor = Color(0xFF1976D2),
-                            contentColor = Color.White,
-                        ),
+                // Choice buttons
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(cardSpacing),
                 ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = "Use Weapon",
-                            fontWeight = FontWeight.Bold,
-                        )
-                        Text(
-                            text =
-                                if (choice.weaponDamage == 0) {
-                                    "No damage!"
-                                } else {
-                                    "Take ${choice.weaponDamage} damage"
-                                },
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                        Text(
-                            text = "Degrades to ${choice.weaponDegradedTo}",
-                            style = MaterialTheme.typography.bodySmall,
-                        )
+                    // Use Weapon button
+                    Button(
+                        onClick = onUseWeapon,
+                        modifier = Modifier.weight(1f),
+                        colors =
+                            ButtonDefaults.buttonColors(
+                                // Blue for weapon
+                                containerColor = Color(0xFF1976D2),
+                                contentColor = Color.White,
+                            ),
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = "Use Weapon",
+                                style = buttonTitleStyle,
+                                fontWeight = FontWeight.Bold,
+                            )
+                            Text(
+                                text =
+                                    if (choice.weaponDamage == 0) {
+                                        "No damage!"
+                                    } else {
+                                        "Take ${choice.weaponDamage} damage"
+                                    },
+                                style = buttonBodyStyle,
+                            )
+                            Text(
+                                text = "Degrades to ${choice.weaponDegradedTo}",
+                                style = buttonBodyStyle,
+                            )
+                        }
+                    }
+
+                    // Fight Barehanded button
+                    OutlinedButton(
+                        onClick = onFightBarehanded,
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = "Barehanded",
+                                style = buttonTitleStyle,
+                                fontWeight = FontWeight.Bold,
+                            )
+                            Text(
+                                text = "Take ${choice.barehandedDamage} damage",
+                                style = buttonBodyStyle,
+                            )
+                            Text(
+                                text = "Keeps weapon",
+                                style = buttonBodyStyle,
+                            )
+                        }
                     }
                 }
 
-                // Fight Barehanded button
-                OutlinedButton(
-                    onClick = onFightBarehanded,
-                    modifier = Modifier.weight(1f),
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = "Barehanded",
-                            fontWeight = FontWeight.Bold,
-                        )
-                        Text(
-                            text = "Take ${choice.barehandedDamage} damage",
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                        Text(
-                            text = "Weapon unchanged",
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                    }
+                // Additional context if there are more cards
+                if (choice.remainingCards.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "${choice.remainingCards.size} more card(s) to process",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
-            }
-
-            // Additional context if there are more cards
-            if (choice.remainingCards.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "${choice.remainingCards.size} more card(s) to process",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
             }
         }
     }
 }
 
-@Preview(showBackground = true)
+private val previewCombatChoice =
+    PendingCombatChoice(
+        monster = GameCard(Suit.SPADES, Rank.TEN),
+        weapon = GameCard(Suit.DIAMONDS, Rank.FIVE),
+        weaponDamage = 5,
+        barehandedDamage = 10,
+        weaponDegradedTo = 10,
+        remainingCards = listOf(GameCard(Suit.HEARTS, Rank.THREE)),
+    )
+
+@Preview(
+    showBackground = true,
+    name = "Small Phone (COMPACT)",
+    device = "spec:width=360dp,height=640dp,dpi=420",
+)
 @Composable
-fun CombatChoicePanelPreview() {
+fun CombatChoicePanelCompactPreview() {
     ScoundroidTheme {
         CombatChoicePanel(
-            choice =
-                PendingCombatChoice(
-                    monster = GameCard(Suit.SPADES, Rank.TEN),
-                    weapon = GameCard(Suit.DIAMONDS, Rank.FIVE),
-                    weaponDamage = 5,
-                    barehandedDamage = 10,
-                    weaponDegradedTo = 10,
-                    remainingCards = listOf(GameCard(Suit.HEARTS, Rank.THREE)),
-                ),
+            choice = previewCombatChoice,
             onUseWeapon = {},
             onFightBarehanded = {},
             modifier = Modifier.padding(16.dp),
+            screenSizeClass = ScreenSizeClass.COMPACT,
+        )
+    }
+}
+
+@Preview(
+    showBackground = true,
+    name = "Regular Phone (MEDIUM)",
+    device = "spec:width=411dp,height=891dp,dpi=420",
+)
+@Composable
+fun CombatChoicePanelMediumPreview() {
+    ScoundroidTheme {
+        CombatChoicePanel(
+            choice = previewCombatChoice,
+            onUseWeapon = {},
+            onFightBarehanded = {},
+            modifier = Modifier.padding(16.dp),
+            screenSizeClass = ScreenSizeClass.MEDIUM,
+        )
+    }
+}
+
+@Preview(
+    showBackground = true,
+    name = "Tablet/Unfolded (EXPANDED) - Cards Only",
+    device = "spec:width=600dp,height=900dp,dpi=420",
+)
+@Composable
+fun CombatChoicePanelExpandedPreview() {
+    ScoundroidTheme {
+        CombatChoicePanel(
+            choice = previewCombatChoice,
+            onUseWeapon = {},
+            onFightBarehanded = {},
+            modifier = Modifier.padding(16.dp),
+            screenSizeClass = ScreenSizeClass.EXPANDED,
+            showButtons = false,
         )
     }
 }

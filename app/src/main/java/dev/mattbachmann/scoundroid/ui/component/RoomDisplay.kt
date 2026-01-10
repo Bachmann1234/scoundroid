@@ -14,13 +14,25 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import dev.mattbachmann.scoundroid.data.model.Card
 import dev.mattbachmann.scoundroid.data.model.Rank
 import dev.mattbachmann.scoundroid.data.model.Suit
+import dev.mattbachmann.scoundroid.ui.screen.game.ScreenSizeClass
 import dev.mattbachmann.scoundroid.ui.theme.Purple80
 import dev.mattbachmann.scoundroid.ui.theme.PurpleGrey80
 import dev.mattbachmann.scoundroid.ui.theme.ScoundroidTheme
+
+/**
+ * Configuration for card layout based on screen size.
+ */
+private data class CardLayoutConfig(
+    val width: Dp,
+    val height: Dp,
+    val spacing: Dp,
+    val useGrid: Boolean,
+)
 
 /**
  * Displays the current room of cards.
@@ -33,13 +45,20 @@ fun RoomDisplay(
     selectedCards: List<Card>,
     onCardClick: ((Card) -> Unit)?,
     modifier: Modifier = Modifier,
-    isExpanded: Boolean = false,
+    screenSizeClass: ScreenSizeClass = ScreenSizeClass.MEDIUM,
     showPlaceholders: Boolean = false,
 ) {
-    // Card sizes based on mode
-    val cardWidth = if (isExpanded) 160.dp else 85.dp
-    val cardHeight = if (isExpanded) 224.dp else 119.dp
-    val cardSpacing = if (isExpanded) 16.dp else 8.dp
+    // Card sizes and layout based on screen size class
+    // COMPACT: 76x106dp in 1x4 row (small phones)
+    // MEDIUM: 85x119dp in 2x2 grid (fold cover, regular phones)
+    // EXPANDED: 160x224dp in 1x4 row (tablets, unfolded)
+    val (cardWidth, cardHeight, cardSpacing, useGridLayout) =
+        when (screenSizeClass) {
+            ScreenSizeClass.COMPACT -> CardLayoutConfig(76.dp, 106.dp, 4.dp, false)
+            ScreenSizeClass.MEDIUM -> CardLayoutConfig(85.dp, 119.dp, 8.dp, true)
+            ScreenSizeClass.EXPANDED -> CardLayoutConfig(160.dp, 224.dp, 16.dp, false)
+        }
+    val isExpanded = screenSizeClass == ScreenSizeClass.EXPANDED
 
     Column(
         modifier =
@@ -71,9 +90,9 @@ fun RoomDisplay(
             }
         }
 
-        // Display cards - 1x4 row for expanded mode, 2x2 grid for compact mode
+        // Display cards - use grid for MEDIUM, row for COMPACT and EXPANDED
         // Use fixed height to prevent layout jumping between 1 card and 4 card states
-        val cardAreaHeight = if (isExpanded) cardHeight else (cardHeight * 2 + cardSpacing)
+        val cardAreaHeight = if (useGridLayout) cardHeight * 2 + cardSpacing else cardHeight
         Box(
             modifier =
                 Modifier
@@ -83,41 +102,70 @@ fun RoomDisplay(
         ) {
             if (cards.isEmpty() && showPlaceholders) {
                 // Show placeholder cards when no room drawn yet
-                if (isExpanded) {
+                if (useGridLayout) {
+                    // 2x2 grid for MEDIUM
+                    Column(verticalArrangement = Arrangement.spacedBy(cardSpacing)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(cardSpacing, Alignment.CenterHorizontally),
+                        ) {
+                            repeat(2) { PlaceholderCardView(cardWidth = cardWidth, cardHeight = cardHeight) }
+                        }
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(cardSpacing, Alignment.CenterHorizontally),
+                        ) {
+                            repeat(2) { PlaceholderCardView(cardWidth = cardWidth, cardHeight = cardHeight) }
+                        }
+                    }
+                } else {
+                    // 1x4 row for COMPACT and EXPANDED
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(cardSpacing, Alignment.CenterHorizontally),
                     ) {
-                        repeat(4) {
-                            PlaceholderCardView(
-                                cardWidth = cardWidth,
-                                cardHeight = cardHeight,
-                            )
-                        }
-                    }
-                } else {
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(cardSpacing),
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(cardSpacing, Alignment.CenterHorizontally),
-                        ) {
-                            PlaceholderCardView(cardWidth = cardWidth, cardHeight = cardHeight)
-                            PlaceholderCardView(cardWidth = cardWidth, cardHeight = cardHeight)
-                        }
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(cardSpacing, Alignment.CenterHorizontally),
-                        ) {
-                            PlaceholderCardView(cardWidth = cardWidth, cardHeight = cardHeight)
-                            PlaceholderCardView(cardWidth = cardWidth, cardHeight = cardHeight)
-                        }
+                        repeat(4) { PlaceholderCardView(cardWidth = cardWidth, cardHeight = cardHeight) }
                     }
                 }
             } else if (cards.size == 4) {
-                if (isExpanded) {
-                    // Expanded mode: all 4 cards in a single horizontal row (larger cards)
+                if (useGridLayout) {
+                    // 2x2 grid for MEDIUM
+                    Column(verticalArrangement = Arrangement.spacedBy(cardSpacing)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(cardSpacing, Alignment.CenterHorizontally),
+                        ) {
+                            cards.take(2).forEach { card ->
+                                val orderIndex = selectedCards.indexOf(card)
+                                CardView(
+                                    card = card,
+                                    isSelected = card in selectedCards,
+                                    selectionOrder = if (orderIndex >= 0) orderIndex + 1 else null,
+                                    onClick = onCardClick?.let { { it(card) } },
+                                    cardWidth = cardWidth,
+                                    cardHeight = cardHeight,
+                                )
+                            }
+                        }
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(cardSpacing, Alignment.CenterHorizontally),
+                        ) {
+                            cards.drop(2).forEach { card ->
+                                val orderIndex = selectedCards.indexOf(card)
+                                CardView(
+                                    card = card,
+                                    isSelected = card in selectedCards,
+                                    selectionOrder = if (orderIndex >= 0) orderIndex + 1 else null,
+                                    onClick = onCardClick?.let { { it(card) } },
+                                    cardWidth = cardWidth,
+                                    cardHeight = cardHeight,
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    // 1x4 row for COMPACT and EXPANDED
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(cardSpacing, Alignment.CenterHorizontally),
@@ -134,61 +182,9 @@ fun RoomDisplay(
                             )
                         }
                     }
-                } else {
-                    // Compact mode: 2x2 grid
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(cardSpacing),
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(cardSpacing, Alignment.CenterHorizontally),
-                        ) {
-                            val orderIndex0 = selectedCards.indexOf(cards[0])
-                            CardView(
-                                card = cards[0],
-                                isSelected = cards[0] in selectedCards,
-                                selectionOrder = if (orderIndex0 >= 0) orderIndex0 + 1 else null,
-                                onClick = onCardClick?.let { { it(cards[0]) } },
-                                cardWidth = cardWidth,
-                                cardHeight = cardHeight,
-                            )
-                            val orderIndex1 = selectedCards.indexOf(cards[1])
-                            CardView(
-                                card = cards[1],
-                                isSelected = cards[1] in selectedCards,
-                                selectionOrder = if (orderIndex1 >= 0) orderIndex1 + 1 else null,
-                                onClick = onCardClick?.let { { it(cards[1]) } },
-                                cardWidth = cardWidth,
-                                cardHeight = cardHeight,
-                            )
-                        }
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(cardSpacing, Alignment.CenterHorizontally),
-                        ) {
-                            val orderIndex2 = selectedCards.indexOf(cards[2])
-                            CardView(
-                                card = cards[2],
-                                isSelected = cards[2] in selectedCards,
-                                selectionOrder = if (orderIndex2 >= 0) orderIndex2 + 1 else null,
-                                onClick = onCardClick?.let { { it(cards[2]) } },
-                                cardWidth = cardWidth,
-                                cardHeight = cardHeight,
-                            )
-                            val orderIndex3 = selectedCards.indexOf(cards[3])
-                            CardView(
-                                card = cards[3],
-                                isSelected = cards[3] in selectedCards,
-                                selectionOrder = if (orderIndex3 >= 0) orderIndex3 + 1 else null,
-                                onClick = onCardClick?.let { { it(cards[3]) } },
-                                cardWidth = cardWidth,
-                                cardHeight = cardHeight,
-                            )
-                        }
-                    }
                 }
             } else {
-                // Single card or other layouts
+                // Single card or other layouts - always use row
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(cardSpacing, Alignment.CenterHorizontally),
@@ -209,7 +205,7 @@ fun RoomDisplay(
         }
 
         // Only show selection count when cards are selected, use fixed height to prevent layout shift
-        Box(modifier = Modifier.height(if (isExpanded) 24.dp else 20.dp)) {
+        Box(modifier = Modifier.height(if (isExpanded) 24.dp else 16.dp)) {
             if (selectedCards.isNotEmpty()) {
                 Text(
                     text = "Selected: ${selectedCards.size} / 3",
@@ -222,45 +218,61 @@ fun RoomDisplay(
     }
 }
 
-@Preview(showBackground = true, widthDp = 400, heightDp = 800)
+private val previewRoomCards =
+    listOf(
+        Card(Suit.CLUBS, Rank.QUEEN),
+        Card(Suit.DIAMONDS, Rank.FIVE),
+        Card(Suit.HEARTS, Rank.SEVEN),
+        Card(Suit.SPADES, Rank.TEN),
+    )
+
+@Preview(
+    showBackground = true,
+    name = "Small Phone (COMPACT)",
+    device = "spec:width=360dp,height=640dp,dpi=420",
+)
 @Composable
-fun RoomDisplayPreview() {
-    val roomCards =
-        listOf(
-            Card(Suit.CLUBS, Rank.QUEEN),
-            Card(Suit.DIAMONDS, Rank.FIVE),
-            Card(Suit.HEARTS, Rank.SEVEN),
-            Card(Suit.SPADES, Rank.TEN),
-        )
+fun RoomDisplayCompactPreview() {
     ScoundroidTheme {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            // 4-card room with 2 selected
-            RoomDisplay(
-                cards = roomCards,
-                selectedCards = listOf(roomCards[0], roomCards[2]),
-                onCardClick = {},
-            )
+        RoomDisplay(
+            cards = previewRoomCards,
+            selectedCards = listOf(previewRoomCards[0], previewRoomCards[2]),
+            onCardClick = {},
+            screenSizeClass = ScreenSizeClass.COMPACT,
+        )
+    }
+}
 
-            // 1-card remaining
-            RoomDisplay(
-                cards =
-                    listOf(
-                        Card(Suit.CLUBS, Rank.ACE),
-                    ),
-                selectedCards = emptyList(),
-                onCardClick = {},
-            )
+@Preview(
+    showBackground = true,
+    name = "Regular Phone (MEDIUM)",
+    device = "spec:width=411dp,height=891dp,dpi=420",
+)
+@Composable
+fun RoomDisplayMediumPreview() {
+    ScoundroidTheme {
+        RoomDisplay(
+            cards = previewRoomCards,
+            selectedCards = listOf(previewRoomCards[0], previewRoomCards[2]),
+            onCardClick = {},
+            screenSizeClass = ScreenSizeClass.MEDIUM,
+        )
+    }
+}
 
-            // Placeholder state
-            RoomDisplay(
-                cards = emptyList(),
-                selectedCards = emptyList(),
-                onCardClick = null,
-                showPlaceholders = true,
-            )
-        }
+@Preview(
+    showBackground = true,
+    name = "Tablet/Unfolded (EXPANDED)",
+    device = "spec:width=600dp,height=900dp,dpi=420",
+)
+@Composable
+fun RoomDisplayExpandedPreview() {
+    ScoundroidTheme {
+        RoomDisplay(
+            cards = previewRoomCards,
+            selectedCards = listOf(previewRoomCards[0], previewRoomCards[2]),
+            onCardClick = {},
+            screenSizeClass = ScreenSizeClass.EXPANDED,
+        )
     }
 }
