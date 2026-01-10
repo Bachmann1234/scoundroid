@@ -116,6 +116,10 @@ dev.mattbachmann.scoundroid/
 
 ## Development Guidelines
 
+### Build Verification
+- Always run `./gradlew build` to verify changes (runs compilation, linting, and tests)
+- Do not use `./gradlew assembleDebug` as it skips tests
+
 ### Code Style
 - Use Kotlin idioms (data classes, sealed classes, extension functions)
 - Prefer immutability (val over var, immutable collections)
