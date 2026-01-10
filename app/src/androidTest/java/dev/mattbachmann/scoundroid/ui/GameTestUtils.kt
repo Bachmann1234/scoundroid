@@ -45,6 +45,22 @@ private fun ComposeTestRule.waitUntilNodeExists(matcher: SemanticsMatcher) {
 }
 
 /**
+ * Waits until a node matching the given matcher exists AND is displayed.
+ * This is more reliable than waiting for existence then checking displayed separately,
+ * as it handles timing issues on slow CI emulators.
+ */
+private fun ComposeTestRule.waitUntilNodeIsDisplayed(matcher: SemanticsMatcher) {
+    waitUntil(CI_TIMEOUT_MS) {
+        try {
+            onNode(matcher).assertIsDisplayed()
+            true
+        } catch (_: AssertionError) {
+            false
+        }
+    }
+}
+
+/**
  * Clicks the "Draw Next Room" button to draw cards into an existing room.
  * Scrolls to the button first in case it's off-screen.
  */
@@ -189,29 +205,26 @@ fun ComposeTestRule.assertVictory() {
 
 /**
  * Asserts that the "Draw Room" button is visible.
- * Uses waitUntil for slower CI emulators.
+ * Uses waitUntil for slower CI emulators to wait until node is both present and displayed.
  */
 fun ComposeTestRule.assertDrawRoomButtonVisible() {
-    waitUntilNodeExists(hasText("Draw Room") and hasClickAction())
-    onNode(hasText("Draw Room") and hasClickAction()).assertIsDisplayed()
+    waitUntilNodeIsDisplayed(hasText("Draw Room") and hasClickAction())
 }
 
 /**
  * Asserts that the "Draw Next Room" button is visible.
- * Uses waitUntil for slower CI emulators.
+ * Uses waitUntil for slower CI emulators to wait until node is both present and displayed.
  */
 fun ComposeTestRule.assertDrawNextRoomButtonVisible() {
-    waitUntilNodeExists(hasText("Draw Next Room") and hasClickAction())
-    onNode(hasText("Draw Next Room") and hasClickAction()).assertIsDisplayed()
+    waitUntilNodeIsDisplayed(hasText("Draw Next Room") and hasClickAction())
 }
 
 /**
  * Asserts that the "Avoid Room" button is visible.
- * Uses waitUntil for slower CI emulators.
+ * Uses waitUntil for slower CI emulators to wait until node is both present and displayed.
  */
 fun ComposeTestRule.assertAvoidRoomButtonVisible() {
-    waitUntilNodeExists(hasText("Avoid Room") and hasClickAction())
-    onNode(hasText("Avoid Room") and hasClickAction()).assertIsDisplayed()
+    waitUntilNodeIsDisplayed(hasText("Avoid Room") and hasClickAction())
 }
 
 /**
