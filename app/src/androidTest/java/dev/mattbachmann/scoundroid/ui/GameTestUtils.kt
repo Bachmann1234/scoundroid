@@ -1,5 +1,6 @@
 package dev.mattbachmann.scoundroid.ui
 
+import android.util.Log
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
@@ -9,8 +10,10 @@ import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.ComposeTestRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.printToString
 
 /*
  * Test utility functions for Scoundroid E2E tests.
@@ -48,17 +51,37 @@ private fun ComposeTestRule.waitUntilNodeExists(matcher: SemanticsMatcher) {
  * Waits until a node matching the given matcher exists AND is displayed.
  * This is more reliable than waiting for existence then checking displayed separately,
  * as it handles timing issues on slow CI emulators.
+ *
+ * On timeout, dumps the full semantics tree for debugging.
  */
-private fun ComposeTestRule.waitUntilNodeIsDisplayed(matcher: SemanticsMatcher) {
-    waitUntil(CI_TIMEOUT_MS) {
-        try {
-            onNode(matcher).assertIsDisplayed()
-            true
-        } catch (_: AssertionError) {
-            false
+private fun ComposeTestRule.waitUntilNodeIsDisplayed(
+    matcher: SemanticsMatcher,
+    description: String = "node",
+) {
+    try {
+        waitUntil(CI_TIMEOUT_MS) {
+            try {
+                onNode(matcher).assertIsDisplayed()
+                true
+            } catch (_: AssertionError) {
+                false
+            }
         }
+    } catch (e: ComposeTimeoutException) {
+        // Dump the UI tree for debugging
+        val semanticsTree = onRoot().printToString(maxDepth = Int.MAX_VALUE)
+        Log.e("GameTestUtils", "Timeout waiting for $description to be displayed")
+        Log.e("GameTestUtils", "Current UI tree:\n$semanticsTree")
+        throw AssertionError(
+            "Timeout waiting for $description to be displayed after ${CI_TIMEOUT_MS}ms.\n" +
+                "UI tree:\n$semanticsTree",
+            e,
+        )
     }
 }
+
+/** Exception thrown when waitUntil times out */
+private typealias ComposeTimeoutException = androidx.compose.ui.test.ComposeTimeoutException
 
 /**
  * Clicks the "Draw Next Room" button to draw cards into an existing room.
@@ -208,7 +231,10 @@ fun ComposeTestRule.assertVictory() {
  * Uses waitUntil for slower CI emulators to wait until node is both present and displayed.
  */
 fun ComposeTestRule.assertDrawRoomButtonVisible() {
-    waitUntilNodeIsDisplayed(hasText("Draw Room") and hasClickAction())
+    waitUntilNodeIsDisplayed(
+        hasText("Draw Room") and hasClickAction(),
+        description = "'Draw Room' button",
+    )
 }
 
 /**
@@ -216,7 +242,10 @@ fun ComposeTestRule.assertDrawRoomButtonVisible() {
  * Uses waitUntil for slower CI emulators to wait until node is both present and displayed.
  */
 fun ComposeTestRule.assertDrawNextRoomButtonVisible() {
-    waitUntilNodeIsDisplayed(hasText("Draw Next Room") and hasClickAction())
+    waitUntilNodeIsDisplayed(
+        hasText("Draw Next Room") and hasClickAction(),
+        description = "'Draw Next Room' button",
+    )
 }
 
 /**
@@ -224,7 +253,10 @@ fun ComposeTestRule.assertDrawNextRoomButtonVisible() {
  * Uses waitUntil for slower CI emulators to wait until node is both present and displayed.
  */
 fun ComposeTestRule.assertAvoidRoomButtonVisible() {
-    waitUntilNodeIsDisplayed(hasText("Avoid Room") and hasClickAction())
+    waitUntilNodeIsDisplayed(
+        hasText("Avoid Room") and hasClickAction(),
+        description = "'Avoid Room' button",
+    )
 }
 
 /**
