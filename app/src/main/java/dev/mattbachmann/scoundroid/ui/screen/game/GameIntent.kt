@@ -62,4 +62,16 @@ sealed class GameIntent {
      *                  false to fight barehanded (full damage, weapon unchanged)
      */
     data class ResolveCombatChoice(val useWeapon: Boolean) : GameIntent()
+
+    /**
+     * Retry the current game with the same seed.
+     * Resets the game state but uses the same deck shuffle as the current game.
+     */
+    data object RetryGame : GameIntent()
+
+    /**
+     * Start a new game with a specific seed.
+     * @param seed The seed to use for deck shuffling
+     */
+    data class NewGameWithSeed(val seed: Long) : GameIntent()
 }

@@ -337,6 +337,76 @@ class GameFlowTest {
         composeTestRule.assertAvoidRoomButtonNotVisible()
     }
 
+    // ========== Seeded Runs Tests ==========
+
+    @Test
+    fun customSeedButton_visibleOnInitialScreen() {
+        // Custom Seed button should exist on initial game screen (use assertExists since it may be
+        // below the fold on smaller screens)
+        composeTestRule.waitForIdle()
+        composeTestRule.onNode(hasText("Custom Seed") and hasClickAction()).assertExists()
+    }
+
+    @Test
+    fun retryButton_visibleOnGameOver() {
+        // Play until game over (take damage without healing)
+        // With seed 42, we need to process multiple rooms to trigger game over
+        composeTestRule.drawRoom()
+        selectAndProcessThreeCards()
+
+        // Keep playing rooms until game is over
+        repeat(15) {
+            try {
+                composeTestRule.onNodeWithTag("game_over_screen").assertIsDisplayed()
+                // Game over reached
+                return@repeat
+            } catch (_: AssertionError) {
+                // Not game over yet, continue playing
+                try {
+                    composeTestRule.drawNextRoom()
+                    selectAndProcessThreeCards()
+                } catch (_: AssertionError) {
+                    // May have hit game over during processing
+                }
+            }
+        }
+
+        // Explicitly verify game over was reached before checking retry button
+        composeTestRule.onNodeWithTag("game_over_screen").assertIsDisplayed()
+
+        // Verify retry button exists on game over screen (use assertExists since it may be
+        // below the fold on smaller screens)
+        composeTestRule.onNode(hasText("Retry") and hasClickAction()).assertExists()
+    }
+
+    @Test
+    fun seedDisplay_visibleOnGameOver() {
+        // Play until game over
+        composeTestRule.drawRoom()
+        selectAndProcessThreeCards()
+
+        repeat(15) {
+            try {
+                composeTestRule.onNodeWithTag("game_over_screen").assertIsDisplayed()
+                return@repeat
+            } catch (_: AssertionError) {
+                try {
+                    composeTestRule.drawNextRoom()
+                    selectAndProcessThreeCards()
+                } catch (_: AssertionError) {
+                    // May have hit game over during processing
+                }
+            }
+        }
+
+        // Explicitly verify game over was reached before checking seed display
+        composeTestRule.onNodeWithTag("game_over_screen").assertIsDisplayed()
+
+        // Verify seed exists on game over screen (use assertExists since it may be
+        // below the fold on smaller screens)
+        composeTestRule.onNode(hasText("Seed:", substring = true)).assertExists()
+    }
+
     // ========== Helper Methods ==========
 
     private fun selectAndProcessThreeCards() {
