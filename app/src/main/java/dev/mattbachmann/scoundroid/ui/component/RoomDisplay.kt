@@ -55,6 +55,7 @@ fun RoomDisplay(
                 },
             style = if (isExpanded) MaterialTheme.typography.titleLarge else MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface,
         )
 
         // Only show instruction text when 4 cards present, use fixed height to prevent layout shift
@@ -63,7 +64,7 @@ fun RoomDisplay(
                 Text(
                     text = "Select 3 cards to process (leave 1 for next room)",
                     style = if (isExpanded) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
