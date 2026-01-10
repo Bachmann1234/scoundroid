@@ -48,9 +48,9 @@ private fun ComposeTestRule.waitUntilNodeExists(matcher: SemanticsMatcher) {
 }
 
 /**
- * Waits until a node matching the given matcher exists AND is displayed.
- * This is more reliable than waiting for existence then checking displayed separately,
- * as it handles timing issues on slow CI emulators.
+ * Waits until a node matching the given matcher exists, scrolls to it, and verifies it's displayed.
+ * This handles both timing issues on slow CI emulators and buttons that may be off-screen
+ * on smaller screen sizes.
  *
  * On timeout, dumps the full semantics tree for debugging.
  */
@@ -59,14 +59,14 @@ private fun ComposeTestRule.waitUntilNodeIsDisplayed(
     description: String = "node",
 ) {
     try {
+        // First wait for the node to exist in the tree
         waitUntil(CI_TIMEOUT_MS) {
-            try {
-                onNode(matcher).assertIsDisplayed()
-                true
-            } catch (_: AssertionError) {
-                false
-            }
+            onAllNodes(matcher).fetchSemanticsNodes().isNotEmpty()
         }
+        // Scroll to it (in case it's off-screen on smaller displays)
+        onNode(matcher).performScrollTo()
+        // Now verify it's displayed
+        onNode(matcher).assertIsDisplayed()
     } catch (e: ComposeTimeoutException) {
         // Dump the UI tree for debugging
         val semanticsTree = onRoot().printToString(maxDepth = Int.MAX_VALUE)
@@ -75,6 +75,15 @@ private fun ComposeTestRule.waitUntilNodeIsDisplayed(
         throw AssertionError(
             "Timeout waiting for $description to be displayed after ${CI_TIMEOUT_MS}ms.\n" +
                 "UI tree:\n$semanticsTree",
+            e,
+        )
+    } catch (e: AssertionError) {
+        // Dump the UI tree for debugging on assertion failures too
+        val semanticsTree = onRoot().printToString(maxDepth = Int.MAX_VALUE)
+        Log.e("GameTestUtils", "Assertion failed for $description")
+        Log.e("GameTestUtils", "Current UI tree:\n$semanticsTree")
+        throw AssertionError(
+            "Assertion failed for $description.\nUI tree:\n$semanticsTree",
             e,
         )
     }
