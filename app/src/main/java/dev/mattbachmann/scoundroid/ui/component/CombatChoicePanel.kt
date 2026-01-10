@@ -118,6 +118,7 @@ fun CombatChoicePanel(
                         ButtonDefaults.buttonColors(
                             // Blue for weapon
                             containerColor = Color(0xFF1976D2),
+                            contentColor = Color.White,
                         ),
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
