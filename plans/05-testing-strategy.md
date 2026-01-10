@@ -336,7 +336,7 @@ Run: ✅ Both tests pass
 
 Before marking a phase complete:
 
-- [ ] All game rules from Scoundrel.pdf are tested
+- [ ] All game rules from docs/rules.md are tested
 - [ ] All edge cases have tests
 - [ ] All tests pass (`./gradlew test`)
 - [ ] Coverage meets phase goals

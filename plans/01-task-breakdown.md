@@ -269,7 +269,7 @@ See [`05-testing-strategy.md`](05-testing-strategy.md) for detailed testing guid
   - [ ] Card values table (J=11, Q=12, K=13, A=14)
   - [ ] Current weapon degradation state display
   - [ ] Rules summary (swipe up from bottom?)
-- [ ] Add rules PDF viewer (optional - view Scoundrel.pdf in-app)
+- [ ] Add rules viewer (optional - view rules in-app)
 
 ### Task 5.3: Quality of Life - NOT STARTED
 - [ ] Add undo functionality
@@ -306,7 +306,7 @@ See [`05-testing-strategy.md`](05-testing-strategy.md) for detailed testing guid
   - [ ] All monsters remaining
   - [ ] All potions in a row
   - [ ] Weapon at exact limit
-- [ ] **Verify 100% of game rules from Scoundrel.pdf are tested**
+- [ ] **Verify 100% of game rules from docs/rules.md are tested**
 - [ ] **Run full test suite with coverage report**
 - [ ] **Coverage must meet phase targets**
 

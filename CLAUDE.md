@@ -6,7 +6,7 @@ This file provides context and guidelines for working on the Scoundroid Android 
 
 **Scoundroid** is a personal Android app implementing the card game "Scoundrel" by Zach Gage and Kurt Bieg. This is being developed specifically for a Pixel 10 Pro Fold running the latest Android version.
 
-**Original Game Rules**: `docs/Scoundrel.pdf`
+**Game Rules**: `docs/rules.md` (based on Scoundrel by Zach Gage and Kurt Bieg)
 
 ## Project Planning
 
@@ -152,7 +152,7 @@ When creating commits for this project:
 
 ### Implementing Game Logic (Test-First!)
 1. **Write tests first** - Define expected behavior in tests
-2. Reference original rules in `docs/Scoundrel.pdf` when writing tests
+2. Reference game rules in `docs/rules.md` when writing tests
 3. Check `plans/02-technical-architecture.md` for data model design
 4. Implement minimum code to pass tests
 5. Refactor while keeping tests green
@@ -186,7 +186,7 @@ When creating commits for this project:
 ## Resources
 
 - Original Scoundrel: http://www.stfj.net/scoundrel/
-- Game rules PDF: `docs/Scoundrel.pdf`
+- Game rules: `docs/rules.md`
 - Planning docs: `plans/` directory
 - Jetpack Compose: https://developer.android.com/jetpack/compose
 

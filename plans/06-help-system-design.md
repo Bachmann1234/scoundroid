@@ -328,7 +328,7 @@ This can be implemented in Phase 3, then enhanced in Phase 5.
 - **Text Content**: Rule explanations written clearly
 - **Graphics**: Card illustrations for examples
 - **Interactive Elements**: Tutorial overlay components
-- **PDF**: Original Scoundrel.pdf accessible in-app
+- **Rules**: Game rules accessible in-app
 
 ## Success Criteria
 
