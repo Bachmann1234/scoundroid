@@ -28,6 +28,7 @@ import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.contentDescription
@@ -161,28 +162,46 @@ fun CardView(
             interactionSource = interactionSource,
             onClick = onClick ?: {},
         ) {
-            Column(
+            // Gradient overlay for depth
+            Box(
                 modifier =
                     Modifier
                         .fillMaxSize()
-                        .padding(cardPadding),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.SpaceBetween,
+                        .background(
+                            brush =
+                                Brush.verticalGradient(
+                                    colors =
+                                        listOf(
+                                            Color.White.copy(alpha = 0.15f),
+                                            Color.Transparent,
+                                            Color.Black.copy(alpha = 0.1f),
+                                        ),
+                                ),
+                        ),
             ) {
-                // Suit symbol
-                Text(
-                    text = card.suit.symbol,
-                    fontSize = suitFontSize,
-                    color = textColor,
-                )
+                Column(
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .padding(cardPadding),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    // Suit symbol
+                    Text(
+                        text = card.suit.symbol,
+                        fontSize = suitFontSize,
+                        color = textColor,
+                    )
 
-                // Rank
-                Text(
-                    text = card.rank.displayName,
-                    fontSize = rankFontSize,
-                    fontWeight = FontWeight.Bold,
-                    color = textColor,
-                )
+                    // Rank
+                    Text(
+                        text = card.rank.displayName,
+                        fontSize = rankFontSize,
+                        fontWeight = FontWeight.Bold,
+                        color = textColor,
+                    )
+                }
             }
         }
 
