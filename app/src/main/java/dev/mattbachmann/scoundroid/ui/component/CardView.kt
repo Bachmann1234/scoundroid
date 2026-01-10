@@ -6,6 +6,8 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,6 +21,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
@@ -119,13 +122,18 @@ fun CardView(
         label = "cardScale",
     )
 
-    // Elevation animation for lift effect when selected
+    // Interaction source for press state detection
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    // Elevation animation: lifted when selected, pushed down when pressed
+    val baseElevation = if (isSelected) 12.dp else 4.dp
     val elevation by animateDpAsState(
-        targetValue = if (isSelected) 12.dp else 4.dp,
+        targetValue = if (isPressed) 1.dp else baseElevation,
         animationSpec =
             spring(
                 dampingRatio = Spring.DampingRatioMediumBouncy,
-                stiffness = Spring.StiffnessMedium,
+                stiffness = Spring.StiffnessHigh,
             ),
         label = "cardElevation",
     )
@@ -150,6 +158,7 @@ fun CardView(
                     defaultElevation = elevation,
                 ),
             border = BorderStroke(actualBorderWidth, actualBorderColor),
+            interactionSource = interactionSource,
             onClick = onClick ?: {},
         ) {
             Column(
