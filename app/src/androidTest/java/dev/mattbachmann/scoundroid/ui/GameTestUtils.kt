@@ -1,10 +1,12 @@
 package dev.mattbachmann.scoundroid.ui
 
+import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.ComposeTestRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
@@ -14,17 +16,33 @@ import androidx.compose.ui.test.performScrollTo
 /*
  * Test utility functions for Scoundroid E2E tests.
  * Provides common operations for interacting with the game UI.
+ *
+ * Uses waitUntil with extended timeouts to handle slower CI emulators.
  */
+
+// Extended timeout for CI emulators which are slower than local hardware-accelerated emulators
+private const val CI_TIMEOUT_MS = 10_000L
 
 /**
  * Clicks the "Draw Room" button to draw a new room.
- * Scrolls to the button first in case it's off-screen.
+ * Waits for button to be available, scrolls to it, then clicks.
  */
 fun ComposeTestRule.drawRoom() {
+    waitUntilNodeExists(hasText("Draw Room") and hasClickAction())
     onNode(hasText("Draw Room") and hasClickAction())
         .performScrollTo()
         .performClick()
     waitForIdle()
+}
+
+/**
+ * Waits until a node matching the given matcher exists in the UI tree.
+ * Uses extended timeout for slower CI emulators.
+ */
+private fun ComposeTestRule.waitUntilNodeExists(matcher: SemanticsMatcher) {
+    waitUntil(CI_TIMEOUT_MS) {
+        onAllNodes(matcher).fetchSemanticsNodes().isNotEmpty()
+    }
 }
 
 /**
@@ -172,15 +190,28 @@ fun ComposeTestRule.assertVictory() {
 
 /**
  * Asserts that the "Draw Room" button is visible.
+ * Uses waitUntil for slower CI emulators.
  */
 fun ComposeTestRule.assertDrawRoomButtonVisible() {
+    waitUntilNodeExists(hasText("Draw Room") and hasClickAction())
     onNode(hasText("Draw Room") and hasClickAction()).assertIsDisplayed()
 }
 
 /**
+ * Asserts that the "Draw Next Room" button is visible.
+ * Uses waitUntil for slower CI emulators.
+ */
+fun ComposeTestRule.assertDrawNextRoomButtonVisible() {
+    waitUntilNodeExists(hasText("Draw Next Room") and hasClickAction())
+    onNode(hasText("Draw Next Room") and hasClickAction()).assertIsDisplayed()
+}
+
+/**
  * Asserts that the "Avoid Room" button is visible.
+ * Uses waitUntil for slower CI emulators.
  */
 fun ComposeTestRule.assertAvoidRoomButtonVisible() {
+    waitUntilNodeExists(hasText("Avoid Room") and hasClickAction())
     onNode(hasText("Avoid Room") and hasClickAction()).assertIsDisplayed()
 }
 

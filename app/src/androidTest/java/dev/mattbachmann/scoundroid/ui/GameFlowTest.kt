@@ -117,11 +117,8 @@ class GameFlowTest {
         // Process the cards
         composeTestRule.processCards()
 
-        // Wait for UI to settle after processing
-        composeTestRule.waitForIdle()
-
         // After processing, room should have 1 card remaining and "Draw Next Room" button should appear
-        composeTestRule.onNode(hasText("Draw Next Room") and hasClickAction()).assertIsDisplayed()
+        composeTestRule.assertDrawNextRoomButtonVisible()
 
         // Deck size should be reduced (44 - 4 = 40)
         composeTestRule.assertDeckSize(40)
