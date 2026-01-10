@@ -5,8 +5,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -341,8 +343,8 @@ private fun RoomActionButtons(
         ButtonDefaults.buttonColors(
             containerColor = ButtonPrimary,
             contentColor = Color.White,
-            disabledContainerColor = ButtonPrimary.copy(alpha = 0.5f),
-            disabledContentColor = Color.White.copy(alpha = 0.7f),
+            disabledContainerColor = ButtonPrimary.copy(alpha = 0.15f),
+            disabledContentColor = Color.White.copy(alpha = 0.5f),
         )
     val primaryButtonElevation =
         ButtonDefaults.buttonElevation(
@@ -405,7 +407,7 @@ private fun RoomActionButtons(
                             elevation = primaryButtonElevation,
                         ) {
                             Text(
-                                text = "Process ${selectedCards.size}/3 Cards",
+                                text = if (selectedCards.size == 3) "Go" else "Pick ${3 - selectedCards.size}",
                                 style = buttonTextStyle,
                             )
                         }
@@ -723,8 +725,11 @@ private fun ExpandedControlsSection(
     onCopySeed: () -> Unit,
     onPlaySeed: () -> Unit,
 ) {
-    // Don't show controls during combat choice (handled in ExpandedCardsSection)
+    // During combat choice, show a spacer to maintain consistent bottom section height
+    // This prevents the stats bar from jumping when entering/exiting combat
     if (uiState.pendingCombatChoice != null) {
+        // Approximate height of PreviewPanel (140dp) + RoomActionButtons (~100dp)
+        Spacer(modifier = Modifier.height(240.dp))
         return
     }
 

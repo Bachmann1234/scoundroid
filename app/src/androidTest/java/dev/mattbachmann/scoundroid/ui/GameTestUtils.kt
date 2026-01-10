@@ -94,7 +94,7 @@ fun ComposeTestRule.selectCardContaining(descriptionPart: String) {
  * Combat choices are automatically resolved by using the weapon.
  */
 fun ComposeTestRule.processCards() {
-    onNode(hasText("Process 3/3 Cards") and hasClickAction())
+    onNode(hasText("Go") and hasClickAction())
         .performScrollTo()
         .performClick()
     waitForIdle()
@@ -234,16 +234,18 @@ fun ComposeTestRule.assertAvoidRoomButtonNotVisible() {
 
 /**
  * Asserts that the process cards button shows the expected selection count.
+ * Button shows "Go" when 3 selected, "Pick X" when fewer selected.
  */
 fun ComposeTestRule.assertProcessButtonShows(selectedCount: Int) {
-    onNode(hasText("Process $selectedCount/3 Cards") and hasClickAction()).assertIsDisplayed()
+    val expectedText = if (selectedCount == 3) "Go" else "Pick ${3 - selectedCount}"
+    onNode(hasText(expectedText) and hasClickAction()).assertIsDisplayed()
 }
 
 /**
  * Asserts that the process cards button is enabled (3 cards selected).
  */
 fun ComposeTestRule.assertProcessButtonEnabled() {
-    onNode(hasText("Process 3/3 Cards") and hasClickAction()).assertIsEnabled()
+    onNode(hasText("Go") and hasClickAction()).assertIsEnabled()
 }
 
 /**

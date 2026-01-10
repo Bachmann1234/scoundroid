@@ -18,6 +18,8 @@ import androidx.compose.ui.unit.dp
 import dev.mattbachmann.scoundroid.data.model.Card
 import dev.mattbachmann.scoundroid.data.model.Rank
 import dev.mattbachmann.scoundroid.data.model.Suit
+import dev.mattbachmann.scoundroid.ui.theme.Purple80
+import dev.mattbachmann.scoundroid.ui.theme.PurpleGrey80
 import dev.mattbachmann.scoundroid.ui.theme.ScoundroidTheme
 
 /**
@@ -55,7 +57,7 @@ fun RoomDisplay(
                 },
             style = if (isExpanded) MaterialTheme.typography.titleLarge else MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface,
+            color = Purple80,
         )
 
         // Only show instruction text when 4 cards present, use fixed height to prevent layout shift
@@ -64,7 +66,7 @@ fun RoomDisplay(
                 Text(
                     text = "Select 3 cards to process (leave 1 for next room)",
                     style = if (isExpanded) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = PurpleGrey80,
                 )
             }
         }
