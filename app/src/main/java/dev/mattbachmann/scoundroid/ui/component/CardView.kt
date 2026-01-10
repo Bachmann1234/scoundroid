@@ -71,18 +71,18 @@ fun CardView(
                     Color.Black,
                     Color(0xFFD32F2F),
                 )
-            // Blue
+            // Blue - dark blue text for contrast
             CardType.WEAPON ->
                 Triple(
                     Color(0xFF64B5F6),
-                    Color.White,
+                    Color(0xFF0D47A1),
                     Color(0xFF1976D2),
                 )
-            // Green
+            // Green - dark green text for contrast
             CardType.POTION ->
                 Triple(
                     Color(0xFF81C784),
-                    Color.White,
+                    Color(0xFF1B5E20),
                     Color(0xFF388E3C),
                 )
         }
