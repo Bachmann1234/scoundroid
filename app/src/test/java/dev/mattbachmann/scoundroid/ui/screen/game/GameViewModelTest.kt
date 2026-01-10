@@ -122,7 +122,20 @@ class GameViewModelTest {
                 // Select and process 3 cards, leaving 1
                 viewModel.onIntent(GameIntent.ProcessSelectedCards(cardsToSelect))
                 testDispatcher.scheduler.advanceUntilIdle()
-                awaitItem()
+
+                // Process may pause for combat choices. Loop until room has 1 card (processing complete)
+                var currentState = awaitItem()
+                var safetyCounter = 0
+                val maxIterations = 100
+                while (currentState.currentRoom?.size != 1 && safetyCounter < maxIterations) {
+                    if (currentState.pendingCombatChoice != null) {
+                        viewModel.onIntent(GameIntent.ResolveCombatChoice(useWeapon = true))
+                        testDispatcher.scheduler.advanceUntilIdle()
+                        safetyCounter++
+                    }
+                    currentState = awaitItem()
+                }
+                assertTrue(safetyCounter < maxIterations, "Exceeded max iterations; possible infinite loop")
 
                 // Draw next room (should draw 3 more + 1 remaining = 4 total)
                 viewModel.onIntent(GameIntent.DrawRoom)
@@ -214,18 +227,32 @@ class GameViewModelTest {
         runTest {
             val viewModel = GameViewModel()
 
-            viewModel.onIntent(GameIntent.DrawRoom)
-            testDispatcher.scheduler.advanceUntilIdle()
-
             viewModel.uiState.test {
-                val state = awaitItem()
-                val cardsToSelect = state.currentRoom!!.take(3)
+                awaitItem() // Skip initial state
+
+                viewModel.onIntent(GameIntent.DrawRoom)
+                testDispatcher.scheduler.advanceUntilIdle()
+                val roomState = awaitItem()
+                val cardsToSelect = roomState.currentRoom!!.take(3)
 
                 viewModel.onIntent(GameIntent.ProcessSelectedCards(cardsToSelect))
                 testDispatcher.scheduler.advanceUntilIdle()
 
-                val newState = awaitItem()
-                assertEquals(1, newState.currentRoom!!.size) // 1 card left for next room
+                // Process may pause for combat choices. Loop until room has 1 card (processing complete)
+                var currentState = awaitItem()
+                var safetyCounter = 0
+                val maxIterations = 100
+                while (currentState.currentRoom?.size != 1 && safetyCounter < maxIterations) {
+                    if (currentState.pendingCombatChoice != null) {
+                        viewModel.onIntent(GameIntent.ResolveCombatChoice(useWeapon = true))
+                        testDispatcher.scheduler.advanceUntilIdle()
+                        safetyCounter++
+                    }
+                    currentState = awaitItem()
+                }
+                assertTrue(safetyCounter < maxIterations, "Exceeded max iterations; possible infinite loop")
+
+                assertEquals(1, currentState.currentRoom!!.size) // 1 card left for next room
             }
         }
 
@@ -735,7 +762,18 @@ class GameViewModelTest {
                 viewModel.onIntent(GameIntent.ProcessSelectedCards(cardsToSelect))
                 testDispatcher.scheduler.advanceUntilIdle()
 
-                val state = awaitItem()
+                // Process may pause for combat choices (if later cards include weapon then monster)
+                var state = awaitItem()
+                var safetyCounter = 0
+                val maxIterations = 100
+                while (state.pendingCombatChoice != null && safetyCounter < maxIterations) {
+                    viewModel.onIntent(GameIntent.ResolveCombatChoice(useWeapon = true))
+                    testDispatcher.scheduler.advanceUntilIdle()
+                    state = awaitItem()
+                    safetyCounter++
+                }
+                assertTrue(safetyCounter < maxIterations, "Exceeded max iterations; possible infinite loop")
+
                 // Find the MonsterFought entry for our specific monster
                 val monsterEntry =
                     state.actionLog.filterIsInstance<LogEntry.MonsterFought>()
@@ -776,7 +814,18 @@ class GameViewModelTest {
                 viewModel.onIntent(GameIntent.ProcessSelectedCards(cardsToSelect))
                 testDispatcher.scheduler.advanceUntilIdle()
 
-                val state = awaitItem()
+                // Process may pause for combat choices if weapon is equipped then monster is fought
+                var state = awaitItem()
+                var safetyCounter = 0
+                val maxIterations = 100
+                while (state.pendingCombatChoice != null && safetyCounter < maxIterations) {
+                    viewModel.onIntent(GameIntent.ResolveCombatChoice(useWeapon = true))
+                    testDispatcher.scheduler.advanceUntilIdle()
+                    state = awaitItem()
+                    safetyCounter++
+                }
+                assertTrue(safetyCounter < maxIterations, "Exceeded max iterations; possible infinite loop")
+
                 val weaponEntry = state.actionLog.filterIsInstance<LogEntry.WeaponEquipped>().firstOrNull()
                 assertNotNull(weaponEntry)
                 assertEquals(weapon, weaponEntry!!.weapon)
@@ -811,7 +860,18 @@ class GameViewModelTest {
                 viewModel.onIntent(GameIntent.ProcessSelectedCards(cardsToSelect))
                 testDispatcher.scheduler.advanceUntilIdle()
 
-                val state = awaitItem()
+                // Process may pause for combat choices
+                var state = awaitItem()
+                var safetyCounter = 0
+                val maxIterations = 100
+                while (state.pendingCombatChoice != null && safetyCounter < maxIterations) {
+                    viewModel.onIntent(GameIntent.ResolveCombatChoice(useWeapon = true))
+                    testDispatcher.scheduler.advanceUntilIdle()
+                    state = awaitItem()
+                    safetyCounter++
+                }
+                assertTrue(safetyCounter < maxIterations, "Exceeded max iterations; possible infinite loop")
+
                 val potionEntry = state.actionLog.filterIsInstance<LogEntry.PotionUsed>().firstOrNull()
                 assertNotNull(potionEntry)
                 assertEquals(potion, potionEntry!!.potion)

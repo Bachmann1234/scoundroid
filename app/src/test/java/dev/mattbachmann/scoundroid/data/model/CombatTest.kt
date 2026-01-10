@@ -270,4 +270,49 @@ class CombatTest {
             game.fightMonster(potion)
         }
     }
+
+    // ========== Combat Choice Behavior Tests ==========
+
+    @Test
+    fun `fightMonster convenience method auto-uses weapon when it can defeat monster`() {
+        // Note: fightMonster() is a convenience method that auto-uses weapon if canDefeat() is true
+        // In actual gameplay, the ViewModel uses fightMonsterWithWeapon() or fightMonsterBarehanded()
+        // based on player choice
+        val weapon = Card(Suit.DIAMONDS, Rank.SEVEN) // 7♦
+        val game =
+            GameState.newGame().copy(
+                health = 20,
+                weaponState = WeaponState(weapon),
+            )
+
+        val monster = Card(Suit.SPADES, Rank.FIVE) // 5♠
+        val afterCombat = game.fightMonster(monster)
+
+        // Weapon was automatically used: damage = max(0, 5 - 7) = 0
+        assertEquals(20, afterCombat.health, "Weapon auto-used, no damage taken")
+        // Weapon degraded
+        assertEquals(5, afterCombat.weaponState?.maxMonsterValue, "Weapon degraded to 5")
+    }
+
+    @Test
+    fun `weapon remains equipped but unused when it cannot defeat monster`() {
+        // When weapon can't defeat monster, it stays equipped but player fights barehanded
+        val weapon = Card(Suit.DIAMONDS, Rank.FIVE) // 5♦
+        val weaponState = WeaponState(weapon, maxMonsterValue = 4) // Can only defeat 4 or less
+        val game =
+            GameState.newGame().copy(
+                health = 20,
+                weaponState = weaponState,
+            )
+
+        val monster = Card(Suit.SPADES, Rank.EIGHT) // 8♠ (too strong for weapon)
+        val afterCombat = game.fightMonster(monster)
+
+        // Fight was barehanded: full damage
+        assertEquals(12, afterCombat.health, "Barehanded: took full 8 damage")
+        // Weapon still equipped with same max value
+        assertNotNull(afterCombat.weaponState)
+        assertEquals(4, afterCombat.weaponState?.maxMonsterValue, "Weapon unchanged")
+        assertEquals(weapon, afterCombat.weaponState?.weapon, "Same weapon equipped")
+    }
 }

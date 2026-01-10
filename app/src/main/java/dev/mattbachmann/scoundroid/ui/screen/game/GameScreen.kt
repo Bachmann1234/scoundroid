@@ -35,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -42,6 +43,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.mattbachmann.scoundroid.data.model.Card
 import dev.mattbachmann.scoundroid.data.model.LogEntry
 import dev.mattbachmann.scoundroid.ui.component.ActionLogPanel
+import dev.mattbachmann.scoundroid.ui.component.CombatChoicePanel
 import dev.mattbachmann.scoundroid.ui.component.GameStatusBar
 import dev.mattbachmann.scoundroid.ui.component.HelpContent
 import dev.mattbachmann.scoundroid.ui.component.PreviewPanel
@@ -164,6 +166,7 @@ fun GameScreen(
                         uiState = uiState,
                         selectedCards = selectedCards,
                         onSelectedCardsChange = { selectedCards = it },
+                        onIntent = viewModel::onIntent,
                     )
                 }
 
@@ -508,6 +511,13 @@ private fun GameContent(
                 onSelectedCardsChange(emptyList())
             },
         )
+    } else if (uiState.pendingCombatChoice != null) {
+        // Combat choice needed - show the choice panel
+        CombatChoicePanel(
+            choice = uiState.pendingCombatChoice,
+            onUseWeapon = { onIntent(GameIntent.ResolveCombatChoice(useWeapon = true)) },
+            onFightBarehanded = { onIntent(GameIntent.ResolveCombatChoice(useWeapon = false)) },
+        )
     } else {
         // Active game - show room cards
         RoomCardsDisplay(
@@ -579,6 +589,7 @@ private fun ExpandedCardsSection(
     uiState: GameUiState,
     selectedCards: List<Card>,
     onSelectedCardsChange: (List<Card>) -> Unit,
+    onIntent: (GameIntent) -> Unit,
 ) {
     if (uiState.isGameOver) {
         GameOverScreen(
@@ -595,6 +606,13 @@ private fun ExpandedCardsSection(
             isNewHighScore = uiState.isNewHighScore,
             onNewGame = {},
             showButton = false,
+        )
+    } else if (uiState.pendingCombatChoice != null) {
+        // Combat choice needed - show the choice panel in the cards area
+        CombatChoicePanel(
+            choice = uiState.pendingCombatChoice,
+            onUseWeapon = { onIntent(GameIntent.ResolveCombatChoice(useWeapon = true)) },
+            onFightBarehanded = { onIntent(GameIntent.ResolveCombatChoice(useWeapon = false)) },
         )
     } else {
         RoomCardsDisplay(
@@ -619,6 +637,11 @@ private fun ExpandedControlsSection(
     onIntent: (GameIntent) -> Unit,
     simulateProcessing: (List<Card>) -> List<LogEntry>,
 ) {
+    // Don't show controls during combat choice (handled in ExpandedCardsSection)
+    if (uiState.pendingCombatChoice != null) {
+        return
+    }
+
     // Always show preview panel to prevent layout jumping
     val currentRoom = uiState.currentRoom
     when {
@@ -684,7 +707,8 @@ private fun GameOverScreen(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .padding(24.dp),
+                .padding(24.dp)
+                .testTag("game_over_screen"),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
@@ -748,7 +772,8 @@ private fun GameWonScreen(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .padding(24.dp),
+                .padding(24.dp)
+                .testTag("victory_screen"),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
