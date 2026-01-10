@@ -49,10 +49,13 @@ private enum class HealthFlashState {
  * Layout modes for the status bar.
  */
 enum class StatusBarLayout {
-    /** Compact 2-row grid for narrow screens */
+    /** Single row with abbreviated labels for very small phones */
     COMPACT,
 
-    /** Horizontal inline for bottom panel */
+    /** 2-row grid for medium screens (fold cover, regular phones) */
+    MEDIUM,
+
+    /** Horizontal inline for expanded screens (tablets, unfolded) */
     INLINE,
 }
 
@@ -140,7 +143,41 @@ fun GameStatusBar(
         ) {
             when (layout) {
                 StatusBarLayout.COMPACT -> {
-                    // Compact mode: 2-row grid
+                    // Compact mode: single row with all 4 stats (abbreviated labels)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        StatusItem(
+                            label = "HP",
+                            value = "$health/20",
+                            isCompact = true,
+                            valueColor = healthTextColor,
+                            valueTestTag = "health_display",
+                        )
+                        StatusItem(
+                            label = "Score",
+                            value = "$score",
+                            isCompact = true,
+                            valueTestTag = "score_display",
+                        )
+                        StatusItem(
+                            label = "Deck",
+                            value = "$deckSize",
+                            isCompact = true,
+                            valueTestTag = "deck_size_display",
+                        )
+                        StatusItem(
+                            label = "Kills",
+                            value = "$defeatedMonstersCount",
+                            isCompact = true,
+                            horizontalAlignment = Alignment.End,
+                            valueTestTag = "defeated_display",
+                        )
+                    }
+                }
+                StatusBarLayout.MEDIUM -> {
+                    // Medium mode: 2-row grid with full labels
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
