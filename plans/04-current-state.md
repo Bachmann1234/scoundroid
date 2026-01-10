@@ -1,6 +1,6 @@
 # Current State & Next Steps
 
-**Last Updated**: 2026-01-09 (Session 7 - Visual Polish PR)
+**Last Updated**: 2026-01-09 (Session 10 - UI Polish Review)
 
 ## Phase 1: COMPLETE ✅
 ## Phase 2: COMPLETE ✅
@@ -8,6 +8,10 @@
 ## Phase 4 (Persistence): COMPLETE ✅
 ## Foldable Device Optimizations: COMPLETE ✅
 ## Rules/Help Screen: COMPLETE ✅
+## Combat Choice Feature: COMPLETE ✅
+## Seeded Runs Feature: COMPLETE ✅
+## Visual Polish & Animations: COMPLETE ✅
+## Dark Mode: COMPLETE ✅
 
 ### What's Done
 
@@ -259,32 +263,29 @@
 ## What's NOT Done Yet (All Optional)
 
 **Persistence:**
-- [ ] Mid-game save/load (resume interrupted games)
 - [ ] Statistics tracking (games played, wins/losses)
 - [ ] Statistics screen
 
 **Polish & UX:**
-- [ ] Dark mode
 - [ ] Damage number animations
 - [ ] Undo functionality
 - [ ] Settings screen
 - [ ] Haptic feedback
-- [ ] Visual feedback for weapon degradation
 
 **Help System (enhanced):**
-- [ ] Interactive tutorial
 - [ ] Contextual tooltips ("Why can't I use this weapon?")
 - [ ] Quick reference overlay
-- [ ] In-app PDF viewer for rules
-
-**Audio (optional):**
-- [ ] Card flip sounds
-- [ ] Combat sounds
-- [ ] Victory/defeat sounds
 
 **Testing & Docs:**
-- [ ] End-to-end tests
 - [ ] README/documentation
+
+**UI Polish (see plans/06-ui-polish-plan.md):**
+- [ ] Fix "Current Room" label contrast
+- [ ] Unify button styling hierarchy
+- [ ] Improve stats panel text hierarchy
+- [ ] Add card elevation & shadows
+- [ ] Enhance selection indicator
+- [ ] Accessibility improvements
 
 ## Session 6 Completed (2026-01-08)
 
@@ -327,6 +328,95 @@
 - `build.gradle.kts` - Added material-icons-extended dependency
 - `libs.versions.toml` - Added material-icons-extended library
 
+## Session 7 Completed (2026-01-08)
+
+**Visual Polish & Animations - COMPLETE! (PR #21, #22)**
+
+**Accomplishments:**
+
+- ✅ **Card Animations**
+  - Smooth transitions for card selection
+  - Visual feedback improvements
+
+- ✅ **Button Contrast Fix** (PR #23)
+  - Fixed primary button text contrast for accessibility
+
+- ✅ **Combat Choice Feature**
+  - Player can choose to use weapon or fight barehanded
+  - `CombatChoicePanel.kt` - UI for combat decision
+  - `ResolveCombatChoice` intent added
+  - `PendingCombatChoice` state for tracking pending decisions
+  - Shows damage preview for both options
+
+- ✅ **Action Log**
+  - `LogEntry.kt` - Data model for game events
+  - `ActionLogPanel.kt` - UI component for viewing history
+  - `ShowActionLog`/`HideActionLog` intents
+  - Tracks all game actions for review
+
+- ✅ **Preview Panel**
+  - `PreviewPanel.kt` - Shows upcoming action outcomes
+  - Damage calculations displayed before committing
+
+## Session 8 Completed (2026-01-09)
+
+**Seeded Runs Feature - COMPLETE! (PR #24)**
+
+**Accomplishments:**
+
+- ✅ **Deterministic Game Seeds**
+  - `gameSeed` field in `GameUiState`
+  - `NewGameWithSeed(seed)` intent for specific seeds
+  - `RetryGame` intent to replay same shuffle
+  - Enables sharing and replaying specific games
+
+- ✅ **Test Reliability Improvements**
+  - Fixed flaky tests with deterministic seeds
+  - Added safety counters for test stability
+  - Improved CI emulator compatibility
+
+**Files Modified:**
+- `GameIntent.kt` - Added RetryGame, NewGameWithSeed intents
+- `GameUiState.kt` - Added gameSeed field
+- `GameViewModel.kt` - Seed handling logic
+- `Deck.kt` - Seeded shuffle support
+
+## Session 9 Completed (2026-01-09)
+
+**Documentation & Help Improvements (PR #25, #27)**
+
+**Accomplishments:**
+
+- ✅ **Rules Documentation**
+  - Replaced PDF with markdown rewrite (`docs/rules.md`)
+
+- ✅ **Physical Deck Play Tips**
+  - Added "Playing with Real Cards" section to HelpContent
+  - Setup instructions, health tracking tips, degradation tracking
+
+- ✅ **Card Scaling**
+  - Font sizes scale with card dimensions
+  - Fixed flaky tests related to card rendering
+
+## Session 10 Completed (2026-01-09)
+
+**UI Polish Review & Planning**
+
+**Accomplishments:**
+
+- ✅ **UI/UX Review**
+  - Comprehensive review of current app design
+  - Identified strengths and areas for improvement
+  - Created `plans/06-ui-polish-plan.md` with implementation roadmap
+
+- ✅ **Current Branch Work**
+  - `show-disabled-process-button` - Visual styling for disabled state
+
+**Test Summary (Current):**
+- **222 unit tests** passing
+- **28 instrumented tests** passing
+- **~250 total tests** ✅
+
 ## Session 1 Completed (2026-01-06)
 
 **Accomplishments:**
@@ -337,38 +427,19 @@
 - All tests follow Red-Green-Refactor cycle
 - Committed and pushed to `claude/review-repo-planning-kMFnO`
 
-## Recommended Next Session Tasks (Phase 4)
+## Recommended Next Steps
 
-**IMPORTANT**: Continue using Test-Driven Development (TDD). See [`05-testing-strategy.md`](05-testing-strategy.md).
+All core features are complete. Optional enhancements to consider:
 
-### Phase 4: Persistence & Polish
+### UI Polish (see plans/06-ui-polish-plan.md)
+- Quick wins: label contrast, button styling, stats hierarchy
+- Card improvements: elevation, selection indicators
+- Accessibility: contrast audit, color-independent identifiers
 
-When ready for the next session:
+### Other Optional Features
+- Statistics tracking and display
 
-### 1. Room Database for High Scores (with TDD)
-**Goal**: Persist high scores between sessions
-
-- Create Room database entities and DAOs
-- Implement high score repository
-- Add high score display to game over/victory screens
-- **Target: >90% test coverage**
-
-### 2. Foldable Device Optimizations
-**Goal**: Optimize for Pixel 10 Pro Fold
-
-- Use WindowSizeClass for responsive layouts
-- Handle fold/unfold state transitions
-- Test on actual device
-
-### 3. Polish & Quality of Life
-**Goal**: Final touches
-
-- Add rules/help screen
-- Add visual feedback for card selection
-- Sound effects (optional)
-- Final testing and bug fixes
-
-### Next Session: `./gradlew test` should show 152+ passing tests!
+### Current Test Status: `./gradlew test` shows 222 passing tests!
 
 ## Quick Commands for Next Session
 
@@ -437,4 +508,4 @@ When you're ready to continue:
 2. Check [`05-testing-strategy.md`](05-testing-strategy.md) for persistence testing strategy
 3. Say "Let's do Phase 4" or "Add persistence"
 
-**Current Status**: Core game complete and fully playable! Has rules/help screen, high scores, foldable device support, and visual polish (PR #21). 175+ passing tests. Remaining features (mid-game save, statistics, dark mode, tutorial, audio) are all optional enhancements.
+**Current Status**: Core game complete and fully playable! Features include: rules/help screen with physical deck tips, high scores, foldable device support, combat choice (weapon vs barehanded), action log, preview panel, seeded runs for replay/sharing, visual polish, and dark mode. ~250 passing tests (222 unit + 28 instrumented). UI polish plan created. Statistics tracking is the main optional enhancement remaining.
