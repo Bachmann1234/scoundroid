@@ -3,11 +3,12 @@
 This document helps us track progress and plan what to work on in each session.
 
 ## Current Status
-- **Phase**: Core Complete, Polish In Progress
+- **Phase**: Core Complete, All Major Features Done
 - **Last Updated**: 2026-01-09
-- **Completed**: Phases 1-3, ViewModel, High Scores, Foldable Support, Help Screen, Visual Polish
-- **In Progress**: PR #21 (visual polish animations)
-- **Remaining**: Mid-game save/load, statistics, dark mode, tutorial, audio (all optional)
+- **Completed**: Phases 1-3, ViewModel, High Scores, Foldable Support, Help Screen (with physical deck tips), Visual Polish, Combat Choice, Action Log, Preview Panel, Seeded Runs, Dark Mode
+- **Tests**: ~250 total (222 unit + 28 instrumented)
+- **Current Branch**: `show-disabled-process-button`
+- **Remaining**: Statistics, UI polish (all optional)
 
 ## Suggested Session Breakdown
 
@@ -150,78 +151,56 @@ Tasks:
 
 ---
 
-### Session 7: Save System
-**Goal**: Persist game state
-
-Tasks:
-1. Set up Room database
-2. Create entities and DAOs
-3. Implement save game functionality
-4. Implement load game functionality
-5. Add auto-save feature
-6. Test save/load thoroughly
-
-**Deliverable**: Game state persists between sessions
-
-**Estimated Complexity**: Medium
-**Prerequisites**: Session 6 complete
+### Session 7: High Score Persistence - COMPLETE ✅
+**Completed**: Room database, HighScore entity/DAO, repository, high score display
 
 ---
 
-### Session 8: Enhanced Help & QoL
-**Goal**: Add comprehensive help system and quality of life features
-
-Tasks:
-1. Implement statistics tracking
-2. Create statistics screen
-3. **Enhance help system:**
-   - Interactive tutorial
-   - Contextual tooltips
-   - Weapon degradation explanations
-   - Quick reference overlay
-4. Add undo functionality
-5. Polish and bug fixes
-
-**Deliverable**: Feature-complete game with excellent UX
-
-**Estimated Complexity**: Medium
-**Prerequisites**: Session 7 complete
+### Session 8: Help Screen - COMPLETE ✅
+**Completed**: Help button, rules modal, HelpContent composable, physical deck tips
 
 ---
 
-### Session 9: Foldable Optimization
-**Goal**: Optimize for Pixel 10 Pro Fold
-
-Tasks:
-1. Test on folded screen
-2. Test on unfolded screen
-3. Implement responsive layouts
-4. Handle fold/unfold transitions
-5. Optimize for both configurations
-6. Final device testing
-
-**Deliverable**: Optimized experience for foldable
-
-**Estimated Complexity**: Medium
-**Prerequisites**: Session 8 complete, physical device needed
+### Session 9: Foldable Optimization - COMPLETE ✅
+**Completed**: Responsive layouts, fold/unfold handling, device testing
 
 ---
 
-### Session 10: Polish & Release
-**Goal**: Final polish and personal "release"
+### Session 10: Visual Polish & Combat Choice - COMPLETE ✅
+**Completed**: Card animations, combat choice feature, action log, preview panel, seeded runs
+
+---
+
+## Future Sessions (All Optional)
+
+### Session 11: UI Polish - Quick Wins
+**Goal**: Implement high-impact, low-effort UI improvements
+
+See `plans/06-ui-polish-plan.md` for details.
 
 Tasks:
-1. Add animations
-2. Add sound effects (optional)
-3. Performance optimization
-4. Final bug fixes
-5. Code cleanup
-6. Celebration!
+1. Fix "Current Room" label contrast
+2. Unify button styling (primary/secondary/tertiary)
+3. Improve stats panel text hierarchy
+4. Add card elevation & shadows
 
-**Deliverable**: Finished game ready for daily use
+**Deliverable**: Cleaner, more consistent UI
 
-**Estimated Complexity**: Low-Medium
-**Prerequisites**: Session 9 complete
+**Estimated Complexity**: Low
+
+---
+
+### Session 12: Statistics
+**Goal**: Track gameplay statistics
+
+Tasks:
+1. Create statistics entity
+2. Track games played, wins/losses
+3. Create statistics screen
+
+**Deliverable**: Statistics screen
+
+**Estimated Complexity**: Medium
 
 ---
 
