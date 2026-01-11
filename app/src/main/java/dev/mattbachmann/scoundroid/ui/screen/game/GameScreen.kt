@@ -812,16 +812,6 @@ private fun ExpandedControlsSection(
                     )
                 }
             }
-
-            // Additional context if there are more cards
-            if (choice.remainingCards.isNotEmpty()) {
-                Text(
-                    text = "${choice.remainingCards.size} more card(s) to process",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.align(Alignment.CenterHorizontally),
-                )
-            }
         }
         return
     }
