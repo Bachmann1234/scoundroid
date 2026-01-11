@@ -5,62 +5,49 @@
     android:viewportHeight="108">
 
     <!-- Monochrome icon: skull and sword silhouette -->
-    <!-- Use black (#000000) for the icon shape - system will apply themed color -->
+    <!-- Only use black (#000000) - system applies themed color -->
+    <!-- Transparent areas are left undrawn (no white cutouts) -->
 
     <group
         android:pivotX="54"
         android:pivotY="54"
         android:rotation="-5">
 
-        <!-- Card outline -->
+        <!-- Card border (stroke only, no fill) -->
         <path
-            android:fillColor="#000000"
+            android:fillColor="#00000000"
+            android:strokeColor="#000000"
+            android:strokeWidth="2"
             android:pathData="M32,24h44c2.2,0 4,1.8 4,4v52c0,2.2 -1.8,4 -4,4h-44c-2.2,0 -4,-1.8 -4,-4v-52c0,-2.2 1.8,-4 4,-4z" />
 
-        <!-- Card inner (cut out) -->
-        <path
-            android:fillColor="#FFFFFF"
-            android:pathData="M34,26h40c1.1,0 2,0.9 2,2v48c0,1.1 -0.9,2 -2,2h-40c-1.1,0 -2,-0.9 -2,-2v-48c0,-1.1 0.9,-2 2,-2z" />
-
-        <!-- Sword blade -->
+        <!-- Sword blade - split to not show through skull eye sockets -->
+        <!-- Top part: blade tip above skull -->
         <path
             android:fillColor="#000000"
-            android:pathData="M52,28l2,-2l2,2l0,48l-2,2l-2,-2z" />
+            android:pathData="M52,28l2,-2l2,2l0,12h-4z" />
 
-        <!-- Skull - cranium -->
+        <!-- Skull - cranium with eye and nose holes cut out -->
+        <!-- Using fillType evenOdd to create holes in the shape -->
         <path
             android:fillColor="#000000"
-            android:pathData="M54,40c-9,0 -14,5 -14,12c0,3.5 1.5,6 3.5,8h21c2,-2 3.5,-4.5 3.5,-8c0,-7 -5,-12 -14,-12z" />
+            android:fillType="evenOdd"
+            android:pathData="M54,40c-9,0 -14,5 -14,12c0,3.5 1.5,6 3.5,8h21c2,-2 3.5,-4.5 3.5,-8c0,-7 -5,-12 -14,-12z M46,49a3.5,3.5 0 1,0 7,0a3.5,3.5 0 1,0 -7,0z M55,49a3.5,3.5 0 1,0 7,0a3.5,3.5 0 1,0 -7,0z M52,55l2,3l2,-3z" />
 
-        <!-- Skull - left eye socket (cut out) -->
-        <path
-            android:fillColor="#FFFFFF"
-            android:pathData="M46,49a3.5,3.5 0,1 1,7 0a3.5,3.5 0,1 1,-7 0" />
-
-        <!-- Skull - right eye socket (cut out) -->
-        <path
-            android:fillColor="#FFFFFF"
-            android:pathData="M55,49a3.5,3.5 0,1 1,7 0a3.5,3.5 0,1 1,-7 0" />
-
-        <!-- Skull - nose hole (cut out) -->
-        <path
-            android:fillColor="#FFFFFF"
-            android:pathData="M52,55l2,3l2,-3z" />
-
-        <!-- Skull - jaw -->
+        <!-- Skull - jaw with teeth gaps cut out -->
         <path
             android:fillColor="#000000"
-            android:pathData="M43.5,60h21v6c0,1.5 -1.5,3 -3,3h-15c-1.5,0 -3,-1.5 -3,-3z" />
+            android:fillType="evenOdd"
+            android:pathData="M43.5,60h21v6c0,1.5 -1.5,3 -3,3h-15c-1.5,0 -3,-1.5 -3,-3z M47,60v5h1v-5h-1z M51,60v5h1v-5h-1z M55,60v5h1v-5h-1z M59,60v5h1v-5h-1z" />
 
-        <!-- Teeth gaps (cut out) -->
+        <!-- Sword blade section below jaw (above crossguard) -->
         <path
-            android:fillColor="#FFFFFF"
-            android:pathData="M47,60v5h1v-5zM51,60v5h1v-5zM55,60v5h1v-5zM59,60v5h1v-5z" />
+            android:fillColor="#000000"
+            android:pathData="M52,66h4v4h-4z" />
 
         <!-- Sword crossguard -->
         <path
             android:fillColor="#000000"
-            android:pathData="M46,70h16v3c0,1 -1,2 -2,2h-12c-1,0 -2,-1 -2,-2z" />
+            android:pathData="M46,70h16v5h-16z" />
 
         <!-- Sword handle -->
         <path
@@ -70,6 +57,6 @@
         <!-- Sword pommel -->
         <path
             android:fillColor="#000000"
-            android:pathData="M50,81h8v2c0,1 -1,2 -2,2h-4c-1,0 -2,-1 -2,-2z" />
+            android:pathData="M50,81h8v4h-8z" />
     </group>
 </vector>
