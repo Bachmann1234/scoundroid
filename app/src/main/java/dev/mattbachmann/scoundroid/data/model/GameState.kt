@@ -34,8 +34,8 @@ data class GameState(
          *
          * @param random Optional random source for deterministic shuffling (useful for tests)
          */
-        fun newGame(random: kotlin.random.Random = kotlin.random.Random): GameState {
-            return GameState(
+        fun newGame(random: kotlin.random.Random = kotlin.random.Random): GameState =
+            GameState(
                 deck = Deck.create().shuffle(random),
                 health = MAX_HEALTH,
                 currentRoom = null,
@@ -46,7 +46,6 @@ data class GameState(
                 usedPotionThisTurn = false,
                 lastCardProcessed = null,
             )
-        }
     }
 
     /**
@@ -237,9 +236,7 @@ data class GameState(
     /**
      * Adds a card to the discard pile.
      */
-    fun discard(card: Card): GameState {
-        return copy(discardPile = discardPile + card)
-    }
+    fun discard(card: Card): GameState = copy(discardPile = discardPile + card)
 
     /**
      * Calculates the current score.
@@ -252,8 +249,8 @@ data class GameState(
      *
      * @return The current score
      */
-    fun calculateScore(): Int {
-        return if (health > 0) {
+    fun calculateScore(): Int =
+        if (health > 0) {
             // Winning: score = remaining health
             if (health == MAX_HEALTH &&
                 lastCardProcessed != null &&
@@ -272,7 +269,6 @@ data class GameState(
                     .sumOf { it.value }
             -remainingMonsterDamage
         }
-    }
 
     /**
      * Returns true if the game is over (health reached 0).

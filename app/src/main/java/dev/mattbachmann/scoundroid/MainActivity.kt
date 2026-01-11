@@ -5,7 +5,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.mattbachmann.scoundroid.data.persistence.AppDatabase
 import dev.mattbachmann.scoundroid.data.repository.HighScoreRepository
@@ -41,10 +42,14 @@ class MainActivity : ComponentActivity() {
  */
 @Composable
 private fun getScreenSizeClass(): ScreenSizeClass {
-    val configuration = LocalConfiguration.current
+    val windowInfo = LocalWindowInfo.current
+    val density = LocalDensity.current
+    val containerSize = windowInfo.containerSize
+    val widthDp = with(density) { containerSize.width.toDp() }
+    val heightDp = with(density) { containerSize.height.toDp() }
     return when {
-        configuration.screenWidthDp >= 600 -> ScreenSizeClass.EXPANDED
-        configuration.screenHeightDp < 700 -> ScreenSizeClass.COMPACT
+        widthDp.value >= 600 -> ScreenSizeClass.EXPANDED
+        heightDp.value < 700 -> ScreenSizeClass.COMPACT
         else -> ScreenSizeClass.MEDIUM
     }
 }

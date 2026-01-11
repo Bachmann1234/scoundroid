@@ -7,7 +7,9 @@ package dev.mattbachmann.scoundroid.data.model
  * - Diamonds: Weapons
  * - Hearts: Potions
  */
-enum class Suit(val symbol: String) {
+enum class Suit(
+    val symbol: String,
+) {
     CLUBS("♣"),
     SPADES("♠"),
     DIAMONDS("♦"),

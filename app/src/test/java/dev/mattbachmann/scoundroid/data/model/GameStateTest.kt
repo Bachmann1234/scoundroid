@@ -93,7 +93,8 @@ class GameStateTest {
     @Test
     fun `cannot avoid room twice in a row`() {
         val gameState =
-            GameState.newGame()
+            GameState
+                .newGame()
                 .drawRoom()
                 .avoidRoom()
 
@@ -212,7 +213,8 @@ class GameStateTest {
         val weapon2 = Card(Suit.DIAMONDS, Rank.SEVEN)
 
         val gameState =
-            GameState.newGame()
+            GameState
+                .newGame()
                 .equipWeapon(weapon1)
                 .equipWeapon(weapon2)
 

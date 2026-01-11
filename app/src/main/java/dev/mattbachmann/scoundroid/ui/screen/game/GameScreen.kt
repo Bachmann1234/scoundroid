@@ -355,8 +355,8 @@ private fun RoomActionButtons(
     onProcessCards: () -> Unit,
     onDrawRoom: () -> Unit,
     onNewGame: () -> Unit,
-    onPlaySeed: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
+    onPlaySeed: (() -> Unit)? = null,
     isCompact: Boolean = false,
 ) {
     val buttonSpacing = if (isCompact) 4.dp else 8.dp

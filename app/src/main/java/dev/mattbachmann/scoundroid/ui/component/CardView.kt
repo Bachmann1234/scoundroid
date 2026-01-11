@@ -216,8 +216,7 @@ fun CardView(
                         .background(
                             color = Color.White,
                             shape = CircleShape,
-                        )
-                        .padding(2.dp)
+                        ).padding(2.dp)
                         .background(
                             color = Color(0xFF009688),
                             shape = CircleShape,

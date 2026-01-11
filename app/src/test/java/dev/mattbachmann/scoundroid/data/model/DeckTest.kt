@@ -72,8 +72,15 @@ class DeckTest {
         // Should have 2-10
         val expectedRanks =
             listOf(
-                Rank.TWO, Rank.THREE, Rank.FOUR, Rank.FIVE, Rank.SIX,
-                Rank.SEVEN, Rank.EIGHT, Rank.NINE, Rank.TEN,
+                Rank.TWO,
+                Rank.THREE,
+                Rank.FOUR,
+                Rank.FIVE,
+                Rank.SIX,
+                Rank.SEVEN,
+                Rank.EIGHT,
+                Rank.NINE,
+                Rank.TEN,
             )
         expectedRanks.forEach { rank ->
             assertTrue(
@@ -98,8 +105,15 @@ class DeckTest {
         // Should have 2-10
         val expectedRanks =
             listOf(
-                Rank.TWO, Rank.THREE, Rank.FOUR, Rank.FIVE, Rank.SIX,
-                Rank.SEVEN, Rank.EIGHT, Rank.NINE, Rank.TEN,
+                Rank.TWO,
+                Rank.THREE,
+                Rank.FOUR,
+                Rank.FIVE,
+                Rank.SIX,
+                Rank.SEVEN,
+                Rank.EIGHT,
+                Rank.NINE,
+                Rank.TEN,
             )
         expectedRanks.forEach { rank ->
             assertTrue(

@@ -98,8 +98,8 @@ class GameViewModelTest {
 
             viewModel.uiState.test {
                 val state = awaitItem()
-                assertNotNull(state.currentRoom)
-                assertEquals(4, state.currentRoom!!.size)
+                val room = requireNotNull(state.currentRoom)
+                assertEquals(4, room.size)
                 assertEquals(40, state.deckSize) // 44 - 4 = 40
             }
         }
@@ -117,22 +117,23 @@ class GameViewModelTest {
                 viewModel.onIntent(GameIntent.DrawRoom)
                 testDispatcher.scheduler.advanceUntilIdle()
                 val state = awaitItem()
-                assertEquals(4, state.currentRoom!!.size)
-                val cardsToSelect = state.currentRoom!!.take(3)
+                val firstRoom = requireNotNull(state.currentRoom)
+                assertEquals(4, firstRoom.size)
+                val cardsToSelect = firstRoom.take(3)
 
                 // Select and process 3 cards (all weapons/potions, no combat choices)
                 viewModel.onIntent(GameIntent.ProcessSelectedCards(cardsToSelect))
                 testDispatcher.scheduler.advanceUntilIdle()
 
                 val afterProcessing = awaitItem()
-                assertEquals(1, afterProcessing.currentRoom!!.size)
+                assertEquals(1, requireNotNull(afterProcessing.currentRoom).size)
 
                 // Draw next room (should draw 3 more + 1 remaining = 4 total)
                 viewModel.onIntent(GameIntent.DrawRoom)
                 testDispatcher.scheduler.advanceUntilIdle()
 
                 val newState = awaitItem()
-                assertEquals(4, newState.currentRoom!!.size)
+                assertEquals(4, requireNotNull(newState.currentRoom).size)
             }
         }
 
@@ -152,8 +153,8 @@ class GameViewModelTest {
             viewModel.uiState.test {
                 val state = awaitItem()
                 // After avoid, a new room is auto-drawn
-                assertNotNull(state.currentRoom)
-                assertEquals(4, state.currentRoom!!.size)
+                val room = requireNotNull(state.currentRoom)
+                assertEquals(4, room.size)
                 // Avoided 4 cards go to bottom, new 4 drawn from top
                 assertEquals(40, state.deckSize)
                 assertTrue(state.lastRoomAvoided)
@@ -267,8 +268,8 @@ class GameViewModelTest {
 
             val newState = initialState.equipWeapon(weapon)
 
-            assertNotNull(newState.weaponState)
-            assertEquals(5, newState.weaponState!!.weapon.value)
+            val weaponState = requireNotNull(newState.weaponState)
+            assertEquals(5, weaponState.weapon.value)
         }
 
     @Test
@@ -286,7 +287,8 @@ class GameViewModelTest {
     fun `weapon reduces monster damage`() =
         runTest {
             val initialState =
-                GameState.newGame()
+                GameState
+                    .newGame()
                     .equipWeapon(testWeapon(5))
                     .fightMonster(testMonster(8))
 
@@ -299,7 +301,8 @@ class GameViewModelTest {
     fun `game over when health reaches 0`() =
         runTest {
             val state =
-                GameState.newGame()
+                GameState
+                    .newGame()
                     .fightMonster(testMonster(14)) // 20 - 14 = 6
                     .fightMonster(testMonster(6)) // 6 - 6 = 0
 
@@ -313,7 +316,9 @@ class GameViewModelTest {
         runTest {
             val gameState =
                 GameState.newGame().copy(
-                    deck = dev.mattbachmann.scoundroid.data.model.Deck(emptyList()),
+                    deck =
+                        dev.mattbachmann.scoundroid.data.model
+                            .Deck(emptyList()),
                     health = 15,
                 )
 
@@ -414,12 +419,13 @@ class GameViewModelTest {
     fun `weapon degradation is tracked correctly`() =
         runTest {
             val state =
-                GameState.newGame()
+                GameState
+                    .newGame()
                     .equipWeapon(testWeapon(5))
                     .fightMonster(testMonster(12))
 
-            assertNotNull(state.weaponState)
-            assertEquals(12, state.weaponState!!.maxMonsterValue)
+            val weaponState = requireNotNull(state.weaponState)
+            assertEquals(12, weaponState.maxMonsterValue)
         }
 
     @Test
@@ -436,7 +442,8 @@ class GameViewModelTest {
             // This tests that when processing multiple cards without drawing a new room,
             // only the first potion takes effect (usedPotionThisTurn flag)
             val state =
-                GameState.newGame()
+                GameState
+                    .newGame()
                     .fightMonster(testMonster(10)) // Health: 10
                     .usePotion(testPotion(5)) // Health: 15 (first potion applied)
                     .usePotion(testPotion(5)) // Health: 15 (second potion ignored)
@@ -669,9 +676,7 @@ class GameViewModelTest {
                 val state = awaitItem()
                 // Should have GameStarted + RoomDrawn
                 assertEquals(2, state.actionLog.size)
-                val lastEntry = state.actionLog.last()
-                assertTrue(lastEntry is LogEntry.RoomDrawn)
-                val roomDrawn = lastEntry as LogEntry.RoomDrawn
+                val roomDrawn = state.actionLog.last() as LogEntry.RoomDrawn
                 assertEquals(4, roomDrawn.cardsDrawn)
                 assertEquals(40, roomDrawn.deckSizeAfter)
             }
@@ -718,8 +723,8 @@ class GameViewModelTest {
 
                 val state = awaitItem()
                 // After avoiding, a new room should be automatically drawn
-                assertNotNull(state.currentRoom)
-                assertEquals(4, state.currentRoom!!.size)
+                val room = requireNotNull(state.currentRoom)
+                assertEquals(4, room.size)
                 // Deck should still be 40 (avoided 4 goes to bottom, new 4 drawn)
                 assertEquals(40, state.deckSize)
             }
@@ -739,8 +744,7 @@ class GameViewModelTest {
                 val roomState = awaitItem()
 
                 // Ensure room is drawn
-                assertNotNull(roomState.currentRoom)
-                val room = roomState.currentRoom!!
+                val room = requireNotNull(roomState.currentRoom)
 
                 // Find a monster in the room (seed 1L guarantees at least one)
                 val monster = room.find { it.type == CardType.MONSTER }
@@ -767,14 +771,15 @@ class GameViewModelTest {
 
                 // Find the MonsterFought entry for our specific monster
                 val monsterEntry =
-                    state.actionLog.filterIsInstance<LogEntry.MonsterFought>()
+                    state.actionLog
+                        .filterIsInstance<LogEntry.MonsterFought>()
                         .find { it.monster == monster }
-                assertNotNull(monsterEntry)
-                assertNull(monsterEntry!!.weaponUsed)
-                assertEquals(monster.value, monsterEntry.damageTaken)
-                assertEquals(0, monsterEntry.damageBlocked)
+                val entry = requireNotNull(monsterEntry)
+                assertNull(entry.weaponUsed)
+                assertEquals(monster.value, entry.damageTaken)
+                assertEquals(0, entry.damageBlocked)
                 // Health after should be health before minus damage
-                assertEquals(monsterEntry.healthBefore - monster.value, monsterEntry.healthAfter)
+                assertEquals(entry.healthBefore - monster.value, entry.healthAfter)
                 cancelAndIgnoreRemainingEvents()
             }
         }
@@ -792,8 +797,7 @@ class GameViewModelTest {
                 testDispatcher.scheduler.advanceUntilIdle()
                 val roomState = awaitItem()
 
-                assertNotNull(roomState.currentRoom)
-                val room = roomState.currentRoom!!
+                val room = requireNotNull(roomState.currentRoom)
 
                 // Find a weapon in the room (seed 33L guarantees weapons)
                 val weapon = room.find { it.type == CardType.WEAPON }
@@ -818,9 +822,11 @@ class GameViewModelTest {
                 }
                 assertTrue(safetyCounter < maxIterations, "Exceeded max iterations; possible infinite loop")
 
-                val weaponEntry = state.actionLog.filterIsInstance<LogEntry.WeaponEquipped>().firstOrNull()
-                assertNotNull(weaponEntry)
-                assertEquals(weapon, weaponEntry!!.weapon)
+                val weaponEntry =
+                    requireNotNull(
+                        state.actionLog.filterIsInstance<LogEntry.WeaponEquipped>().firstOrNull(),
+                    )
+                assertEquals(weapon, weaponEntry.weapon)
                 assertNull(weaponEntry.replacedWeapon)
                 cancelAndIgnoreRemainingEvents()
             }
@@ -839,8 +845,7 @@ class GameViewModelTest {
                 testDispatcher.scheduler.advanceUntilIdle()
                 val roomState = awaitItem()
 
-                assertNotNull(roomState.currentRoom)
-                val room = roomState.currentRoom!!
+                val room = requireNotNull(roomState.currentRoom)
 
                 // Find a potion in the room (seed 33L guarantees a potion - 2♥)
                 val potion = room.find { it.type == CardType.POTION }
@@ -865,9 +870,11 @@ class GameViewModelTest {
                 }
                 assertTrue(safetyCounter < maxIterations, "Exceeded max iterations; possible infinite loop")
 
-                val potionEntry = state.actionLog.filterIsInstance<LogEntry.PotionUsed>().firstOrNull()
-                assertNotNull(potionEntry)
-                assertEquals(potion, potionEntry!!.potion)
+                val potionEntry =
+                    requireNotNull(
+                        state.actionLog.filterIsInstance<LogEntry.PotionUsed>().firstOrNull(),
+                    )
+                assertEquals(potion, potionEntry.potion)
                 assertFalse(potionEntry.wasDiscarded)
                 // healthAfter should be >= healthBefore (healing or capped)
                 assertTrue(potionEntry.healthAfter >= potionEntry.healthBefore)
@@ -1188,12 +1195,15 @@ class GameViewModelTest {
                 testDispatcher.scheduler.advanceUntilIdle()
                 val roomState = awaitItem()
 
-                val room = roomState.currentRoom!!
-                val weapon = room.find { it.type == CardType.WEAPON }
-                assertNotNull(weapon, "Seed 33L should have weapon in first room")
+                val room = requireNotNull(roomState.currentRoom)
+                val weapon =
+                    requireNotNull(
+                        room.find { it.type == CardType.WEAPON },
+                        { "Seed 33L should have weapon in first room" },
+                    )
 
                 // Equip the weapon by processing it first
-                val selection = listOf(weapon!!) + room.filter { it != weapon }.take(2)
+                val selection = listOf(weapon) + room.filter { it != weapon }.take(2)
                 viewModel.onIntent(GameIntent.ProcessSelectedCards(selection))
                 testDispatcher.scheduler.advanceUntilIdle()
 

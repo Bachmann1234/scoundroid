@@ -16,7 +16,9 @@ import kotlin.random.Random
  *
  * @property cards The list of cards in the deck
  */
-data class Deck(val cards: List<Card>) {
+data class Deck(
+    val cards: List<Card>,
+) {
     companion object {
         /**
          * Creates a new standard Scoundrel deck with 44 cards.
@@ -37,8 +39,15 @@ data class Deck(val cards: List<Card>) {
             // Add Diamonds 2-10 only - Weapons
             val numberedRanks =
                 listOf(
-                    Rank.TWO, Rank.THREE, Rank.FOUR, Rank.FIVE, Rank.SIX,
-                    Rank.SEVEN, Rank.EIGHT, Rank.NINE, Rank.TEN,
+                    Rank.TWO,
+                    Rank.THREE,
+                    Rank.FOUR,
+                    Rank.FIVE,
+                    Rank.SIX,
+                    Rank.SEVEN,
+                    Rank.EIGHT,
+                    Rank.NINE,
+                    Rank.TEN,
                 )
             numberedRanks.forEach { rank ->
                 cards.add(Card(Suit.DIAMONDS, rank))
@@ -58,9 +67,7 @@ data class Deck(val cards: List<Card>) {
      *
      * @param random Optional random source for deterministic shuffling (useful for tests)
      */
-    fun shuffle(random: Random = Random): Deck {
-        return Deck(cards.shuffled(random))
-    }
+    fun shuffle(random: Random = Random): Deck = Deck(cards.shuffled(random))
 
     /**
      * Draws the specified number of cards from the top of the deck.
