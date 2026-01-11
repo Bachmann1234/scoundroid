@@ -1160,4 +1160,125 @@ class GameViewModelTest {
                 assertEquals(seed, state.gameSeed)
             }
         }
+
+    // ========== Game End Loop Bug Tests (Issue #36) ==========
+
+    @Test
+    fun `Issue 36 - direct test - GameEnded resets pendingCombatChoice to null`() =
+        runTest {
+            // Direct test: When GameEnded is called while pendingCombatChoice is active,
+            // the pendingCombatChoice gets reset to null because updateUiStateWithHighScore()
+            // rebuilds UI state from gameState.value which doesn't include pendingCombatChoice.
+            //
+            // Seed 33L produces first room with weapons: [8♦, 6♦, 4♦, 2♥]
+            // We equip weapon, then find a monster to fight
+
+            val mockRepo = mockk<HighScoreRepository>(relaxed = true)
+            coEvery { mockRepo.getHighestScore() } returns null
+            coEvery { mockRepo.isNewHighScore(any()) } returns false
+
+            val viewModel = GameViewModel(mockRepo, randomSeed = 33L)
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            viewModel.uiState.test {
+                awaitItem() // Initial state
+
+                // Draw first room - seed 33L gives us weapons
+                viewModel.onIntent(GameIntent.DrawRoom)
+                testDispatcher.scheduler.advanceUntilIdle()
+                val roomState = awaitItem()
+
+                val room = roomState.currentRoom!!
+                val weapon = room.find { it.type == CardType.WEAPON }
+                assertNotNull(weapon, "Seed 33L should have weapon in first room")
+
+                // Equip the weapon by processing it first
+                val selection = listOf(weapon!!) + room.filter { it != weapon }.take(2)
+                viewModel.onIntent(GameIntent.ProcessSelectedCards(selection))
+                testDispatcher.scheduler.advanceUntilIdle()
+
+                var state = awaitItem()
+                // Handle any combat choices that might appear
+                while (state.pendingCombatChoice != null) {
+                    viewModel.onIntent(GameIntent.ResolveCombatChoice(useWeapon = true))
+                    testDispatcher.scheduler.advanceUntilIdle()
+                    state = awaitItem()
+                }
+
+                assertNotNull(state.weaponState, "Should have weapon equipped after processing")
+
+                // Draw next room to find monsters
+                viewModel.onIntent(GameIntent.DrawRoom)
+                testDispatcher.scheduler.advanceUntilIdle()
+                state = awaitItem()
+
+                // Keep drawing until we find a monster we can use weapon on
+                var foundMonster = false
+                var iterations = 0
+                while (!foundMonster && iterations < 5 && !state.isGameOver) {
+                    val currentRoom = state.currentRoom!!
+                    val monsterForChoice =
+                        currentRoom.find {
+                            it.type == CardType.MONSTER && state.weaponState?.canDefeat(it) == true
+                        }
+
+                    if (monsterForChoice != null) {
+                        // Process with monster first to trigger combat choice
+                        val selection2 =
+                            listOf(monsterForChoice) + currentRoom.filter { it != monsterForChoice }.take(2)
+                        viewModel.onIntent(GameIntent.ProcessSelectedCards(selection2))
+                        testDispatcher.scheduler.advanceUntilIdle()
+                        state = awaitItem()
+
+                        if (state.pendingCombatChoice != null) {
+                            foundMonster = true
+                        } else {
+                            // Monster was auto-fought, draw next room
+                            if (state.currentRoom?.size == 1) {
+                                viewModel.onIntent(GameIntent.DrawRoom)
+                                testDispatcher.scheduler.advanceUntilIdle()
+                                state = awaitItem()
+                            }
+                        }
+                    } else {
+                        // No suitable monster, process room and continue
+                        viewModel.onIntent(GameIntent.ProcessSelectedCards(currentRoom.take(3)))
+                        testDispatcher.scheduler.advanceUntilIdle()
+                        state = awaitItem()
+                        while (state.pendingCombatChoice != null) {
+                            viewModel.onIntent(GameIntent.ResolveCombatChoice(useWeapon = true))
+                            testDispatcher.scheduler.advanceUntilIdle()
+                            state = awaitItem()
+                        }
+                        if (state.currentRoom?.size == 1 && !state.isGameOver) {
+                            viewModel.onIntent(GameIntent.DrawRoom)
+                            testDispatcher.scheduler.advanceUntilIdle()
+                            state = awaitItem()
+                        }
+                    }
+                    iterations++
+                }
+
+                assertTrue(foundMonster, "Should find a monster that triggers combat choice")
+                assertNotNull(state.pendingCombatChoice, "Should have pending combat choice")
+                val pendingChoiceBefore = state.pendingCombatChoice
+
+                // THE BUG TEST: Call GameEnded while combat choice is pending
+                // This simulates what the UI's LaunchedEffect does when isGameOver becomes true
+                viewModel.onIntent(GameIntent.GameEnded(state.score, state.isGameWon))
+                testDispatcher.scheduler.advanceUntilIdle()
+                state = awaitItem()
+
+                // BUG ASSERTION: pendingCombatChoice should be preserved but gets wiped
+                // This test SHOULD FAIL before the fix is applied
+                assertEquals(
+                    pendingChoiceBefore,
+                    state.pendingCombatChoice,
+                    "BUG: pendingCombatChoice was wiped by GameEnded! " +
+                        "The UI should not call GameEnded while combat choice is active.",
+                )
+
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
 }

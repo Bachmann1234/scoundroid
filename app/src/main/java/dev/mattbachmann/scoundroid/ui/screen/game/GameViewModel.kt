@@ -65,6 +65,8 @@ class GameViewModel(
         val isNewHigh = highScoreRepository?.isNewHighScore(currentScore) ?: false
         val currentShowHelp = _uiState.value.showHelp
         val currentShowActionLog = _uiState.value.showActionLog
+        // Issue #36: Preserve pendingCombatChoice to avoid resetting state mid-processing
+        val currentPendingCombatChoice = _uiState.value.pendingCombatChoice
         _uiState.value =
             gameState.value.toUiState().copy(
                 highestScore = highestScore,
@@ -72,6 +74,7 @@ class GameViewModel(
                 showHelp = currentShowHelp,
                 showActionLog = currentShowActionLog,
                 actionLog = actionLogEntries.toList(),
+                pendingCombatChoice = currentPendingCombatChoice,
             )
     }
 

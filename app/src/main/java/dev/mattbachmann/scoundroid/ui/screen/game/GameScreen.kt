@@ -95,19 +95,17 @@ fun GameScreen(
     val isExpandedScreen = screenSizeClass == ScreenSizeClass.EXPANDED
     val uiState by viewModel.uiState.collectAsState()
     var selectedCards by remember { mutableStateOf(listOf<Card>()) }
-    var scoreSaved by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
     var showSeedDialog by remember { mutableStateOf(false) }
     val clipboardManager = LocalClipboardManager.current
     val context = LocalContext.current
 
-    // Save score when game ends, reset flag when new game starts
-    LaunchedEffect(uiState.isGameOver, uiState.isGameWon) {
-        if ((uiState.isGameOver || uiState.isGameWon) && !scoreSaved) {
+    // Save score when game ends
+    // Important: Don't trigger GameEnded while a combat choice is pending (Issue #36)
+    // This prevents the bug where GameEnded resets UI state mid-processing, causing an infinite loop
+    LaunchedEffect(uiState.isGameOver, uiState.isGameWon, uiState.pendingCombatChoice) {
+        if ((uiState.isGameOver || uiState.isGameWon) && uiState.pendingCombatChoice == null) {
             viewModel.onIntent(GameIntent.GameEnded(uiState.score, uiState.isGameWon))
-            scoreSaved = true
-        } else if (!uiState.isGameOver && !uiState.isGameWon) {
-            scoreSaved = false
         }
     }
 
