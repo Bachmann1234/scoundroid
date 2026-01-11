@@ -127,7 +127,14 @@ fun GameScreen(
             onDismissRequest = { viewModel.onIntent(GameIntent.HideActionLog) },
             sheetState = rememberModalBottomSheetState(),
         ) {
-            ActionLogPanel(actionLog = uiState.actionLog)
+            ActionLogPanel(
+                actionLog = uiState.actionLog,
+                gameSeed = uiState.gameSeed,
+                onCopySeed = {
+                    clipboardManager.setText(AnnotatedString(uiState.gameSeed.toString()))
+                    Toast.makeText(context, "Seed copied!", Toast.LENGTH_SHORT).show()
+                },
+            )
         }
     }
 
