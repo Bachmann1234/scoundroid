@@ -2,7 +2,6 @@ package dev.mattbachmann.scoundroid.ui
 
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasText
@@ -65,25 +64,6 @@ fun ComposeTestRule.drawNextRoom() {
     onNode(hasText("Draw Next Room") and hasClickAction())
         .performScrollTo()
         .performClick()
-    waitForIdle()
-}
-
-/**
- * Selects a card by its content description.
- * Card descriptions follow the pattern: "TYPE card, RANK of SUIT, value VALUE"
- * e.g., "Monster card, Queen of Clubs, value 12"
- */
-fun ComposeTestRule.selectCard(contentDescription: String) {
-    onNodeWithContentDescription(contentDescription, substring = true).performClick()
-    waitForIdle()
-}
-
-/**
- * Selects a card containing the specified text in its description.
- * Useful when you don't know the exact card but know part of its description.
- */
-fun ComposeTestRule.selectCardContaining(descriptionPart: String) {
-    onNodeWithContentDescription(descriptionPart, substring = true).performClick()
     waitForIdle()
 }
 
@@ -180,27 +160,6 @@ fun ComposeTestRule.assertDeckSize(expected: Int) {
 }
 
 /**
- * Asserts that the score display shows the expected value.
- */
-fun ComposeTestRule.assertScore(expected: Int) {
-    onNodeWithTag("score_display").assertTextContains("$expected")
-}
-
-/**
- * Asserts that the game over screen is displayed.
- */
-fun ComposeTestRule.assertGameOver() {
-    onNodeWithTag("game_over_screen").assertIsDisplayed()
-}
-
-/**
- * Asserts that the victory screen is displayed.
- */
-fun ComposeTestRule.assertVictory() {
-    onNodeWithTag("victory_screen").assertIsDisplayed()
-}
-
-/**
  * Asserts that the "Draw Room" button is visible.
  * Waits for the button, scrolls to it, and verifies it's displayed.
  */
@@ -230,45 +189,4 @@ fun ComposeTestRule.assertAvoidRoomButtonVisible() {
 fun ComposeTestRule.assertAvoidRoomButtonNotVisible() {
     // Use assertDoesNotExist since the button is conditionally rendered
     onNode(hasText("Avoid Room") and hasClickAction()).assertDoesNotExist()
-}
-
-/**
- * Asserts that the process cards button shows the expected selection count.
- * Button shows "Go" when 3 selected, "Pick X" when fewer selected.
- */
-fun ComposeTestRule.assertProcessButtonShows(selectedCount: Int) {
-    val expectedText = if (selectedCount == 3) "Go" else "Pick ${3 - selectedCount}"
-    onNode(hasText(expectedText) and hasClickAction()).assertIsDisplayed()
-}
-
-/**
- * Asserts that the process cards button is enabled (3 cards selected).
- */
-fun ComposeTestRule.assertProcessButtonEnabled() {
-    onNode(hasText("Go") and hasClickAction()).assertIsEnabled()
-}
-
-/**
- * Asserts that a card with the given content description is displayed.
- */
-fun ComposeTestRule.assertCardDisplayed(contentDescription: String) {
-    onNodeWithContentDescription(contentDescription, substring = true).assertIsDisplayed()
-}
-
-/**
- * Counts the number of visible cards by checking for card content descriptions.
- * Returns true if at least the expected number of cards are visible.
- */
-fun ComposeTestRule.hasAtLeastCards(count: Int): Boolean {
-    // This is a simplified check - in practice you might need to be more specific
-    var foundCards = 0
-    listOf("Monster card", "Weapon card", "Potion card").forEach { cardType ->
-        try {
-            onNodeWithContentDescription(cardType, substring = true).assertIsDisplayed()
-            foundCards++
-        } catch (_: AssertionError) {
-            // Card type not found, continue
-        }
-    }
-    return foundCards >= count
 }

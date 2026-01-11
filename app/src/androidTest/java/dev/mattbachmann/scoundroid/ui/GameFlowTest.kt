@@ -11,6 +11,7 @@ import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import dev.mattbachmann.scoundroid.ui.screen.game.GameScreen
 import dev.mattbachmann.scoundroid.ui.screen.game.GameViewModel
@@ -359,6 +360,32 @@ class GameFlowTest {
         // below the fold on smaller screens)
         composeTestRule.waitForIdle()
         composeTestRule.onNode(hasText("Custom Seed") and hasClickAction()).assertExists()
+    }
+
+    @Test
+    fun customSeedDialog_canEnterSeedAndStartGame() {
+        composeTestRule.waitForIdle()
+
+        // Click Custom Seed button
+        composeTestRule.onNode(hasText("Custom Seed") and hasClickAction()).performClick()
+        composeTestRule.waitForIdle()
+
+        // Verify dialog appears
+        composeTestRule.onNodeWithText("Enter Seed").assertIsDisplayed()
+
+        // Enter a seed value in the text field (find by label "Seed")
+        composeTestRule.onNodeWithText("Seed").performTextInput("12345")
+        composeTestRule.waitForIdle()
+
+        // Verify the text was entered
+        composeTestRule.onNodeWithText("12345").assertIsDisplayed()
+
+        // Click Start Game button
+        composeTestRule.onNode(hasText("Start Game") and hasClickAction()).performClick()
+        composeTestRule.waitForIdle()
+
+        // Dialog should be dismissed and game should be ready
+        composeTestRule.assertDrawRoomButtonVisible()
     }
 
     @Test

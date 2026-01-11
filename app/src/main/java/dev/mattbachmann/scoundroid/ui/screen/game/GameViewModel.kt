@@ -278,9 +278,8 @@ class GameViewModel(
                     // Continue loop to process next card
                 }
                 CardType.POTION -> {
-                    val wasDiscarded = usedPotionBefore
                     val newState = state.usePotion(card)
-                    val healthRestored = if (wasDiscarded) 0 else newState.health - healthBefore
+                    val healthRestored = if (usedPotionBefore) 0 else newState.health - healthBefore
 
                     actionLogEntries.add(
                         LogEntry.PotionUsed(
@@ -289,7 +288,7 @@ class GameViewModel(
                             healthRestored = healthRestored,
                             healthBefore = healthBefore,
                             healthAfter = newState.health,
-                            wasDiscarded = wasDiscarded,
+                            wasDiscarded = usedPotionBefore,
                         ),
                     )
                     processingState = newState
@@ -435,9 +434,8 @@ class GameViewModel(
                         newState
                     }
                     CardType.POTION -> {
-                        val wasDiscarded = usedPotionBefore
                         val newState = state.usePotion(card)
-                        val healthRestored = if (wasDiscarded) 0 else newState.health - healthBefore
+                        val healthRestored = if (usedPotionBefore) 0 else newState.health - healthBefore
 
                         previewEntries.add(
                             LogEntry.PotionUsed(
@@ -446,7 +444,7 @@ class GameViewModel(
                                 healthRestored = healthRestored,
                                 healthBefore = healthBefore,
                                 healthAfter = newState.health,
-                                wasDiscarded = wasDiscarded,
+                                wasDiscarded = usedPotionBefore,
                             ),
                         )
                         newState

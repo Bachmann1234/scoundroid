@@ -234,11 +234,6 @@ data class GameState(
     }
 
     /**
-     * Adds a card to the discard pile.
-     */
-    fun discard(card: Card): GameState = copy(discardPile = discardPile + card)
-
-    /**
      * Calculates the current score.
      *
      * Scoring rules:
