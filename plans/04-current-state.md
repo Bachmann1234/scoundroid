@@ -1,6 +1,6 @@
 # Current State & Next Steps
 
-**Last Updated**: 2026-01-09 (Session 10 - UI Polish Review)
+**Last Updated**: 2026-01-11 (Session 11 - Seed Solver & Win Probability)
 
 ## Phase 1: COMPLETE ✅
 ## Phase 2: COMPLETE ✅
@@ -397,6 +397,50 @@
 - ✅ **Card Scaling**
   - Font sizes scale with card dimensions
   - Fixed flaky tests related to card rendering
+
+## Session 11 In Progress (2026-01-11)
+
+**Seed Solver & Win Probability Analysis**
+
+**Branch:** `seed-solver`
+
+**Accomplishments:**
+
+- ✅ **Exhaustive Solver** (abandoned - intractable)
+  - `GameSolver.kt` - DFS exploration of all game states
+  - Too slow even with 1M node limit
+
+- ✅ **Monte Carlo Simulator**
+  - `MonteCarloSimulator.kt` - Random play sampling
+  - Result: 0% wins with random play (game too hard)
+
+- ✅ **Optimal Solver with Pruning**
+  - `OptimalSolver.kt` - DFS with early termination
+  - Still too slow to find wins in reasonable time
+
+- ✅ **Heuristic Player**
+  - `HeuristicPlayer.kt` - Intelligent decision-making AI
+  - `HeuristicSimulator.kt` - Runs heuristic games
+  - Speed: ~50,000-90,000 games/sec
+  - Current win rate: **0.094%** (94 wins out of 100,000 seeds)
+
+- ✅ **Key Strategy Fixes**
+  - Evaluate which card to leave based on total damage (not just "leave smallest")
+  - Consider weapon degradation when equipping new weapons
+  - Penalize leaving big monsters (harder to fight later)
+  - Smart room skipping based on estimated damage
+
+**Files Created:**
+- `domain/solver/SolveResult.kt` - Result types for solvers
+- `domain/solver/GameSolver.kt` - Exhaustive solver (abandoned)
+- `domain/solver/MonteCarloSimulator.kt` - Random sampling
+- `domain/solver/OptimalSolver.kt` - Pruned DFS solver
+- `domain/solver/HeuristicPlayer.kt` - Smart AI player
+- Test files for all solvers
+
+**Next Step:** Genetic Algorithm to optimize heuristic player parameters
+- See `plans/06-genetic-algorithm-player.md` for implementation plan
+- Goal: Improve win rate from 0.1% to >1%
 
 ## Session 10 Completed (2026-01-09)
 
