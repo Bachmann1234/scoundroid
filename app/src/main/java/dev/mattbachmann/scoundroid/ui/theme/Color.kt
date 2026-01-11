@@ -17,4 +17,3 @@ val GradientBottom = Color(0xFF16213E) // Darker blue
 
 // Button accent colors
 val ButtonPrimary = Color(0xFF6C63FF) // Vibrant purple
-val ButtonPrimaryPressed = Color(0xFF5A52D9) // Darker purple for pressed state

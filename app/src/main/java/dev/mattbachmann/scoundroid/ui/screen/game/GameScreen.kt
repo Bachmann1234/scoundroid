@@ -1,5 +1,8 @@
 package dev.mattbachmann.scoundroid.ui.screen.game
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -43,10 +46,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -97,8 +98,8 @@ fun GameScreen(
     var selectedCards by remember { mutableStateOf(listOf<Card>()) }
     val sheetState = rememberModalBottomSheetState()
     var showSeedDialog by remember { mutableStateOf(false) }
-    val clipboardManager = LocalClipboardManager.current
     val context = LocalContext.current
+    val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
 
     // Save score when game ends
     // Important: Don't trigger GameEnded while a combat choice is pending (Issue #36)
@@ -129,7 +130,7 @@ fun GameScreen(
                 actionLog = uiState.actionLog,
                 gameSeed = uiState.gameSeed,
                 onCopySeed = {
-                    clipboardManager.setText(AnnotatedString(uiState.gameSeed.toString()))
+                    clipboardManager.setPrimaryClip(ClipData.newPlainText("Seed", uiState.gameSeed.toString()))
                     Toast.makeText(context, "Seed copied!", Toast.LENGTH_SHORT).show()
                 },
             )
@@ -242,7 +243,7 @@ fun GameScreen(
                         onIntent = viewModel::onIntent,
                         simulateProcessing = viewModel::simulateProcessing,
                         onCopySeed = {
-                            clipboardManager.setText(AnnotatedString(uiState.gameSeed.toString()))
+                            clipboardManager.setPrimaryClip(ClipData.newPlainText("Seed", uiState.gameSeed.toString()))
                             Toast.makeText(context, "Seed copied!", Toast.LENGTH_SHORT).show()
                         },
                         onPlaySeed = { showSeedDialog = true },
@@ -315,7 +316,7 @@ fun GameScreen(
                     simulateProcessing = viewModel::simulateProcessing,
                     screenSizeClass = screenSizeClass,
                     onCopySeed = {
-                        clipboardManager.setText(AnnotatedString(uiState.gameSeed.toString()))
+                        clipboardManager.setPrimaryClip(ClipData.newPlainText("Seed", uiState.gameSeed.toString()))
                         Toast.makeText(context, "Seed copied!", Toast.LENGTH_SHORT).show()
                     },
                     onPlaySeed = { showSeedDialog = true },
