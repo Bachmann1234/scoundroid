@@ -11,6 +11,7 @@ import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import dev.mattbachmann.scoundroid.ui.screen.game.GameScreen
@@ -366,9 +367,15 @@ class GameFlowTest {
     fun customSeedDialog_canEnterSeedAndStartGame() {
         composeTestRule.waitForIdle()
 
-        // Click Custom Seed button
-        composeTestRule.onNode(hasText("Custom Seed") and hasClickAction()).performClick()
-        composeTestRule.waitForIdle()
+        // Click Custom Seed button (scroll to it first for smaller screens)
+        composeTestRule.waitUntilNodeExists(hasText("Custom Seed") and hasClickAction())
+        composeTestRule
+            .onNode(hasText("Custom Seed") and hasClickAction())
+            .performScrollTo()
+            .performClick()
+
+        // Wait for dialog to appear (extended timeout for slow CI emulators)
+        composeTestRule.waitUntilNodeExists(hasText("Enter Seed"))
 
         // Verify dialog appears
         composeTestRule.onNodeWithText("Enter Seed").assertIsDisplayed()

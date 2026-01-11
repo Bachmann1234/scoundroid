@@ -37,7 +37,7 @@ fun ComposeTestRule.drawRoom() {
  * Waits until a node matching the given matcher exists in the UI tree.
  * Uses extended timeout for slower CI emulators.
  */
-private fun ComposeTestRule.waitUntilNodeExists(matcher: SemanticsMatcher) {
+fun ComposeTestRule.waitUntilNodeExists(matcher: SemanticsMatcher) {
     waitUntil(CI_TIMEOUT_MS) {
         onAllNodes(matcher).fetchSemanticsNodes().isNotEmpty()
     }
