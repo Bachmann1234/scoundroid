@@ -209,16 +209,6 @@ fun CombatChoicePanel(
                         }
                     }
                 }
-
-                // Additional context if there are more cards
-                if (choice.remainingCards.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "${choice.remainingCards.size} more card(s) to process",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
             }
         }
     }
