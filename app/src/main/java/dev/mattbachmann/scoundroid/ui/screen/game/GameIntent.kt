@@ -27,14 +27,19 @@ sealed class GameIntent {
      * This combines selection and processing into a single atomic operation.
      * @param selectedCards The 3 cards chosen from the room to process
      */
-    data class ProcessSelectedCards(val selectedCards: List<Card>) : GameIntent()
+    data class ProcessSelectedCards(
+        val selectedCards: List<Card>,
+    ) : GameIntent()
 
     /**
      * Signal that the game has ended. Used to save the score.
      * @param score The final score
      * @param won Whether the player won
      */
-    data class GameEnded(val score: Int, val won: Boolean) : GameIntent()
+    data class GameEnded(
+        val score: Int,
+        val won: Boolean,
+    ) : GameIntent()
 
     /**
      * Show the help/rules screen.
@@ -61,7 +66,9 @@ sealed class GameIntent {
      * @param useWeapon true to use weapon (reduced damage, weapon degrades),
      *                  false to fight barehanded (full damage, weapon unchanged)
      */
-    data class ResolveCombatChoice(val useWeapon: Boolean) : GameIntent()
+    data class ResolveCombatChoice(
+        val useWeapon: Boolean,
+    ) : GameIntent()
 
     /**
      * Retry the current game with the same seed.
@@ -73,5 +80,7 @@ sealed class GameIntent {
      * Start a new game with a specific seed.
      * @param seed The seed to use for deck shuffling
      */
-    data class NewGameWithSeed(val seed: Long) : GameIntent()
+    data class NewGameWithSeed(
+        val seed: Long,
+    ) : GameIntent()
 }

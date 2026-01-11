@@ -30,8 +30,8 @@ class GameViewModel(
     private fun createRandom(): Random = Random(currentGameSeed)
 
     private val initialGameState = GameState.newGame(createRandom())
-    private val _gameState = MutableStateFlow(initialGameState)
-    private val gameState: StateFlow<GameState> = _gameState.asStateFlow()
+    private val mutableGameState = MutableStateFlow(initialGameState)
+    private val gameState: StateFlow<GameState> = mutableGameState.asStateFlow()
 
     private val initialGameStarted = LogEntry.GameStarted(timestamp = System.currentTimeMillis())
     private val _uiState =
@@ -212,11 +212,11 @@ class GameViewModel(
 
             when (card.type) {
                 CardType.MONSTER -> {
-                    val canUseWeapon = state.weaponState?.canDefeat(card) == true
+                    val weaponState = state.weaponState
 
-                    if (canUseWeapon) {
+                    if (weaponState != null && weaponState.canDefeat(card)) {
                         // Player has a choice - pause for combat decision
-                        val weapon = state.weaponState!!.weapon
+                        val weapon = weaponState.weapon
                         val weaponDamage = (card.value - weapon.value).coerceAtLeast(0)
                         val barehandedDamage = card.value
 
@@ -392,22 +392,20 @@ class GameViewModel(
             val weaponBefore = state.weaponState?.weapon
             val usedPotionBefore = state.usedPotionThisTurn
 
+            val currentWeaponState = state.weaponState
             state =
                 when (card.type) {
                     CardType.MONSTER -> {
-                        val canUseWeapon = state.weaponState?.canDefeat(card) == true
-                        val weaponUsed = if (canUseWeapon) state.weaponState?.weapon else null
-                        val damageBlocked =
-                            if (canUseWeapon) {
-                                state.weaponState!!.weapon.value.coerceAtMost(card.value)
+                        // Compute weapon-related values based on whether we can use the weapon
+                        val (weaponUsed, damageBlocked, damageTaken) =
+                            if (currentWeaponState != null && currentWeaponState.canDefeat(card)) {
+                                Triple(
+                                    currentWeaponState.weapon,
+                                    currentWeaponState.weapon.value.coerceAtMost(card.value),
+                                    (card.value - currentWeaponState.weapon.value).coerceAtLeast(0),
+                                )
                             } else {
-                                0
-                            }
-                        val damageTaken =
-                            if (canUseWeapon) {
-                                (card.value - state.weaponState!!.weapon.value).coerceAtLeast(0)
-                            } else {
-                                card.value
+                                Triple(null, 0, card.value)
                             }
 
                         val newState = state.fightMonster(card)
@@ -460,7 +458,7 @@ class GameViewModel(
     }
 
     private fun updateGameState(newState: GameState) {
-        _gameState.value = newState
+        mutableGameState.value = newState
         // Update UI state immediately with cached high score info
         // isNewHighScore: true if no scores exist OR current score beats highest
         val currentScore = newState.calculateScore()
@@ -479,8 +477,8 @@ class GameViewModel(
     /**
      * Converts GameState to GameUiState for UI consumption.
      */
-    private fun GameState.toUiState(): GameUiState {
-        return GameUiState(
+    private fun GameState.toUiState(): GameUiState =
+        GameUiState(
             health = health,
             deckSize = deck.cards.size,
             currentRoom = currentRoom,
@@ -493,5 +491,4 @@ class GameViewModel(
             canAvoidRoom = currentRoom != null && !lastRoomAvoided,
             gameSeed = currentGameSeed,
         )
-    }
 }

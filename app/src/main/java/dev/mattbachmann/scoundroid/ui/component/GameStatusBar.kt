@@ -97,16 +97,17 @@ fun GameStatusBar(
     val pulseAlpha =
         if (isLowHealth) {
             val infiniteTransition = rememberInfiniteTransition(label = "lowHealthPulse")
-            infiniteTransition.animateFloat(
-                initialValue = 1f,
-                targetValue = 0.3f,
-                animationSpec =
-                    infiniteRepeatable(
-                        animation = tween(500),
-                        repeatMode = RepeatMode.Reverse,
-                    ),
-                label = "pulseAlpha",
-            ).value
+            infiniteTransition
+                .animateFloat(
+                    initialValue = 1f,
+                    targetValue = 0.3f,
+                    animationSpec =
+                        infiniteRepeatable(
+                            animation = tween(500),
+                            repeatMode = RepeatMode.Reverse,
+                        ),
+                    label = "pulseAlpha",
+                ).value
         } else {
             1f
         }

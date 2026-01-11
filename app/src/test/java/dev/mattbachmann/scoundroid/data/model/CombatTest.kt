@@ -3,7 +3,6 @@ package dev.mattbachmann.scoundroid.data.model
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
 /**
@@ -107,8 +106,8 @@ class CombatTest {
         val monster = Card(Suit.SPADES, Rank.TEN) // 10♠
         val afterCombat = game.fightMonster(monster)
 
-        assertNotNull(afterCombat.weaponState, "Weapon should still be equipped")
-        assertEquals(10, afterCombat.weaponState?.maxMonsterValue, "Weapon should degrade to monster value")
+        val weaponStateAfter = requireNotNull(afterCombat.weaponState) { "Weapon should still be equipped" }
+        assertEquals(10, weaponStateAfter.maxMonsterValue, "Weapon should degrade to monster value")
     }
 
     @Test
@@ -311,8 +310,8 @@ class CombatTest {
         // Fight was barehanded: full damage
         assertEquals(12, afterCombat.health, "Barehanded: took full 8 damage")
         // Weapon still equipped with same max value
-        assertNotNull(afterCombat.weaponState)
-        assertEquals(4, afterCombat.weaponState?.maxMonsterValue, "Weapon unchanged")
-        assertEquals(weapon, afterCombat.weaponState?.weapon, "Same weapon equipped")
+        val weaponStateAfter = requireNotNull(afterCombat.weaponState)
+        assertEquals(4, weaponStateAfter.maxMonsterValue, "Weapon unchanged")
+        assertEquals(weapon, weaponStateAfter.weapon, "Same weapon equipped")
     }
 }

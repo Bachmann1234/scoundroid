@@ -15,11 +15,13 @@ abstract class AppDatabase : RoomDatabase() {
 
         fun getDatabase(context: Context): AppDatabase =
             dbInstance ?: synchronized(this) {
-                dbInstance ?: Room.databaseBuilder(
-                    context.applicationContext,
-                    AppDatabase::class.java,
-                    "scoundroid_database",
-                ).build().also { dbInstance = it }
+                dbInstance ?: Room
+                    .databaseBuilder(
+                        context.applicationContext,
+                        AppDatabase::class.java,
+                        "scoundroid_database",
+                    ).build()
+                    .also { dbInstance = it }
             }
     }
 }

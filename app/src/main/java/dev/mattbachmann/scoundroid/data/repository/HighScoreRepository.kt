@@ -4,7 +4,9 @@ import dev.mattbachmann.scoundroid.data.persistence.HighScore
 import dev.mattbachmann.scoundroid.data.persistence.HighScoreDao
 import kotlinx.coroutines.flow.Flow
 
-class HighScoreRepository(private val dao: HighScoreDao) {
+class HighScoreRepository(
+    private val dao: HighScoreDao,
+) {
     suspend fun saveScore(
         score: Int,
         won: Boolean,
@@ -12,17 +14,11 @@ class HighScoreRepository(private val dao: HighScoreDao) {
         dao.insert(HighScore(score = score, won = won))
     }
 
-    fun getTopScores(limit: Int): Flow<List<HighScore>> {
-        return dao.getTopHighScores(limit)
-    }
+    fun getTopScores(limit: Int): Flow<List<HighScore>> = dao.getTopHighScores(limit)
 
-    fun getAllScores(): Flow<List<HighScore>> {
-        return dao.getAllHighScores()
-    }
+    fun getAllScores(): Flow<List<HighScore>> = dao.getAllHighScores()
 
-    suspend fun getHighestScore(): Int? {
-        return dao.getHighestScore()
-    }
+    suspend fun getHighestScore(): Int? = dao.getHighestScore()
 
     suspend fun isNewHighScore(score: Int): Boolean {
         val currentHighest = dao.getHighestScore()
@@ -33,7 +29,5 @@ class HighScoreRepository(private val dao: HighScoreDao) {
         dao.deleteAll()
     }
 
-    suspend fun getScoreCount(): Int {
-        return dao.getScoreCount()
-    }
+    suspend fun getScoreCount(): Int = dao.getScoreCount()
 }

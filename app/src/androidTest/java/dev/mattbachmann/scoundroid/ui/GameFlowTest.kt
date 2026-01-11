@@ -84,12 +84,14 @@ class GameFlowTest {
 
         // Get all card nodes
         val cards =
-            composeTestRule.onAllNodesWithContentDescription("card", substring = true)
+            composeTestRule
+                .onAllNodesWithContentDescription("card", substring = true)
                 .fetchSemanticsNodes()
 
         // Select first 3 cards
         cards.take(3).forEachIndexed { index, _ ->
-            composeTestRule.onAllNodesWithContentDescription("card", substring = true)[index]
+            composeTestRule
+                .onAllNodesWithContentDescription("card", substring = true)[index]
                 .performClick()
             composeTestRule.waitForIdle()
         }
@@ -106,10 +108,12 @@ class GameFlowTest {
 
         // Select 3 cards
         val cards =
-            composeTestRule.onAllNodesWithContentDescription("card", substring = true)
+            composeTestRule
+                .onAllNodesWithContentDescription("card", substring = true)
                 .fetchSemanticsNodes()
         cards.take(3).forEachIndexed { index, _ ->
-            composeTestRule.onAllNodesWithContentDescription("card", substring = true)[index]
+            composeTestRule
+                .onAllNodesWithContentDescription("card", substring = true)[index]
                 .performClick()
             composeTestRule.waitForIdle()
         }
@@ -134,10 +138,12 @@ class GameFlowTest {
 
         // Process 3 cards from first room
         val cards =
-            composeTestRule.onAllNodesWithContentDescription("card", substring = true)
+            composeTestRule
+                .onAllNodesWithContentDescription("card", substring = true)
                 .fetchSemanticsNodes()
         cards.take(3).forEachIndexed { index, _ ->
-            composeTestRule.onAllNodesWithContentDescription("card", substring = true)[index]
+            composeTestRule
+                .onAllNodesWithContentDescription("card", substring = true)[index]
                 .performClick()
             composeTestRule.waitForIdle()
         }
@@ -155,7 +161,8 @@ class GameFlowTest {
         // After avoiding, a new room is auto-drawn, so we should see 4 cards
         // and the process button (not Draw Room)
         val cardsAfterAvoid =
-            composeTestRule.onAllNodesWithContentDescription("card", substring = true)
+            composeTestRule
+                .onAllNodesWithContentDescription("card", substring = true)
                 .fetchSemanticsNodes()
         assert(cardsAfterAvoid.size == 4) { "Expected 4 cards after avoiding, got ${cardsAfterAvoid.size}" }
 
@@ -168,10 +175,12 @@ class GameFlowTest {
         // Draw first room and process it
         composeTestRule.drawRoom()
         val cards =
-            composeTestRule.onAllNodesWithContentDescription("card", substring = true)
+            composeTestRule
+                .onAllNodesWithContentDescription("card", substring = true)
                 .fetchSemanticsNodes()
         cards.take(3).forEachIndexed { index, _ ->
-            composeTestRule.onAllNodesWithContentDescription("card", substring = true)[index]
+            composeTestRule
+                .onAllNodesWithContentDescription("card", substring = true)[index]
                 .performClick()
             composeTestRule.waitForIdle()
         }
@@ -186,7 +195,8 @@ class GameFlowTest {
         // After avoiding, a new room (third room) is auto-drawn
         // We should see 4 cards and should NOT be able to avoid
         val cardsAfterAvoid =
-            composeTestRule.onAllNodesWithContentDescription("card", substring = true)
+            composeTestRule
+                .onAllNodesWithContentDescription("card", substring = true)
                 .fetchSemanticsNodes()
         assert(cardsAfterAvoid.size == 4) { "Expected 4 cards after avoiding, got ${cardsAfterAvoid.size}" }
 
@@ -211,10 +221,12 @@ class GameFlowTest {
         // First draw a room and process it to have some actions logged
         composeTestRule.drawRoom()
         val cards =
-            composeTestRule.onAllNodesWithContentDescription("card", substring = true)
+            composeTestRule
+                .onAllNodesWithContentDescription("card", substring = true)
                 .fetchSemanticsNodes()
         cards.take(3).forEachIndexed { index, _ ->
-            composeTestRule.onAllNodesWithContentDescription("card", substring = true)[index]
+            composeTestRule
+                .onAllNodesWithContentDescription("card", substring = true)[index]
                 .performClick()
             composeTestRule.waitForIdle()
         }
@@ -232,10 +244,12 @@ class GameFlowTest {
         // Draw a room and process some cards to change game state
         composeTestRule.drawRoom()
         val cards =
-            composeTestRule.onAllNodesWithContentDescription("card", substring = true)
+            composeTestRule
+                .onAllNodesWithContentDescription("card", substring = true)
                 .fetchSemanticsNodes()
         cards.take(3).forEachIndexed { index, _ ->
-            composeTestRule.onAllNodesWithContentDescription("card", substring = true)[index]
+            composeTestRule
+                .onAllNodesWithContentDescription("card", substring = true)[index]
                 .performClick()
             composeTestRule.waitForIdle()
         }
@@ -411,12 +425,14 @@ class GameFlowTest {
 
     private fun selectAndProcessThreeCards() {
         val cards =
-            composeTestRule.onAllNodesWithContentDescription("card", substring = true)
+            composeTestRule
+                .onAllNodesWithContentDescription("card", substring = true)
                 .fetchSemanticsNodes()
 
         if (cards.size >= 3) {
             cards.take(3).forEachIndexed { index, _ ->
-                composeTestRule.onAllNodesWithContentDescription("card", substring = true)[index]
+                composeTestRule
+                    .onAllNodesWithContentDescription("card", substring = true)[index]
                     .performClick()
                 composeTestRule.waitForIdle()
             }

@@ -4,7 +4,10 @@ package dev.mattbachmann.scoundroid.data.model
  * Represents the rank of a card.
  * Values: 2-10 = face value, J=11, Q=12, K=13, A=14
  */
-enum class Rank(val value: Int, val displayName: String) {
+enum class Rank(
+    val value: Int,
+    val displayName: String,
+) {
     TWO(2, "2"),
     THREE(3, "3"),
     FOUR(4, "4"),
@@ -27,9 +30,8 @@ enum class Rank(val value: Int, val displayName: String) {
          * @return The corresponding Rank
          * @throws IllegalArgumentException if value is not in range 2-14
          */
-        fun fromValue(value: Int): Rank {
-            return entries.find { it.value == value }
+        fun fromValue(value: Int): Rank =
+            entries.find { it.value == value }
                 ?: throw IllegalArgumentException("Invalid rank value: $value")
-        }
     }
 }

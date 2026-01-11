@@ -22,7 +22,8 @@ class HighScoreDaoTest {
     fun setup() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         database =
-            Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java)
+            Room
+                .inMemoryDatabaseBuilder(context, AppDatabase::class.java)
                 .allowMainThreadQueries()
                 .build()
         dao = database.highScoreDao()
