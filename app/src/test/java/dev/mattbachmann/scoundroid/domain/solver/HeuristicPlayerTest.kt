@@ -7,6 +7,7 @@ import dev.mattbachmann.scoundroid.data.model.GameState
 import dev.mattbachmann.scoundroid.data.model.Rank
 import dev.mattbachmann.scoundroid.data.model.Suit
 import kotlin.random.Random
+import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
@@ -146,6 +147,7 @@ class HeuristicPlayerTest {
     }
 
     @Test
+    @Ignore("Slow benchmark test - run manually")
     fun `simulate 1000 seeds for accurate win rate`() {
         val numSeeds = 100_000L
         val startTime = System.currentTimeMillis()
@@ -191,6 +193,7 @@ class HeuristicPlayerTest {
     }
 
     @Test
+    @Ignore("Slow benchmark test - run manually")
     fun `find and trace winning seeds`() {
         println("\n=== Finding Winning Seeds ===")
         val results = simulator.simulateSeeds(1L..100_000L)
@@ -295,6 +298,7 @@ class HeuristicPlayerTest {
     }
 
     @Test
+    @Ignore("Debug test - run manually")
     fun `trace seed 1 step by step`() {
         println("\n=== SEED 1 MANUAL TRACE ===")
         val game = GameState.newGame(Random(1))
@@ -401,6 +405,7 @@ class HeuristicPlayerTest {
     }
 
     @Test
+    @Ignore("Debug test - run manually")
     fun `debug single game`() {
         println("\n=== Debug: Seed 1 Game Trace ===")
 
