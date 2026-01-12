@@ -8,17 +8,20 @@ import kotlin.random.Random
  */
 data class PlayerGenome(
     // Room skip thresholds
-    val skipIfDamageExceedsHealthMinus: Int, // Skip if damage >= health - this value
+    val skipIfDamageExceedsHealthMinus: Int, // Skip if damage >= health - this value (near-lethal)
     val skipWithoutWeaponDamageFraction: Double, // Skip if no weapon help and damage > this fraction of health
+    val skipDamageHealthFraction: Double, // Skip if damage > this fraction of health (aggressive skip)
     // Card leave evaluation
     val monsterLeavePenaltyMultiplier: Double, // Penalty multiplier for leaving monsters (1.0 = linear)
     val weaponLeavePenaltyIfNeeded: Double, // Penalty for leaving a weapon we need
+    val potionLeavePenaltyPerRemaining: Double, // Penalty per remaining potion in deck for leaving a potion
     // Weapon preservation (CRITICAL - most impactful parameters)
     val weaponPreservationThreshold: Int, // Only use fresh weapon on monsters >= this value
     val minDamageSavedToUseWeapon: Int, // Only use degraded weapon if it saves >= this damage
     val emergencyHealthBuffer: Int, // Use weapon if health <= monster.value + this buffer
     // Weapon equip decisions
     val equipFreshWeaponIfDegradedBelow: Int, // Equip fresh weapon if current is degraded below this
+    val alwaysSwapToFreshIfDegradedBelow: Int, // Always swap to ANY fresh weapon if degraded below this
 ) {
     companion object {
         /** Parameter bounds for random generation and mutation */
@@ -26,12 +29,15 @@ data class PlayerGenome(
             GenomeBounds(
                 skipIfDamageExceedsHealthMinus = 0..10,
                 skipWithoutWeaponDamageFraction = 0.3..0.8,
+                skipDamageHealthFraction = 0.2..0.8, // 20%-80% of health triggers skip
                 monsterLeavePenaltyMultiplier = 0.5..3.0,
                 weaponLeavePenaltyIfNeeded = 0.0..20.0,
+                potionLeavePenaltyPerRemaining = 0.0..2.0, // 0-2 penalty per remaining potion
                 weaponPreservationThreshold = 5..12,
                 minDamageSavedToUseWeapon = 0..5,
                 emergencyHealthBuffer = 0..5,
                 equipFreshWeaponIfDegradedBelow = 3..10,
+                alwaysSwapToFreshIfDegradedBelow = 5..12, // If degraded below this, swap to any fresh weapon
             )
 
         /** Default genome - evolved via genetic algorithm */
@@ -39,12 +45,15 @@ data class PlayerGenome(
             PlayerGenome(
                 skipIfDamageExceedsHealthMinus = 5,
                 skipWithoutWeaponDamageFraction = 0.444,
+                skipDamageHealthFraction = 0.4, // Skip if damage > 40% of health
                 monsterLeavePenaltyMultiplier = 0.894,
                 weaponLeavePenaltyIfNeeded = 2.505,
-                weaponPreservationThreshold = 9,
+                potionLeavePenaltyPerRemaining = 0.5, // Small penalty to avoid potion cascade
+                weaponPreservationThreshold = 10,
                 minDamageSavedToUseWeapon = 0,
                 emergencyHealthBuffer = 0,
                 equipFreshWeaponIfDegradedBelow = 10,
+                alwaysSwapToFreshIfDegradedBelow = 8, // Always swap to fresh if degraded below 8
             )
 
         /** Generate a random genome within bounds */
@@ -52,12 +61,15 @@ data class PlayerGenome(
             PlayerGenome(
                 skipIfDamageExceedsHealthMinus = rng.nextInt(BOUNDS.skipIfDamageExceedsHealthMinus),
                 skipWithoutWeaponDamageFraction = rng.nextDouble(BOUNDS.skipWithoutWeaponDamageFraction),
+                skipDamageHealthFraction = rng.nextDouble(BOUNDS.skipDamageHealthFraction),
                 monsterLeavePenaltyMultiplier = rng.nextDouble(BOUNDS.monsterLeavePenaltyMultiplier),
                 weaponLeavePenaltyIfNeeded = rng.nextDouble(BOUNDS.weaponLeavePenaltyIfNeeded),
+                potionLeavePenaltyPerRemaining = rng.nextDouble(BOUNDS.potionLeavePenaltyPerRemaining),
                 weaponPreservationThreshold = rng.nextInt(BOUNDS.weaponPreservationThreshold),
                 minDamageSavedToUseWeapon = rng.nextInt(BOUNDS.minDamageSavedToUseWeapon),
                 emergencyHealthBuffer = rng.nextInt(BOUNDS.emergencyHealthBuffer),
                 equipFreshWeaponIfDegradedBelow = rng.nextInt(BOUNDS.equipFreshWeaponIfDegradedBelow),
+                alwaysSwapToFreshIfDegradedBelow = rng.nextInt(BOUNDS.alwaysSwapToFreshIfDegradedBelow),
             )
     }
 
@@ -71,10 +83,14 @@ data class PlayerGenome(
                 if (rng.nextBoolean()) skipIfDamageExceedsHealthMinus else other.skipIfDamageExceedsHealthMinus,
             skipWithoutWeaponDamageFraction =
                 if (rng.nextBoolean()) skipWithoutWeaponDamageFraction else other.skipWithoutWeaponDamageFraction,
+            skipDamageHealthFraction =
+                if (rng.nextBoolean()) skipDamageHealthFraction else other.skipDamageHealthFraction,
             monsterLeavePenaltyMultiplier =
                 if (rng.nextBoolean()) monsterLeavePenaltyMultiplier else other.monsterLeavePenaltyMultiplier,
             weaponLeavePenaltyIfNeeded =
                 if (rng.nextBoolean()) weaponLeavePenaltyIfNeeded else other.weaponLeavePenaltyIfNeeded,
+            potionLeavePenaltyPerRemaining =
+                if (rng.nextBoolean()) potionLeavePenaltyPerRemaining else other.potionLeavePenaltyPerRemaining,
             weaponPreservationThreshold =
                 if (rng.nextBoolean()) weaponPreservationThreshold else other.weaponPreservationThreshold,
             minDamageSavedToUseWeapon =
@@ -83,6 +99,8 @@ data class PlayerGenome(
                 if (rng.nextBoolean()) emergencyHealthBuffer else other.emergencyHealthBuffer,
             equipFreshWeaponIfDegradedBelow =
                 if (rng.nextBoolean()) equipFreshWeaponIfDegradedBelow else other.equipFreshWeaponIfDegradedBelow,
+            alwaysSwapToFreshIfDegradedBelow =
+                if (rng.nextBoolean()) alwaysSwapToFreshIfDegradedBelow else other.alwaysSwapToFreshIfDegradedBelow,
         )
 
     /** Mutate this genome with given probability per parameter */
@@ -103,6 +121,12 @@ data class PlayerGenome(
                 } else {
                     skipWithoutWeaponDamageFraction
                 },
+            skipDamageHealthFraction =
+                if (rng.nextDouble() < mutationRate) {
+                    mutateDouble(skipDamageHealthFraction, BOUNDS.skipDamageHealthFraction, rng)
+                } else {
+                    skipDamageHealthFraction
+                },
             monsterLeavePenaltyMultiplier =
                 if (rng.nextDouble() < mutationRate) {
                     mutateDouble(monsterLeavePenaltyMultiplier, BOUNDS.monsterLeavePenaltyMultiplier, rng)
@@ -114,6 +138,12 @@ data class PlayerGenome(
                     mutateDouble(weaponLeavePenaltyIfNeeded, BOUNDS.weaponLeavePenaltyIfNeeded, rng)
                 } else {
                     weaponLeavePenaltyIfNeeded
+                },
+            potionLeavePenaltyPerRemaining =
+                if (rng.nextDouble() < mutationRate) {
+                    mutateDouble(potionLeavePenaltyPerRemaining, BOUNDS.potionLeavePenaltyPerRemaining, rng)
+                } else {
+                    potionLeavePenaltyPerRemaining
                 },
             weaponPreservationThreshold =
                 if (rng.nextDouble() < mutationRate) {
@@ -143,6 +173,16 @@ data class PlayerGenome(
                 } else {
                     equipFreshWeaponIfDegradedBelow
                 },
+            alwaysSwapToFreshIfDegradedBelow =
+                if (rng.nextDouble() < mutationRate) {
+                    mutateInt(
+                        alwaysSwapToFreshIfDegradedBelow,
+                        BOUNDS.alwaysSwapToFreshIfDegradedBelow,
+                        rng,
+                    )
+                } else {
+                    alwaysSwapToFreshIfDegradedBelow
+                },
         )
 
     private fun mutateInt(
@@ -169,12 +209,15 @@ data class PlayerGenome(
 data class GenomeBounds(
     val skipIfDamageExceedsHealthMinus: IntRange,
     val skipWithoutWeaponDamageFraction: ClosedFloatingPointRange<Double>,
+    val skipDamageHealthFraction: ClosedFloatingPointRange<Double>,
     val monsterLeavePenaltyMultiplier: ClosedFloatingPointRange<Double>,
     val weaponLeavePenaltyIfNeeded: ClosedFloatingPointRange<Double>,
+    val potionLeavePenaltyPerRemaining: ClosedFloatingPointRange<Double>,
     val weaponPreservationThreshold: IntRange,
     val minDamageSavedToUseWeapon: IntRange,
     val emergencyHealthBuffer: IntRange,
     val equipFreshWeaponIfDegradedBelow: IntRange,
+    val alwaysSwapToFreshIfDegradedBelow: IntRange,
 )
 
 /** Helper to get random int in range */

@@ -60,6 +60,11 @@ class ParameterizedPlayer(
             return true
         }
 
+        // NEW: Skip if damage exceeds threshold fraction of current health ("too much damage")
+        if (estimatedNetDamage > state.health * genome.skipDamageHealthFraction) {
+            return true
+        }
+
         // Check if we have weapon help
         val hasWeaponInRoom = room.any { it.type == CardType.WEAPON }
         val currentWeaponUseful =
@@ -201,7 +206,12 @@ class ParameterizedPlayer(
                     // Use multiplier for non-linear penalty (e.g., 2.0 = quadratic)
                     cardToLeave.value.toDouble().pow(genome.monsterLeavePenaltyMultiplier)
                 }
-                CardType.POTION -> 0.0
+                CardType.POTION -> {
+                    // Penalty for leaving a potion based on how many potions remain in deck
+                    // More potions remaining = higher chance of potion cascade
+                    val potionsInDeck = state.deck.cards.count { it.type == CardType.POTION }
+                    potionsInDeck * genome.potionLeavePenaltyPerRemaining
+                }
                 CardType.WEAPON -> {
                     val currentWeaponValue = state.weaponState?.weapon?.value ?: 0
                     if (cardToLeave.value > currentWeaponValue) {
@@ -226,7 +236,13 @@ class ParameterizedPlayer(
 
         if (newWeapon.value > currentValue) return true
 
-        // Equip fresh weapon if current is degraded below threshold
+        // Always swap to ANY fresh weapon if current is severely degraded
+        // A fresh 5 that can hit anything beats a degraded 9 that can only hit small monsters
+        if (currentMaxMonster != null && currentMaxMonster < genome.alwaysSwapToFreshIfDegradedBelow) {
+            return true
+        }
+
+        // Equip fresh weapon if current is degraded below threshold and new weapon is decent
         if (currentMaxMonster != null && currentMaxMonster < genome.equipFreshWeaponIfDegradedBelow) {
             return newWeapon.value >= currentMaxMonster
         }

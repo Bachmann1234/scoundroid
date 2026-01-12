@@ -80,3 +80,7 @@ vcs.xml
 **/build/reports/ktlint/
 **/build/reports/lint-results*.html
 **/build/reports/lint-results*.xml
+
+.venv
+venv
+__pycache__
