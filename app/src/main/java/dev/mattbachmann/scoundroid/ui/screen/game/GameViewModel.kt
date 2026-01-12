@@ -381,10 +381,15 @@ class GameViewModel(
                 finalHealth = gameState.value.health,
                 actionLog = actionLogEntries.toList(),
             )
+            // Update win count after save completes
+            _winCount.value = winningGameRepository?.getWinCount() ?: 0
         }
 
         updateUiStateWithHighScore()
     }
+
+    private val _winCount = MutableStateFlow(0)
+    val winCount: StateFlow<Int> = _winCount.asStateFlow()
 
     /**
      * Exports all winning game logs as JSON.

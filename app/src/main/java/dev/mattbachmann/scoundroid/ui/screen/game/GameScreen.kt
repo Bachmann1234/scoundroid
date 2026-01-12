@@ -40,7 +40,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -107,14 +106,7 @@ fun GameScreen(
     val context = LocalContext.current
     val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
     val coroutineScope = rememberCoroutineScope()
-    var winCount by remember { mutableIntStateOf(0) }
-
-    // Load win count when game is won
-    LaunchedEffect(uiState.isGameWon) {
-        if (uiState.isGameWon) {
-            winCount = viewModel.getWinCount()
-        }
-    }
+    val winCount by viewModel.winCount.collectAsState()
 
     // Export winning games function
     val onExportWins: () -> Unit = {
