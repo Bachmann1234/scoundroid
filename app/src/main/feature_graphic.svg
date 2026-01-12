@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="500" viewBox="0 0 1024 500">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1A1A2E"/>
+      <stop offset="100%" style="stop-color:#0D0D1A"/>
+    </linearGradient>
+    <!-- Card gradients for depth -->
+    <linearGradient id="cardOverlay" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:white;stop-opacity:0.15"/>
+      <stop offset="50%" style="stop-color:white;stop-opacity:0"/>
+      <stop offset="100%" style="stop-color:black;stop-opacity:0.1"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1024" height="500" fill="url(#bgGradient)"/>
+
+  <!-- Monster Card - Ace of Spades (back left) -->
+  <g transform="translate(120, 80) rotate(-12)">
+    <rect x="0" y="0" width="120" height="168" rx="10" fill="#E57373" stroke="#D32F2F" stroke-width="3"/>
+    <rect x="0" y="0" width="120" height="168" rx="10" fill="url(#cardOverlay)"/>
+    <text x="60" y="70" font-family="Arial, sans-serif" font-size="54" fill="black" text-anchor="middle">♠</text>
+    <text x="60" y="130" font-family="Arial, sans-serif" font-size="38" font-weight="bold" fill="black" text-anchor="middle">A</text>
+  </g>
+
+  <!-- Weapon Card - 7 of Diamonds (middle left) -->
+  <g transform="translate(200, 140) rotate(-5)">
+    <rect x="0" y="0" width="120" height="168" rx="10" fill="#64B5F6" stroke="#1976D2" stroke-width="3"/>
+    <rect x="0" y="0" width="120" height="168" rx="10" fill="url(#cardOverlay)"/>
+    <text x="60" y="70" font-family="Arial, sans-serif" font-size="54" fill="#0D47A1" text-anchor="middle">♦</text>
+    <text x="60" y="130" font-family="Arial, sans-serif" font-size="38" font-weight="bold" fill="#0D47A1" text-anchor="middle">7</text>
+  </g>
+
+  <!-- Potion Card - 5 of Hearts (front left) -->
+  <g transform="translate(280, 180) rotate(3)">
+    <rect x="0" y="0" width="120" height="168" rx="10" fill="#81C784" stroke="#388E3C" stroke-width="3"/>
+    <rect x="0" y="0" width="120" height="168" rx="10" fill="url(#cardOverlay)"/>
+    <text x="60" y="70" font-family="Arial, sans-serif" font-size="54" fill="#1B5E20" text-anchor="middle">♥</text>
+    <text x="60" y="130" font-family="Arial, sans-serif" font-size="38" font-weight="bold" fill="#1B5E20" text-anchor="middle">5</text>
+  </g>
+
+  <!-- Monster Card - Queen of Clubs (right side, partially visible) -->
+  <g transform="translate(820, 100) rotate(15)">
+    <rect x="0" y="0" width="120" height="168" rx="10" fill="#E57373" stroke="#D32F2F" stroke-width="3"/>
+    <rect x="0" y="0" width="120" height="168" rx="10" fill="url(#cardOverlay)"/>
+    <text x="60" y="70" font-family="Arial, sans-serif" font-size="54" fill="black" text-anchor="middle">♣</text>
+    <text x="60" y="130" font-family="Arial, sans-serif" font-size="38" font-weight="bold" fill="black" text-anchor="middle">Q</text>
+  </g>
+
+  <!-- Card Back (deck) - right side -->
+  <g transform="translate(750, 260) rotate(8)">
+    <rect x="0" y="0" width="120" height="168" rx="10" fill="#8B0000" stroke="#F5F5DC" stroke-width="3"/>
+    <rect x="8" y="8" width="104" height="152" rx="6" fill="none" stroke="#F5F5DC" stroke-width="2"/>
+    <!-- Crosshatch pattern simplified -->
+    <line x1="20" y1="20" x2="100" y2="148" stroke="#CD5C5C" stroke-width="1"/>
+    <line x1="40" y1="20" x2="120" y2="148" stroke="#CD5C5C" stroke-width="1"/>
+    <line x1="0" y1="40" x2="80" y2="168" stroke="#CD5C5C" stroke-width="1"/>
+    <line x1="0" y1="80" x2="40" y2="168" stroke="#CD5C5C" stroke-width="1"/>
+    <line x1="60" y1="20" x2="0" y2="100" stroke="#CD5C5C" stroke-width="1"/>
+    <line x1="100" y1="20" x2="20" y2="148" stroke="#CD5C5C" stroke-width="1"/>
+    <line x1="120" y1="60" x2="60" y2="168" stroke="#CD5C5C" stroke-width="1"/>
+    <line x1="120" y1="100" x2="100" y2="168" stroke="#CD5C5C" stroke-width="1"/>
+    <!-- Center oval -->
+    <ellipse cx="60" cy="84" rx="36" ry="42" fill="#8B0000" stroke="#F5F5DC" stroke-width="2"/>
+  </g>
+
+  <!-- App title -->
+  <text x="512" y="200" font-family="system-ui, -apple-system, sans-serif" font-size="64" font-weight="700" fill="#F5F5F0" text-anchor="middle" letter-spacing="2">SCOUNDROID</text>
+
+  <!-- Tagline -->
+  <text x="512" y="260" font-family="system-ui, -apple-system, sans-serif" font-size="24" fill="#9E9E9E" text-anchor="middle">A solitaire roguelike card game</text>
+
+  <!-- Card type legend at bottom -->
+  <g transform="translate(512, 340)">
+    <!-- Monster indicator -->
+    <rect x="-200" y="0" width="24" height="24" rx="4" fill="#E57373" stroke="#D32F2F" stroke-width="2"/>
+    <text x="-168" y="18" font-family="system-ui, sans-serif" font-size="16" fill="#9E9E9E">Monsters</text>
+
+    <!-- Weapon indicator -->
+    <rect x="-60" y="0" width="24" height="24" rx="4" fill="#64B5F6" stroke="#1976D2" stroke-width="2"/>
+    <text x="-28" y="18" font-family="system-ui, sans-serif" font-size="16" fill="#9E9E9E">Weapons</text>
+
+    <!-- Potion indicator -->
+    <rect x="80" y="0" width="24" height="24" rx="4" fill="#81C784" stroke="#388E3C" stroke-width="2"/>
+    <text x="112" y="18" font-family="system-ui, sans-serif" font-size="16" fill="#9E9E9E">Potions</text>
+  </g>
+</svg>
