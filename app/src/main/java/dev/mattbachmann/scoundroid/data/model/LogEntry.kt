@@ -58,20 +58,35 @@ sealed class LogEntry {
      * Room was drawn from deck.
      * @param cardsDrawn Number of cards drawn (usually 3 or 4)
      * @param deckSizeAfter Deck size after drawing
+     * @param roomCards The actual cards in the room (for analysis)
      */
     data class RoomDrawn(
         override val timestamp: Long,
         val cardsDrawn: Int,
         val deckSizeAfter: Int,
+        val roomCards: List<Card> = emptyList(),
     ) : LogEntry()
 
     /**
      * Room was avoided.
      * @param cardsReturned Number of cards returned to bottom of deck
+     * @param roomCards The actual cards that were avoided
      */
     data class RoomAvoided(
         override val timestamp: Long,
         val cardsReturned: Int,
+        val roomCards: List<Card> = emptyList(),
+    ) : LogEntry()
+
+    /**
+     * Cards were selected to process (3 cards) and one was left behind.
+     * @param selectedCards The 3 cards chosen to process
+     * @param cardLeftBehind The 1 card left for next room
+     */
+    data class CardsSelected(
+        override val timestamp: Long,
+        val selectedCards: List<Card>,
+        val cardLeftBehind: Card,
     ) : LogEntry()
 
     /**

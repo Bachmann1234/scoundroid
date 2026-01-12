@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Layers
@@ -175,6 +176,15 @@ private fun LogEntryRow(entry: LogEntry) {
                         description = "Restored ${entry.healthRestored} HP ($healthChange)",
                     )
                 }
+            }
+            is LogEntry.CardsSelected -> {
+                val selectedStr = entry.selectedCards.joinToString(", ") { it.displayName }
+                LogEntryDisplay(
+                    icon = Icons.Default.CheckCircle,
+                    iconColor = MaterialTheme.colorScheme.primary,
+                    title = "Cards Selected",
+                    description = "Processing: $selectedStr. Left: ${entry.cardLeftBehind.displayName}",
+                )
             }
         }
 

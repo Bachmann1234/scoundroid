@@ -7,6 +7,7 @@ import dev.mattbachmann.scoundroid.data.model.CardType
 import dev.mattbachmann.scoundroid.data.model.GameState
 import dev.mattbachmann.scoundroid.data.model.LogEntry
 import dev.mattbachmann.scoundroid.data.repository.HighScoreRepository
+import dev.mattbachmann.scoundroid.data.repository.WinningGameRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,10 +19,12 @@ import kotlin.random.Random
  * Follows MVI (Model-View-Intent) pattern.
  *
  * @param highScoreRepository Repository for persisting high scores
+ * @param winningGameRepository Repository for persisting winning game logs
  * @param randomSeed Optional seed for deterministic shuffling (useful for tests)
  */
 class GameViewModel(
     private val highScoreRepository: HighScoreRepository? = null,
+    private val winningGameRepository: WinningGameRepository? = null,
     private val randomSeed: Long? = null,
 ) : ViewModel() {
     // The seed used for the current game's deck shuffle
@@ -152,6 +155,7 @@ class GameViewModel(
                 timestamp = System.currentTimeMillis(),
                 cardsDrawn = cardsDrawn,
                 deckSizeAfter = stateAfter.deck.cards.size,
+                roomCards = stateAfter.currentRoom ?: emptyList(),
             ),
         )
         updateGameState(stateAfter)
@@ -159,11 +163,12 @@ class GameViewModel(
 
     private fun handleAvoidRoom() {
         val stateBefore = gameState.value
-        val cardsReturned = stateBefore.currentRoom?.size ?: 0
+        val avoidedRoomCards = stateBefore.currentRoom ?: emptyList()
         actionLogEntries.add(
             LogEntry.RoomAvoided(
                 timestamp = System.currentTimeMillis(),
-                cardsReturned = cardsReturned,
+                cardsReturned = avoidedRoomCards.size,
+                roomCards = avoidedRoomCards,
             ),
         )
         // Avoid the room, then auto-draw the next room
@@ -171,18 +176,30 @@ class GameViewModel(
         val stateAfterDraw = stateAfterAvoid.drawRoom()
 
         // Log the auto-drawn room
-        val cardsDrawn = stateAfterDraw.currentRoom?.size ?: 0
         actionLogEntries.add(
             LogEntry.RoomDrawn(
                 timestamp = System.currentTimeMillis(),
-                cardsDrawn = cardsDrawn,
+                cardsDrawn = stateAfterDraw.currentRoom?.size ?: 0,
                 deckSizeAfter = stateAfterDraw.deck.cards.size,
+                roomCards = stateAfterDraw.currentRoom ?: emptyList(),
             ),
         )
         updateGameState(stateAfterDraw)
     }
 
     private fun handleProcessSelectedCards(selectedCards: List<Card>) {
+        val currentRoom = gameState.value.currentRoom ?: return
+        val cardLeftBehind = currentRoom.firstOrNull { it !in selectedCards } ?: return
+
+        // Log which cards were selected and which was left behind
+        actionLogEntries.add(
+            LogEntry.CardsSelected(
+                timestamp = System.currentTimeMillis(),
+                selectedCards = selectedCards,
+                cardLeftBehind = cardLeftBehind,
+            ),
+        )
+
         // First, select the cards (leaves unselected card for next room)
         processingState = gameState.value.selectCards(selectedCards)
         pendingCardsToProcess = selectedCards.toMutableList()
@@ -356,8 +373,29 @@ class GameViewModel(
         highScoreRepository?.saveScore(score = score, won = won)
         // Reload highest score after saving
         highestScore = highScoreRepository?.getHighestScore()
+
+        // Auto-save winning games for later analysis
+        if (won) {
+            winningGameRepository?.saveWinningGame(
+                seed = currentGameSeed,
+                finalHealth = gameState.value.health,
+                actionLog = actionLogEntries.toList(),
+            )
+        }
+
         updateUiStateWithHighScore()
     }
+
+    /**
+     * Exports all winning game logs as JSON.
+     * Returns null if no repository is available.
+     */
+    suspend fun exportWinningGames(): String? = winningGameRepository?.exportAllWinsAsJson()
+
+    /**
+     * Returns the count of stored winning games.
+     */
+    suspend fun getWinCount(): Int = winningGameRepository?.getWinCount() ?: 0
 
     private fun handleShowHelp() {
         _uiState.value = _uiState.value.copy(showHelp = true)

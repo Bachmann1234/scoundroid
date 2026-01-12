@@ -409,7 +409,6 @@ class GeneticOptimizerTest {
         log("Results saved to build/fitness-comparison.txt")
     }
 
-
     @Test
     @Ignore("Long running optimization - run manually")
     fun `evolve optimal player`() {

@@ -164,6 +164,7 @@ private fun PreviewEntryRow(
             is LogEntry.GameStarted,
             is LogEntry.RoomDrawn,
             is LogEntry.RoomAvoided,
+            is LogEntry.CardsSelected,
             ->
                 PreviewEntryDisplay(
                     icon = Icons.Default.Shield,

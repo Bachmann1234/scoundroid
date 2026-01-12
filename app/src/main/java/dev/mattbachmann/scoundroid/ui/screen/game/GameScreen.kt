@@ -3,6 +3,7 @@ package dev.mattbachmann.scoundroid.ui.screen.game
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -39,8 +40,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,6 +55,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.FileProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.mattbachmann.scoundroid.data.model.Card
 import dev.mattbachmann.scoundroid.data.model.LogEntry
@@ -68,6 +72,8 @@ import dev.mattbachmann.scoundroid.ui.theme.GradientTop
 import dev.mattbachmann.scoundroid.ui.theme.Purple80
 import dev.mattbachmann.scoundroid.ui.theme.PurpleGrey80
 import dev.mattbachmann.scoundroid.ui.theme.ScoundroidTheme
+import kotlinx.coroutines.launch
+import java.io.File
 
 /**
  * Screen size classes for responsive layouts.
@@ -100,6 +106,49 @@ fun GameScreen(
     var showSeedDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+    val coroutineScope = rememberCoroutineScope()
+    var winCount by remember { mutableIntStateOf(0) }
+
+    // Load win count when game is won
+    LaunchedEffect(uiState.isGameWon) {
+        if (uiState.isGameWon) {
+            winCount = viewModel.getWinCount()
+        }
+    }
+
+    // Export winning games function
+    val onExportWins: () -> Unit = {
+        coroutineScope.launch {
+            val json = viewModel.exportWinningGames()
+            if (json != null) {
+                try {
+                    // Write to a temp file and share
+                    val file = File(context.cacheDir, "scoundroid_wins.json")
+                    file.writeText(json)
+
+                    val uri =
+                        FileProvider.getUriForFile(
+                            context,
+                            "${context.packageName}.fileprovider",
+                            file,
+                        )
+
+                    val shareIntent =
+                        Intent(Intent.ACTION_SEND).apply {
+                            type = "application/json"
+                            putExtra(Intent.EXTRA_STREAM, uri)
+                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        }
+
+                    context.startActivity(Intent.createChooser(shareIntent, "Export Winning Games"))
+                } catch (e: Exception) {
+                    Toast.makeText(context, "Export failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                Toast.makeText(context, "No winning games to export", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
 
     // Save score when game ends
     // Important: Don't trigger GameEnded while a combat choice is pending (Issue #36)
@@ -320,6 +369,8 @@ fun GameScreen(
                         Toast.makeText(context, "Seed copied!", Toast.LENGTH_SHORT).show()
                     },
                     onPlaySeed = { showSeedDialog = true },
+                    onExportWins = onExportWins,
+                    winCount = winCount,
                 )
             }
         }
@@ -576,6 +627,8 @@ private fun GameContent(
     screenSizeClass: ScreenSizeClass,
     onCopySeed: () -> Unit,
     onPlaySeed: () -> Unit,
+    onExportWins: (() -> Unit)? = null,
+    winCount: Int = 0,
 ) {
     val isExpandedScreen = screenSizeClass == ScreenSizeClass.EXPANDED
 
@@ -613,6 +666,8 @@ private fun GameContent(
             },
             onCopySeed = onCopySeed,
             onPlaySeed = onPlaySeed,
+            onExportWins = onExportWins,
+            winCount = winCount,
         )
     } else if (uiState.pendingCombatChoice != null) {
         // Combat choice needed - show the choice panel
@@ -1104,6 +1159,8 @@ private fun GameWonScreen(
     onRetryGame: () -> Unit,
     onCopySeed: () -> Unit,
     onPlaySeed: () -> Unit,
+    onExportWins: (() -> Unit)? = null,
+    winCount: Int = 0,
     showButton: Boolean = true,
 ) {
     Column(
@@ -1171,6 +1228,20 @@ private fun GameWonScreen(
             val buttonColors = ButtonDefaults.buttonColors(containerColor = ButtonPrimary, contentColor = Color.White)
             val buttonElevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp, pressedElevation = 8.dp)
             val outlinedButtonColors = ButtonDefaults.outlinedButtonColors(contentColor = Purple80)
+
+            // Export wins button (only if there are wins to export)
+            if (onExportWins != null && winCount > 0) {
+                FilledTonalButton(
+                    onClick = onExportWins,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = buttonShape,
+                ) {
+                    Text(
+                        text = "Export $winCount Win${if (winCount != 1) "s" else ""}",
+                        style = MaterialTheme.typography.titleLarge,
+                    )
+                }
+            }
 
             // Retry button
             OutlinedButton(
