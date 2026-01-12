@@ -35,26 +35,28 @@ data class SolveResult(
         /**
          * Creates a result for a single winning outcome.
          */
-        fun win(score: Int) = SolveResult(
-            totalPaths = 1,
-            winningPaths = 1,
-            losingPaths = 0,
-            maxScore = score,
-            minWinningScore = score,
-            averageWinningScore = score.toDouble(),
-        )
+        fun win(score: Int) =
+            SolveResult(
+                totalPaths = 1,
+                winningPaths = 1,
+                losingPaths = 0,
+                maxScore = score,
+                minWinningScore = score,
+                averageWinningScore = score.toDouble(),
+            )
 
         /**
          * Creates a result for a single losing outcome.
          */
-        fun loss(score: Int) = SolveResult(
-            totalPaths = 1,
-            winningPaths = 0,
-            losingPaths = 1,
-            maxScore = score,
-            minWinningScore = null,
-            averageWinningScore = null,
-        )
+        fun loss(score: Int) =
+            SolveResult(
+                totalPaths = 1,
+                winningPaths = 0,
+                losingPaths = 1,
+                maxScore = score,
+                minWinningScore = null,
+                averageWinningScore = null,
+            )
 
         /**
          * Combines multiple solve results from different decision branches.
@@ -79,14 +81,16 @@ data class SolveResult(
             val winningResults = results.filter { it.winningPaths > 0 }
             val minWinningScore = winningResults.mapNotNull { it.minWinningScore }.minOrNull()
 
-            val averageWinningScore = if (winningPaths > 0) {
-                val totalWinningScore = results.sumOf { result ->
-                    (result.averageWinningScore ?: 0.0) * result.winningPaths
+            val averageWinningScore =
+                if (winningPaths > 0) {
+                    val totalWinningScore =
+                        results.sumOf { result ->
+                            (result.averageWinningScore ?: 0.0) * result.winningPaths
+                        }
+                    totalWinningScore / winningPaths
+                } else {
+                    null
                 }
-                totalWinningScore / winningPaths
-            } else {
-                null
-            }
 
             return SolveResult(
                 totalPaths = totalPaths,

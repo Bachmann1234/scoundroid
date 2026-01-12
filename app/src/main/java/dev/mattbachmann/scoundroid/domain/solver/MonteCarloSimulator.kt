@@ -37,7 +37,6 @@ data class SimulationResult(
  * this simulator runs many random games and estimates win probability.
  */
 class MonteCarloSimulator {
-
     /**
      * Simulates many random games from a given starting state.
      *
@@ -49,7 +48,7 @@ class MonteCarloSimulator {
     fun simulate(
         initialState: GameState,
         samples: Int = 10000,
-        random: Random = Random
+        random: Random = Random,
     ): SimulationResult {
         var wins = 0
         var losses = 0
@@ -89,7 +88,10 @@ class MonteCarloSimulator {
     /**
      * Plays a single random game to completion.
      */
-    private fun playRandomGame(initialState: GameState, random: Random): GameState {
+    private fun playRandomGame(
+        initialState: GameState,
+        random: Random,
+    ): GameState {
         var state = initialState
 
         while (!state.isGameOver && !isActuallyWon(state)) {
@@ -103,16 +105,18 @@ class MonteCarloSimulator {
      * Checks if the game is actually won (deck empty AND no cards left to process).
      * The GameState.isGameWon only checks deck.isEmpty, but we need room to be empty too.
      */
-    private fun isActuallyWon(state: GameState): Boolean {
-        return state.deck.isEmpty &&
+    private fun isActuallyWon(state: GameState): Boolean =
+        state.deck.isEmpty &&
             (state.currentRoom == null || state.currentRoom.isEmpty()) &&
             state.health > 0
-    }
 
     /**
      * Plays one step of the game with random decisions.
      */
-    private fun playOneStep(state: GameState, random: Random): GameState {
+    private fun playOneStep(
+        state: GameState,
+        random: Random,
+    ): GameState {
         // If no room, draw one
         if (state.currentRoom == null || state.currentRoom.isEmpty()) {
             return state.drawRoom()
@@ -138,10 +142,11 @@ class MonteCarloSimulator {
             val cardsToProcess = room.filterIndexed { i, _ -> i != leaveIndex }.shuffled(random)
 
             // Process the 3 cards in random order
-            var currentState = state.copy(
-                currentRoom = listOf(cardToLeave),
-                usedPotionThisTurn = false
-            )
+            var currentState =
+                state.copy(
+                    currentRoom = listOf(cardToLeave),
+                    usedPotionThisTurn = false,
+                )
 
             for (card in cardsToProcess) {
                 currentState = processCard(currentState, card, random)
@@ -171,12 +176,17 @@ class MonteCarloSimulator {
     /**
      * Processes a single card with random combat choice if applicable.
      */
-    private fun processCard(state: GameState, card: Card, random: Random): GameState {
-        return when (card.type) {
+    private fun processCard(
+        state: GameState,
+        card: Card,
+        random: Random,
+    ): GameState =
+        when (card.type) {
             CardType.MONSTER -> {
                 // If we have a usable weapon, randomly decide whether to use it
-                val canUseWeapon = state.weaponState != null &&
-                    state.weaponState.canDefeat(card)
+                val canUseWeapon =
+                    state.weaponState != null &&
+                        state.weaponState.canDefeat(card)
 
                 if (canUseWeapon && random.nextBoolean()) {
                     state.fightMonsterWithWeapon(card)
@@ -187,7 +197,6 @@ class MonteCarloSimulator {
             CardType.WEAPON -> state.equipWeapon(card)
             CardType.POTION -> state.usePotion(card)
         }
-    }
 
     /**
      * Simulates games for multiple seeds and returns aggregate statistics.
@@ -195,11 +204,10 @@ class MonteCarloSimulator {
     fun simulateMultipleSeeds(
         seedRange: LongRange,
         samplesPerSeed: Int = 1000,
-        random: Random = Random
-    ): Map<Long, SimulationResult> {
-        return seedRange.associateWith { seed ->
+        random: Random = Random,
+    ): Map<Long, SimulationResult> =
+        seedRange.associateWith { seed ->
             val game = GameState.newGame(Random(seed))
             simulate(game, samplesPerSeed, random)
         }
-    }
 }

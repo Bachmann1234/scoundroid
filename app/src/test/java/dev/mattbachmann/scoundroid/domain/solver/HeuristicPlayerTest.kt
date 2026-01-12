@@ -12,12 +12,14 @@ import kotlin.test.Test
 import kotlin.test.assertTrue
 
 class HeuristicPlayerTest {
-
     private val player = HeuristicPlayer()
     private val simulator = HeuristicSimulator()
 
-    private fun gameWithDeck(cards: List<Card>, health: Int = 20): GameState {
-        return GameState(
+    private fun gameWithDeck(
+        cards: List<Card>,
+        health: Int = 20,
+    ): GameState =
+        GameState(
             deck = Deck(cards),
             health = health,
             currentRoom = null,
@@ -28,19 +30,19 @@ class HeuristicPlayerTest {
             usedPotionThisTurn = false,
             lastCardProcessed = null,
         )
-    }
 
     @Test
     fun `wins easy scenario with weak monsters`() {
-        val game = gameWithDeck(
-            listOf(
-                Card(Suit.CLUBS, Rank.TWO),
-                Card(Suit.SPADES, Rank.TWO),
-                Card(Suit.CLUBS, Rank.THREE),
-                Card(Suit.SPADES, Rank.THREE),
-            ),
-            health = 20
-        )
+        val game =
+            gameWithDeck(
+                listOf(
+                    Card(Suit.CLUBS, Rank.TWO),
+                    Card(Suit.SPADES, Rank.TWO),
+                    Card(Suit.CLUBS, Rank.THREE),
+                    Card(Suit.SPADES, Rank.THREE),
+                ),
+                health = 20,
+            )
 
         val result = player.playGame(game)
 
@@ -53,20 +55,21 @@ class HeuristicPlayerTest {
     @Test
     fun `manual trace of 8 card game`() {
         // 8 cards = 2 rooms
-        val game = gameWithDeck(
-            listOf(
-                // Room 1
-                Card(Suit.DIAMONDS, Rank.TEN), // Best weapon
-                Card(Suit.CLUBS, Rank.TEN),    // Monster 10
-                Card(Suit.HEARTS, Rank.TEN),   // Potion
-                Card(Suit.CLUBS, Rank.FIVE),   // Monster 5
-                // Room 2 (3 cards + 1 leftover)
-                Card(Suit.SPADES, Rank.THREE), // Monster 3
-                Card(Suit.HEARTS, Rank.FIVE),  // Potion
-                Card(Suit.CLUBS, Rank.TWO),    // Monster 2
-            ),
-            health = 20
-        )
+        val game =
+            gameWithDeck(
+                listOf(
+                    // Room 1
+                    Card(Suit.DIAMONDS, Rank.TEN), // Best weapon
+                    Card(Suit.CLUBS, Rank.TEN), // Monster 10
+                    Card(Suit.HEARTS, Rank.TEN), // Potion
+                    Card(Suit.CLUBS, Rank.FIVE), // Monster 5
+                    // Room 2 (3 cards + 1 leftover)
+                    Card(Suit.SPADES, Rank.THREE), // Monster 3
+                    Card(Suit.HEARTS, Rank.FIVE), // Potion
+                    Card(Suit.CLUBS, Rank.TWO), // Monster 2
+                ),
+                health = 20,
+            )
 
         println("\n=== 8-Card Game Step-By-Step ===")
 
@@ -104,15 +107,16 @@ class HeuristicPlayerTest {
 
     @Test
     fun `uses weapon effectively`() {
-        val game = gameWithDeck(
-            listOf(
-                Card(Suit.DIAMONDS, Rank.TEN), // Weapon
-                Card(Suit.CLUBS, Rank.KING),   // 13 damage, 3 with weapon
-                Card(Suit.HEARTS, Rank.FIVE),
-                Card(Suit.HEARTS, Rank.SIX),
-            ),
-            health = 10
-        )
+        val game =
+            gameWithDeck(
+                listOf(
+                    Card(Suit.DIAMONDS, Rank.TEN), // Weapon
+                    Card(Suit.CLUBS, Rank.KING), // 13 damage, 3 with weapon
+                    Card(Suit.HEARTS, Rank.FIVE),
+                    Card(Suit.HEARTS, Rank.SIX),
+                ),
+                health = 10,
+            )
 
         val result = player.playGame(game)
 
@@ -125,14 +129,15 @@ class HeuristicPlayerTest {
         val results = simulator.simulateSeeds(1L..100L)
 
         val wins = results.values.count { it.wins > 0 }
-        val avgWinScore = results.values
-            .filter { it.wins > 0 }
-            .mapNotNull { it.averageWinScore }
-            .average()
-            .takeIf { !it.isNaN() }
+        val avgWinScore =
+            results.values
+                .filter { it.wins > 0 }
+                .mapNotNull { it.averageWinScore }
+                .average()
+                .takeIf { !it.isNaN() }
 
         println("\n=== Heuristic Player: 100 Seeds ===")
-        println("Wins: $wins / 100 (${wins}%)")
+        println("Wins: $wins / 100 ($wins%)")
         if (avgWinScore != null) {
             println("Average winning score: ${String.format("%.1f", avgWinScore)}")
         }
@@ -157,23 +162,25 @@ class HeuristicPlayerTest {
         val wins = results.values.count { it.wins > 0 }
         val winRate = wins.toDouble() / numSeeds * 100
 
-        val winningScores = results.values
-            .filter { it.wins > 0 }
-            .map { it.maxScore }
+        val winningScores =
+            results.values
+                .filter { it.wins > 0 }
+                .map { it.maxScore }
 
         val avgWinScore = winningScores.average().takeIf { !it.isNaN() }
         val maxWinScore = winningScores.maxOrNull()
         val minWinScore = winningScores.minOrNull()
 
-        val losingScores = results.values
-            .filter { it.wins == 0 }
-            .map { it.maxScore }
+        val losingScores =
+            results.values
+                .filter { it.wins == 0 }
+                .map { it.maxScore }
         val avgLossScore = losingScores.average().takeIf { !it.isNaN() }
 
         println("\n╔══════════════════════════════════════════════╗")
         println("║   HEURISTIC PLAYER: $numSeeds SEEDS")
         println("╠══════════════════════════════════════════════╣")
-        println("║  Time: ${elapsed}ms (${String.format("%.2f", elapsed/1000.0)}s)")
+        println("║  Time: ${elapsed}ms (${String.format("%.2f", elapsed / 1000.0)}s)")
         println("║  Speed: ${String.format("%.0f", numSeeds * 1000.0 / elapsed)} games/sec")
         println("║  Win Rate: ${String.format("%.3f", winRate)}%")
         println("║  Wins: $wins / $numSeeds")
@@ -197,10 +204,11 @@ class HeuristicPlayerTest {
     fun `find and trace winning seeds`() {
         println("\n=== Finding Winning Seeds ===")
         val results = simulator.simulateSeeds(1L..100_000L)
-        val winningSeedsWithScores = results.entries
-            .filter { it.value.wins > 0 }
-            .map { it.key to it.value.maxScore }
-            .sortedByDescending { it.second }
+        val winningSeedsWithScores =
+            results.entries
+                .filter { it.value.wins > 0 }
+                .map { it.key to it.value.maxScore }
+                .sortedByDescending { it.second }
 
         println("Found ${winningSeedsWithScores.size} winning seeds:")
         winningSeedsWithScores.forEach { (seed, score) ->
@@ -237,8 +245,10 @@ class HeuristicPlayerTest {
             }
 
             // Draw room if needed
-            while (state.currentRoom == null || state.currentRoom.isEmpty() ||
-                (state.currentRoom.size < 4 && !state.deck.isEmpty)) {
+            while (state.currentRoom == null ||
+                state.currentRoom.isEmpty() ||
+                (state.currentRoom.size < 4 && !state.deck.isEmpty)
+            ) {
                 state = state.drawRoom()
             }
 
@@ -255,7 +265,7 @@ class HeuristicPlayerTest {
             state = player.playGame(state.copy()) // Play to end of this room
 
             // For detailed trace, we'd need to expose internals, but this shows results
-            println("After room: health ${oldHealth} -> ${state.health}")
+            println("After room: health $oldHealth -> ${state.health}")
         }
 
         println("\nFinal: health=${state.health}, deck=${state.deck.size}, room=${state.currentRoom?.size ?: 0}")
@@ -331,16 +341,20 @@ class HeuristicPlayerTest {
                 println("END GAME - processing ${room.size} remaining cards")
                 for (card in room) {
                     val oldHealth = state.health
-                    state = when (card.type) {
-                        CardType.MONSTER -> {
-                            val canUse = state.weaponState?.canDefeat(card) == true
-                            if (canUse) state.fightMonsterWithWeapon(card)
-                            else state.fightMonsterBarehanded(card)
+                    state =
+                        when (card.type) {
+                            CardType.MONSTER -> {
+                                val canUse = state.weaponState?.canDefeat(card) == true
+                                if (canUse) {
+                                    state.fightMonsterWithWeapon(card)
+                                } else {
+                                    state.fightMonsterBarehanded(card)
+                                }
+                            }
+                            CardType.WEAPON -> state.equipWeapon(card)
+                            CardType.POTION -> state.usePotion(card)
                         }
-                        CardType.WEAPON -> state.equipWeapon(card)
-                        CardType.POTION -> state.usePotion(card)
-                    }
-                    println("  ${card.rank.displayName}${card.suit.symbol}: ${oldHealth} -> ${state.health}")
+                    println("  ${card.rank.displayName}${card.suit.symbol}: $oldHealth -> ${state.health}")
                     if (state.isGameOver) break
                 }
                 state = state.copy(currentRoom = null)
@@ -357,35 +371,53 @@ class HeuristicPlayerTest {
                 println("Process: ${process.map { "${it.rank.displayName}${it.suit.symbol}" }}")
 
                 // Sort: weapons, big monsters, potions
-                val ordered = process.sortedWith(compareBy(
-                    { if (it.type == CardType.WEAPON) 0 else if (it.type == CardType.MONSTER) 1 else 2 },
-                    { -it.value }
-                ))
+                val ordered =
+                    process.sortedWith(
+                        compareBy(
+                            {
+                                if (it.type == CardType.WEAPON) {
+                                    0
+                                } else if (it.type == CardType.MONSTER) {
+                                    1
+                                } else {
+                                    2
+                                }
+                            },
+                            { -it.value },
+                        ),
+                    )
 
                 state = state.copy(currentRoom = listOf(leave), usedPotionThisTurn = false)
 
                 for (card in ordered) {
                     val oldHealth = state.health
                     val oldWeapon = state.weaponState?.weapon?.value
-                    state = when (card.type) {
-                        CardType.MONSTER -> {
-                            val canUse = state.weaponState?.canDefeat(card) == true
-                            if (canUse) state.fightMonsterWithWeapon(card)
-                            else state.fightMonsterBarehanded(card)
+                    state =
+                        when (card.type) {
+                            CardType.MONSTER -> {
+                                val canUse = state.weaponState?.canDefeat(card) == true
+                                if (canUse) {
+                                    state.fightMonsterWithWeapon(card)
+                                } else {
+                                    state.fightMonsterBarehanded(card)
+                                }
+                            }
+                            CardType.WEAPON -> {
+                                if (card.value > (state.weaponState?.weapon?.value ?: 0)) {
+                                    state.equipWeapon(card)
+                                } else {
+                                    state
+                                }
+                            }
+                            CardType.POTION -> state.usePotion(card)
                         }
-                        CardType.WEAPON -> {
-                            if (card.value > (state.weaponState?.weapon?.value ?: 0))
-                                state.equipWeapon(card)
-                            else state
+                    val action =
+                        when (card.type) {
+                            CardType.MONSTER -> if (state.weaponState?.canDefeat(card) == true) "weapon" else "bare"
+                            CardType.WEAPON -> if (card.value > (oldWeapon ?: 0)) "equip" else "skip"
+                            CardType.POTION -> "heal"
                         }
-                        CardType.POTION -> state.usePotion(card)
-                    }
-                    val action = when (card.type) {
-                        CardType.MONSTER -> if (state.weaponState?.canDefeat(card) == true) "weapon" else "bare"
-                        CardType.WEAPON -> if (card.value > (oldWeapon ?: 0)) "equip" else "skip"
-                        CardType.POTION -> "heal"
-                    }
-                    println("  ${card.rank.displayName}${card.suit.symbol} ($action): ${oldHealth} -> ${state.health}")
+                    println("  ${card.rank.displayName}${card.suit.symbol} ($action): $oldHealth -> ${state.health}")
                     if (state.isGameOver) {
                         println("  DIED!")
                         break
@@ -444,13 +476,14 @@ class HeuristicPlayerTest {
                 val monsters = room.filter { it.type == CardType.MONSTER }.sortedBy { it.value }
 
                 // Leave smallest value card
-                val cardToLeave = room.minBy {
-                    when (it.type) {
-                        CardType.MONSTER -> -it.value // Keep big monsters to fight later? No, leave them
-                        CardType.WEAPON -> it.value
-                        CardType.POTION -> it.value
+                val cardToLeave =
+                    room.minBy {
+                        when (it.type) {
+                            CardType.MONSTER -> -it.value // Keep big monsters to fight later? No, leave them
+                            CardType.WEAPON -> it.value
+                            CardType.POTION -> it.value
+                        }
                     }
-                }
 
                 val toProcess = room.filter { it != cardToLeave }
                 println("  Processing: ${toProcess.map { "${it.rank.displayName}${it.suit.symbol}" }}")
@@ -459,9 +492,10 @@ class HeuristicPlayerTest {
                 state = state.copy(currentRoom = listOf(cardToLeave), usedPotionThisTurn = false)
 
                 // Process in order: weapons, potions, monsters
-                val ordered = weapons.filter { it != cardToLeave } +
-                    potions.filter { it != cardToLeave } +
-                    monsters.filter { it != cardToLeave }
+                val ordered =
+                    weapons.filter { it != cardToLeave } +
+                        potions.filter { it != cardToLeave } +
+                        monsters.filter { it != cardToLeave }
 
                 for (card in ordered) {
                     when (card.type) {
@@ -472,18 +506,23 @@ class HeuristicPlayerTest {
                         CardType.POTION -> {
                             val oldHealth = state.health
                             state = state.usePotion(card)
-                            println("    Used potion ${card.rank.displayName}${card.suit.symbol}: $oldHealth -> ${state.health}")
+                            println(
+                                "    Used potion ${card.rank.displayName}${card.suit.symbol}: $oldHealth -> ${state.health}",
+                            )
                         }
                         CardType.MONSTER -> {
                             val canUseWeapon = state.weaponState?.canDefeat(card) == true
                             val oldHealth = state.health
-                            state = if (canUseWeapon) {
-                                state.fightMonsterWithWeapon(card)
-                            } else {
-                                state.fightMonsterBarehanded(card)
-                            }
+                            state =
+                                if (canUseWeapon) {
+                                    state.fightMonsterWithWeapon(card)
+                                } else {
+                                    state.fightMonsterBarehanded(card)
+                                }
                             val method = if (canUseWeapon) "with weapon" else "barehanded"
-                            println("    Fought ${card.rank.displayName}${card.suit.symbol} $method: $oldHealth -> ${state.health}")
+                            println(
+                                "    Fought ${card.rank.displayName}${card.suit.symbol} $method: $oldHealth -> ${state.health}",
+                            )
 
                             if (state.isGameOver) {
                                 println("  DIED!")
@@ -502,11 +541,12 @@ class HeuristicPlayerTest {
                         CardType.POTION -> state = state.usePotion(card)
                         CardType.MONSTER -> {
                             val canUseWeapon = state.weaponState?.canDefeat(card) == true
-                            state = if (canUseWeapon) {
-                                state.fightMonsterWithWeapon(card)
-                            } else {
-                                state.fightMonsterBarehanded(card)
-                            }
+                            state =
+                                if (canUseWeapon) {
+                                    state.fightMonsterWithWeapon(card)
+                                } else {
+                                    state.fightMonsterBarehanded(card)
+                                }
                         }
                     }
                     if (state.isGameOver) break

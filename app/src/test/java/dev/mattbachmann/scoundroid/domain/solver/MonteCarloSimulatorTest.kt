@@ -11,12 +11,14 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class MonteCarloSimulatorTest {
-
     private val simulator = MonteCarloSimulator()
 
     // Helper to create a game with a specific deck
-    private fun gameWithDeck(cards: List<Card>, health: Int = 20): GameState {
-        return GameState(
+    private fun gameWithDeck(
+        cards: List<Card>,
+        health: Int = 20,
+    ): GameState =
+        GameState(
             deck = Deck(cards),
             health = health,
             currentRoom = null,
@@ -27,20 +29,20 @@ class MonteCarloSimulatorTest {
             usedPotionThisTurn = false,
             lastCardProcessed = null,
         )
-    }
 
     @Test
     fun `guaranteed win scenario has 100% win rate`() {
         // All potions - can't lose
-        val game = gameWithDeck(
-            listOf(
-                Card(Suit.HEARTS, Rank.TWO),
-                Card(Suit.HEARTS, Rank.THREE),
-                Card(Suit.HEARTS, Rank.FOUR),
-                Card(Suit.HEARTS, Rank.FIVE),
-            ),
-            health = 20
-        )
+        val game =
+            gameWithDeck(
+                listOf(
+                    Card(Suit.HEARTS, Rank.TWO),
+                    Card(Suit.HEARTS, Rank.THREE),
+                    Card(Suit.HEARTS, Rank.FOUR),
+                    Card(Suit.HEARTS, Rank.FIVE),
+                ),
+                health = 20,
+            )
 
         val result = simulator.simulate(game, samples = 100)
 
@@ -53,15 +55,16 @@ class MonteCarloSimulatorTest {
     fun `guaranteed loss scenario has 0% win rate`() {
         // Lethal monsters with low health
         // Total damage: 14+14+13+13 = 54, health = 5
-        val game = gameWithDeck(
-            listOf(
-                Card(Suit.CLUBS, Rank.ACE),   // 14
-                Card(Suit.SPADES, Rank.ACE),  // 14
-                Card(Suit.CLUBS, Rank.KING),  // 13
-                Card(Suit.SPADES, Rank.KING), // 13
-            ),
-            health = 5
-        )
+        val game =
+            gameWithDeck(
+                listOf(
+                    Card(Suit.CLUBS, Rank.ACE), // 14
+                    Card(Suit.SPADES, Rank.ACE), // 14
+                    Card(Suit.CLUBS, Rank.KING), // 13
+                    Card(Suit.SPADES, Rank.KING), // 13
+                ),
+                health = 5,
+            )
 
         val result = simulator.simulate(game, samples = 100)
 
@@ -72,15 +75,16 @@ class MonteCarloSimulatorTest {
     @Test
     fun `mixed scenario runs without errors`() {
         // Survivable with optimal play, but random play is bad
-        val game = gameWithDeck(
-            listOf(
-                Card(Suit.DIAMONDS, Rank.TEN), // Weapon
-                Card(Suit.CLUBS, Rank.JACK),   // 11 damage
-                Card(Suit.HEARTS, Rank.FIVE),  // Potion
-                Card(Suit.HEARTS, Rank.SIX),   // Potion
-            ),
-            health = 10
-        )
+        val game =
+            gameWithDeck(
+                listOf(
+                    Card(Suit.DIAMONDS, Rank.TEN), // Weapon
+                    Card(Suit.CLUBS, Rank.JACK), // 11 damage
+                    Card(Suit.HEARTS, Rank.FIVE), // Potion
+                    Card(Suit.HEARTS, Rank.SIX), // Potion
+                ),
+                health = 10,
+            )
 
         val result = simulator.simulate(game, samples = 1000)
 
@@ -92,15 +96,16 @@ class MonteCarloSimulatorTest {
     @Test
     fun `easy scenario with weak monsters has high win rate`() {
         // Very easy: weak monsters, lots of health
-        val game = gameWithDeck(
-            listOf(
-                Card(Suit.CLUBS, Rank.TWO),    // 2 damage
-                Card(Suit.SPADES, Rank.TWO),   // 2 damage
-                Card(Suit.CLUBS, Rank.THREE),  // 3 damage
-                Card(Suit.SPADES, Rank.THREE), // 3 damage
-            ),
-            health = 20
-        )
+        val game =
+            gameWithDeck(
+                listOf(
+                    Card(Suit.CLUBS, Rank.TWO), // 2 damage
+                    Card(Suit.SPADES, Rank.TWO), // 2 damage
+                    Card(Suit.CLUBS, Rank.THREE), // 3 damage
+                    Card(Suit.SPADES, Rank.THREE), // 3 damage
+                ),
+                health = 20,
+            )
 
         val result = simulator.simulate(game, samples = 100)
 
@@ -131,15 +136,21 @@ class MonteCarloSimulatorTest {
 
     @Test
     fun `simulate multiple seeds`() {
-        val results = simulator.simulateMultipleSeeds(
-            seedRange = 1L..10L,
-            samplesPerSeed = 1000,
-            random = Random(456)
-        )
+        val results =
+            simulator.simulateMultipleSeeds(
+                seedRange = 1L..10L,
+                samplesPerSeed = 1000,
+                random = Random(456),
+            )
 
         println("\n=== Multi-Seed Simulation Results ===")
         results.forEach { (seed, result) ->
-            println("Seed $seed: ${String.format("%.1f%%", result.winProbability * 100)} win rate, max score ${result.maxScore}")
+            println(
+                "Seed $seed: ${String.format(
+                    "%.1f%%",
+                    result.winProbability * 100,
+                )} win rate, max score ${result.maxScore}",
+            )
         }
 
         val avgWinRate = results.values.map { it.winProbability }.average()

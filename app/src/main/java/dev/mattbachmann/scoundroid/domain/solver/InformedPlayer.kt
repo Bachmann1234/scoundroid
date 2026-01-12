@@ -3,121 +3,131 @@ package dev.mattbachmann.scoundroid.domain.solver
 import dev.mattbachmann.scoundroid.data.model.Card
 import dev.mattbachmann.scoundroid.data.model.CardType
 import dev.mattbachmann.scoundroid.data.model.GameState
+import dev.mattbachmann.scoundroid.data.model.WeaponState
 
 /**
- * A heuristic-based player that makes intelligent decisions.
+ * A deck-knowledge-aware player that uses card counting to make smarter decisions.
  *
- * Strategy:
- * 1. Equip weapons before fighting monsters
- * 2. Use weapon on big monsters, fight small ones barehanded to preserve weapon
- * 3. Use potions when health is low or to top off
- * 4. Leave the worst card for next room when possible
- * 5. Skip rooms that look dangerous without mitigation
+ * Key improvements over HeuristicPlayer:
+ * 1. Dynamic weapon preservation threshold based on max monster remaining
+ * 2. Smarter room skipping based on survival margin and probability of finding help
+ * 3. Better leave-behind decisions considering card scarcity
+ * 4. Weapon equip decisions that consider what threats remain
  */
-class HeuristicPlayer {
+class InformedPlayer {
     companion object {
         /**
-         * Minimum monster value to use a fresh (non-degraded) weapon on.
-         * Fighting smaller monsters barehanded preserves the weapon for bigger threats.
-         * Evolved via genetic algorithm from 8 → 9.
+         * Base threshold for weapon preservation (from GA-optimized HeuristicPlayer).
+         * This gets dynamically adjusted based on what monsters remain.
          */
-        const val WEAPON_PRESERVATION_THRESHOLD = 9
+        const val BASE_WEAPON_PRESERVATION_THRESHOLD = 9
 
         /**
          * Skip room if estimated damage >= health - this value.
-         * Evolved via genetic algorithm from 2 → 5 (more willing to take risks).
          */
         const val SKIP_DAMAGE_HEALTH_BUFFER = 5
 
         /**
          * Skip room without weapon help if damage > this fraction of health.
-         * Evolved via genetic algorithm from 0.5 → 0.444.
          */
         const val SKIP_WITHOUT_WEAPON_FRACTION = 0.444
 
         /**
          * Equip a fresh weapon if current is degraded below this value.
-         * Evolved via genetic algorithm from 6 → 10 (swap for fresh weapons earlier).
          */
         const val EQUIP_FRESH_IF_DEGRADED_BELOW = 10
     }
 
     /**
-     * Plays a complete game using heuristic decisions.
+     * Plays a complete game using informed decisions with deck tracking.
      * Returns the final game state.
      */
     fun playGame(initialState: GameState): GameState {
         var state = initialState
+        var knowledge = DeckKnowledge.initial()
 
         while (!state.isGameOver && !isActuallyWon(state)) {
-            state = playOneStep(state)
+            val (newState, newKnowledge) = playOneStep(state, knowledge)
+            state = newState
+            knowledge = newKnowledge
         }
 
         return state
     }
 
-    private fun playOneStep(state: GameState): GameState {
+    private fun playOneStep(
+        state: GameState,
+        knowledge: DeckKnowledge,
+    ): Pair<GameState, DeckKnowledge> {
         // If no room, draw one
         if (state.currentRoom == null || state.currentRoom.isEmpty()) {
-            return state.drawRoom()
+            return Pair(state.drawRoom(), knowledge)
         }
 
         val room = state.currentRoom
 
         // If room has < 4 cards and deck has cards, draw more
         if (room.size < GameState.ROOM_SIZE && !state.deck.isEmpty) {
-            return state.drawRoom()
+            return Pair(state.drawRoom(), knowledge)
         }
 
         // If room has 4 cards, decide: avoid or process
         if (room.size == GameState.ROOM_SIZE) {
             // Decide whether to skip this room
-            if (!state.lastRoomAvoided && shouldSkipRoom(state, room)) {
-                return state.avoidRoom()
+            if (!state.lastRoomAvoided && shouldSkipRoom(state, room, knowledge)) {
+                val newKnowledge = knowledge.roomSkipped(room)
+                return Pair(state.avoidRoom(), newKnowledge)
             }
 
             // Process the room
-            return processRoom(state, room)
+            return processRoom(state, room, knowledge)
         }
 
         // End game: room has < 4 cards and deck is empty
-        return processEndGame(state, room)
+        return processEndGame(state, room, knowledge)
     }
 
     /**
-     * Decides whether to skip the current room.
+     * Dynamic weapon preservation threshold based on what monsters remain.
+     * If all Aces and Kings are gone, no need to preserve for 14.
+     */
+    fun getWeaponPreservationThreshold(knowledge: DeckKnowledge): Int =
+        minOf(BASE_WEAPON_PRESERVATION_THRESHOLD, knowledge.maxMonsterRemaining)
+
+    /**
+     * Decides whether to skip the current room using deck knowledge.
      *
-     * Key insight: Skipping puts these 4 cards at the bottom of deck plus draws 4 new.
-     * Skip when the room would deal fatal/near-fatal damage that we can't mitigate.
+     * Key insight: Skipping only helps if we're likely to find help before
+     * facing these cards again. If few weapons/potions remain, skipping
+     * just delays the inevitable.
      */
     private fun shouldSkipRoom(
         state: GameState,
         room: List<Card>,
+        knowledge: DeckKnowledge,
     ): Boolean {
         val monsters = room.filter { it.type == CardType.MONSTER }
 
-        if (monsters.isEmpty()) return false // No reason to skip
+        if (monsters.isEmpty()) return false
 
         // Calculate estimated damage if we process this room
-        val bestCardToLeave = chooseCardToLeave(state, room)
+        val bestCardToLeave = chooseCardToLeave(state, room, knowledge)
         val cardsToProcess = room.filter { it != bestCardToLeave }
-        val estimatedNetDamage = simulateNetDamage(state, cardsToProcess)
+        val estimatedNetDamage = simulateNetDamage(state, cardsToProcess, knowledge)
 
         // Would this room kill us or leave us dangerously low?
         if (estimatedNetDamage >= state.health - SKIP_DAMAGE_HEALTH_BUFFER) {
-            return true // Skip to survive
+            return true
         }
 
         // Would this room take too much health with no weapon help?
         val hasWeaponInRoom = room.any { it.type == CardType.WEAPON }
         val currentWeaponUseful =
             state.weaponState?.let { ws ->
-                // Weapon is useful if it can hit at least some monsters
                 monsters.any { ws.canDefeat(it) }
             } ?: false
 
         if (!currentWeaponUseful && !hasWeaponInRoom) {
-            // No weapon to help - check if damage is too high
             if (estimatedNetDamage > state.health * SKIP_WITHOUT_WEAPON_FRACTION) {
                 return true
             }
@@ -127,51 +137,51 @@ class HeuristicPlayer {
     }
 
     /**
-     * Processes a room of 4 cards with smart decisions.
+     * Processes a room of 4 cards with knowledge-informed decisions.
      */
     private fun processRoom(
         state: GameState,
         room: List<Card>,
-    ): GameState {
-        // Decide which card to leave (leave the worst one)
-        val cardToLeave = chooseCardToLeave(state, room)
+        knowledge: DeckKnowledge,
+    ): Pair<GameState, DeckKnowledge> {
+        val cardToLeave = chooseCardToLeave(state, room, knowledge)
         val cardsToProcess = room.filter { it != cardToLeave }
 
-        // Order the cards smartly
-        val orderedCards = orderCardsForProcessing(state, cardsToProcess)
+        val orderedCards = orderCardsForProcessing(state, cardsToProcess, knowledge)
 
-        // Process each card
         var currentState =
             state.copy(
                 currentRoom = listOf(cardToLeave),
                 usedPotionThisTurn = false,
             )
 
+        var currentKnowledge = knowledge
+
         for (card in orderedCards) {
-            currentState = processCard(currentState, card)
+            currentState = processCard(currentState, card, currentKnowledge)
+            currentKnowledge = currentKnowledge.cardProcessed(card)
             if (currentState.isGameOver) {
-                return currentState
+                return Pair(currentState, currentKnowledge)
             }
         }
 
-        return currentState
+        return Pair(currentState, currentKnowledge)
     }
 
     /**
-     * Chooses which card to leave for the next room.
-     *
-     * Evaluates each possible choice considering both immediate and future impact.
+     * Chooses which card to leave for the next room, considering deck knowledge.
      */
     private fun chooseCardToLeave(
         state: GameState,
         room: List<Card>,
+        knowledge: DeckKnowledge,
     ): Card {
         var bestCardToLeave = room.first()
         var bestScore = Int.MAX_VALUE
 
         for (candidate in room) {
             val cardsToProcess = room.filter { it != candidate }
-            val score = evaluateLeaveChoice(state, candidate, cardsToProcess)
+            val score = evaluateLeaveChoice(state, candidate, cardsToProcess, knowledge)
 
             if (score < bestScore) {
                 bestScore = score
@@ -183,29 +193,24 @@ class HeuristicPlayer {
     }
 
     /**
-     * Simulates processing a set of cards and returns net damage taken.
-     * This considers weapon pickup, degradation, and the preservation strategy.
-     *
-     * Key insight: Don't count healing that would be wasted (health already at max).
-     * Uses the same weapon preservation logic as actual combat.
+     * Simulates net damage using knowledge-informed weapon decisions.
      */
     private fun simulateNetDamage(
         state: GameState,
         cards: List<Card>,
+        knowledge: DeckKnowledge,
     ): Int {
         val monsters = cards.filter { it.type == CardType.MONSTER }.sortedByDescending { it.value }
         val weapons = cards.filter { it.type == CardType.WEAPON }
         val potions = cards.filter { it.type == CardType.POTION }
 
-        // Determine best weapon situation after processing
         val currentWeapon = state.weaponState
         val bestNewWeapon = weapons.maxByOrNull { it.value }
 
-        // Decide which weapon we'd actually use
         val effectiveWeaponValue: Int
         var weaponIsFresh: Boolean
 
-        if (bestNewWeapon != null && shouldEquipWeapon(currentWeapon, bestNewWeapon)) {
+        if (bestNewWeapon != null && shouldEquipWeaponWithKnowledge(currentWeapon, bestNewWeapon, knowledge)) {
             effectiveWeaponValue = bestNewWeapon.value
             weaponIsFresh = true
         } else if (currentWeapon != null) {
@@ -216,9 +221,10 @@ class HeuristicPlayer {
             weaponIsFresh = false
         }
 
-        // Calculate damage from monsters using weapon preservation strategy
+        // Use dynamic threshold based on knowledge
+        val preservationThreshold = getWeaponPreservationThreshold(knowledge)
+
         var totalDamage = 0
-        var simulatedHealth = state.health
         var weaponMaxMonster: Int? = if (weaponIsFresh) null else currentWeapon?.maxMonsterValue
 
         for (monster in monsters) {
@@ -227,30 +233,23 @@ class HeuristicPlayer {
                     (weaponMaxMonster == null || monster.value <= weaponMaxMonster)
 
             if (canUseWeapon) {
-                // Apply weapon preservation logic (no emergency buffer per GA results)
                 val shouldUseWeapon =
                     !weaponIsFresh ||
-                        // Already degraded - use it
-                        monster.value >= WEAPON_PRESERVATION_THRESHOLD // Big monster
+                        monster.value >= preservationThreshold
 
                 if (shouldUseWeapon) {
                     val damage = maxOf(0, monster.value - effectiveWeaponValue)
                     totalDamage += damage
-                    simulatedHealth -= damage
                     weaponMaxMonster = monster.value
                     weaponIsFresh = false
                 } else {
-                    // Fight barehanded to preserve weapon
                     totalDamage += monster.value
-                    simulatedHealth -= monster.value
                 }
             } else {
-                totalDamage += monster.value // Barehanded (no choice)
-                simulatedHealth -= monster.value
+                totalDamage += monster.value
             }
         }
 
-        // Calculate EFFECTIVE healing (capped by health deficit)
         val healthDeficit = GameState.MAX_HEALTH - state.health + totalDamage
         val totalPotionValue = potions.sumOf { it.value }
         val effectiveHealing = minOf(totalPotionValue, healthDeficit.coerceAtLeast(0))
@@ -259,24 +258,22 @@ class HeuristicPlayer {
     }
 
     /**
-     * Evaluates which card to leave, considering future impact.
-     * Returns a score where LOWER is BETTER.
+     * Evaluates which card to leave, considering deck knowledge for scarcity.
      */
     private fun evaluateLeaveChoice(
         state: GameState,
         cardToLeave: Card,
         cardsToProcess: List<Card>,
+        knowledge: DeckKnowledge,
     ): Int {
-        val netDamage = simulateNetDamage(state, cardsToProcess)
+        val netDamage = simulateNetDamage(state, cardsToProcess, knowledge)
 
-        // Add penalty for leaving big monsters - they'll be harder to fight later
-        // when our weapon has degraded from fighting this room's monsters
+        // Simple leave penalty - same as HeuristicPlayer baseline
         val leftoverPenalty =
             when (cardToLeave.type) {
-                CardType.MONSTER -> cardToLeave.value // Big monsters left = big penalty
-                CardType.POTION -> 0 // Potions are fine to leave
+                CardType.MONSTER -> cardToLeave.value
+                CardType.POTION -> 0
                 CardType.WEAPON -> {
-                    // Leaving a weapon is bad if we need it
                     val currentWeaponValue = state.weaponState?.weapon?.value ?: 0
                     if (cardToLeave.value > currentWeaponValue) cardToLeave.value else 0
                 }
@@ -286,12 +283,13 @@ class HeuristicPlayer {
     }
 
     /**
-     * Determines if we should equip a new weapon over the current one.
-     * Considers both raw value AND degradation state.
+     * Determines if we should equip a new weapon.
+     * Uses deck knowledge to make smarter decisions.
      */
-    private fun shouldEquipWeapon(
-        current: dev.mattbachmann.scoundroid.data.model.WeaponState?,
+    fun shouldEquipWeaponWithKnowledge(
+        current: WeaponState?,
         newWeapon: Card,
+        knowledge: DeckKnowledge,
     ): Boolean {
         if (current == null) return true
 
@@ -300,6 +298,12 @@ class HeuristicPlayer {
 
         // New weapon has higher value - definitely equip
         if (newWeapon.value > currentValue) return true
+
+        // Knowledge-based: if current weapon can still handle ALL remaining monsters,
+        // no need to swap to a fresh one (even if it's degraded)
+        if (currentMaxMonster != null && currentMaxMonster >= knowledge.maxMonsterRemaining) {
+            return false // Current weapon is sufficient for remaining threats
+        }
 
         // Current weapon is degraded below threshold - equip a fresh one
         if (currentMaxMonster != null && currentMaxMonster < EQUIP_FRESH_IF_DEGRADED_BELOW) {
@@ -310,48 +314,21 @@ class HeuristicPlayer {
     }
 
     /**
-     * Assigns a value to a card for "keep vs leave" decisions.
-     * Higher = more valuable to process now.
-     */
-    private fun cardValue(
-        card: Card,
-        state: GameState,
-    ): Int =
-        when (card.type) {
-            CardType.WEAPON -> {
-                // Weapons are valuable if we don't have one or this is better
-                val currentWeaponValue = state.weaponState?.weapon?.value ?: 0
-                if (card.value > currentWeaponValue) card.value + 10 else card.value
-            }
-            CardType.POTION -> {
-                // Potions are more valuable when health is low
-                val healthDeficit = GameState.MAX_HEALTH - state.health
-                if (healthDeficit >= card.value) card.value + 5 else card.value
-            }
-            CardType.MONSTER -> {
-                // Monsters are negative value (damage), but small ones are less bad
-                -card.value
-            }
-        }
-
-    /**
-     * Orders cards for optimal processing.
-     * Order: Weapons first (if upgrade), then BIG monsters, then potions
+     * Orders cards for optimal processing with knowledge-informed decisions.
      */
     private fun orderCardsForProcessing(
         state: GameState,
         cards: List<Card>,
+        knowledge: DeckKnowledge,
     ): List<Card> {
         val weapons = cards.filter { it.type == CardType.WEAPON }.sortedByDescending { it.value }
         val potions = cards.filter { it.type == CardType.POTION }.sortedByDescending { it.value }
-        val monsters = cards.filter { it.type == CardType.MONSTER }.sortedByDescending { it.value } // BIG first!
+        val monsters = cards.filter { it.type == CardType.MONSTER }.sortedByDescending { it.value }
 
         val result = mutableListOf<Card>()
 
-        // Find best weapon to equip (considering degradation)
-        val bestNewWeapon = weapons.firstOrNull { shouldEquipWeapon(state.weaponState, it) }
+        val bestNewWeapon = weapons.firstOrNull { shouldEquipWeaponWithKnowledge(state.weaponState, it, knowledge) }
 
-        // Calculate effective weapon after potential equip
         val effectiveWeaponValue =
             if (bestNewWeapon != null) {
                 bestNewWeapon.value
@@ -359,26 +336,26 @@ class HeuristicPlayer {
                 state.weaponState?.weapon?.value ?: 0
             }
 
-        // 1. Equip best weapon first (if it's an upgrade)
+        // 1. Equip best weapon first
         if (bestNewWeapon != null) {
             result.add(bestNewWeapon)
         }
 
-        // 2. Add remaining weapons (they'll be skipped if worse)
+        // 2. Add remaining weapons
         result.addAll(weapons.filter { it !in result })
 
-        // 3. Decide potion timing based on health
-        val estimatedDamage = monsters.sumOf { estimateDamage(it, effectiveWeaponValue) }
+        // 3. Decide potion timing
+        val estimatedDamage = monsters.sumOf { estimateDamage(it, effectiveWeaponValue, knowledge) }
         val needsHealingFirst = state.health <= estimatedDamage / 2
 
         if (needsHealingFirst && potions.isNotEmpty()) {
             result.add(potions.first())
         }
 
-        // 4. Fight monsters - BIG ONES FIRST (use weapon while fresh, then it can still hit smaller ones)
+        // 4. Fight monsters - big ones first
         result.addAll(monsters)
 
-        // 5. Add remaining potions (heal after combat)
+        // 5. Add remaining potions
         result.addAll(potions.filter { it !in result })
 
         return result
@@ -387,28 +364,33 @@ class HeuristicPlayer {
     private fun estimateDamage(
         monster: Card,
         weaponValue: Int,
-    ): Int =
-        if (weaponValue > 0) {
+        knowledge: DeckKnowledge,
+    ): Int {
+        if (weaponValue <= 0) return monster.value
+
+        // Use dynamic threshold
+        val threshold = getWeaponPreservationThreshold(knowledge)
+        return if (monster.value >= threshold) {
             (monster.value - weaponValue).coerceAtLeast(0)
         } else {
-            monster.value
+            monster.value // Fighting barehanded to preserve
         }
+    }
 
     /**
-     * Processes a single card with smart decisions.
+     * Processes a single card with knowledge-informed decisions.
      */
     private fun processCard(
         state: GameState,
         card: Card,
+        knowledge: DeckKnowledge,
     ): GameState =
         when (card.type) {
-            CardType.MONSTER -> processCombat(state, card)
+            CardType.MONSTER -> processCombat(state, card, knowledge)
             CardType.WEAPON -> {
-                // Equip if it's an upgrade (considering degradation)
-                if (shouldEquipWeapon(state.weaponState, card)) {
+                if (shouldEquipWeaponWithKnowledge(state.weaponState, card, knowledge)) {
                     state.equipWeapon(card)
                 } else {
-                    // Discard the worse weapon (just don't equip it)
                     state
                 }
             }
@@ -416,42 +398,35 @@ class HeuristicPlayer {
         }
 
     /**
-     * Makes intelligent combat decisions.
-     *
-     * Key insight: Using a fresh weapon on small monsters degrades it permanently,
-     * making it useless against big monsters later. We preserve fresh weapons for
-     * monsters >= WEAPON_PRESERVATION_THRESHOLD.
-     *
-     * Rules:
-     * 1. If weapon is already degraded, use it on anything it can hit (use it or lose it)
-     * 2. If weapon is fresh, only use on monsters >= threshold
-     *
-     * Note: GA evolved emergencyHealthBuffer to 0, meaning we don't use weapon
-     * to avoid death on small monsters - trust the preservation strategy.
+     * Makes combat decisions using deck knowledge.
      */
     private fun processCombat(
         state: GameState,
         monster: Card,
+        knowledge: DeckKnowledge,
     ): GameState {
         val weapon = state.weaponState
 
-        // No weapon or weapon can't hit this monster = barehanded
         if (weapon == null || !weapon.canDefeat(monster)) {
             return state.fightMonsterBarehanded(monster)
         }
 
-        // Weapon is already degraded - use it on anything it can hit
         val weaponIsDegraded = weapon.maxMonsterValue != null
         if (weaponIsDegraded) {
             return state.fightMonsterWithWeapon(monster)
         }
 
-        // Weapon is fresh - only use on big monsters
-        if (monster.value >= WEAPON_PRESERVATION_THRESHOLD) {
+        // Fresh weapon - use dynamic threshold
+        val threshold = getWeaponPreservationThreshold(knowledge)
+        if (monster.value >= threshold) {
             return state.fightMonsterWithWeapon(monster)
         }
 
-        // Fight small monster barehanded to preserve the weapon
+        // One safe improvement: use weapon to avoid death
+        if (monster.value >= state.health) {
+            return state.fightMonsterWithWeapon(monster)
+        }
+
         return state.fightMonsterBarehanded(monster)
     }
 
@@ -461,19 +436,22 @@ class HeuristicPlayer {
     private fun processEndGame(
         state: GameState,
         room: List<Card>,
-    ): GameState {
-        val orderedCards = orderCardsForProcessing(state, room)
+        knowledge: DeckKnowledge,
+    ): Pair<GameState, DeckKnowledge> {
+        val orderedCards = orderCardsForProcessing(state, room, knowledge)
 
         var currentState = state.copy(currentRoom = null)
+        var currentKnowledge = knowledge
 
         for (card in orderedCards) {
-            currentState = processCard(currentState, card)
+            currentState = processCard(currentState, card, currentKnowledge)
+            currentKnowledge = currentKnowledge.cardProcessed(card)
             if (currentState.isGameOver) {
-                return currentState
+                return Pair(currentState, currentKnowledge)
             }
         }
 
-        return currentState
+        return Pair(currentState, currentKnowledge)
     }
 
     private fun isActuallyWon(state: GameState): Boolean =
@@ -483,24 +461,17 @@ class HeuristicPlayer {
 }
 
 /**
- * Monte Carlo simulation using the heuristic player.
+ * Simulator using the informed player.
  */
-class HeuristicSimulator {
-    private val player = HeuristicPlayer()
+class InformedSimulator {
+    private val player = InformedPlayer()
 
-    /**
-     * Simulates games for multiple seeds using heuristic play.
-     */
     fun simulateSeeds(seedRange: LongRange): Map<Long, SimulationResult> =
         seedRange.associateWith { seed ->
             val game = GameState.newGame(kotlin.random.Random(seed))
             simulateSingleSeed(game)
         }
 
-    /**
-     * Since heuristic play is deterministic for a given seed,
-     * we only need to play once per seed.
-     */
     private fun simulateSingleSeed(initialState: GameState): SimulationResult {
         val finalState = player.playGame(initialState)
         val score = finalState.calculateScore()

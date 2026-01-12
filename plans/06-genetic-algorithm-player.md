@@ -1,17 +1,22 @@
 # Genetic Algorithm Player Optimizer
 
 ## Goal
-Use a genetic algorithm to evolve an optimized heuristic player that achieves a higher win rate than the current ~0.1%.
+Use a genetic algorithm to evolve an optimized heuristic player that achieves a higher win rate than the current ~0.14%.
 
 ## Background
 
-The current `HeuristicPlayer` in `app/src/main/java/dev/mattbachmann/scoundroid/domain/solver/HeuristicPlayer.kt` wins about 0.094% of games (94 out of 100,000 seeds). It has many hardcoded decision thresholds that could be optimized.
+The current `HeuristicPlayer` wins about 0.14% of games (14 out of 10,000 seeds) after implementing the weapon preservation strategy. Analysis of 10,000 losses revealed:
 
-### Current Hardcoded Values
-- Room skip: `estimatedNetDamage >= state.health - 2` and `estimatedNetDamage > state.health / 2`
-- Card leave penalty: `cardToLeave.value` for monsters (linear)
-- Effective healing cap calculation
-- No parameters for weapon usage strategy
+- **95% of deaths have an unused weapon** - weapon degradation is the #1 killer
+- **74% of deaths where weapon COULD have helped** if not degraded
+- **63% of deaths from face cards and aces** (Jacks through Aces)
+- Cascading degradation within rooms is a major problem
+
+### Key Insights from Analysis
+1. Using fresh weapons on small monsters degrades them permanently
+2. Once degraded, using weapon on ALL monsters in a room causes further cascading degradation
+3. The weapon preservation threshold (currently 8) is the most impactful parameter
+4. Room skipping thresholds affect survival but are secondary to weapon management
 
 ## Implementation Plan
 
@@ -24,23 +29,24 @@ Create a player that takes a `PlayerGenome` data class with tunable parameters:
 ```kotlin
 data class PlayerGenome(
     // Room skip thresholds
-    val skipIfDamageExceedsHealthFraction: Double,  // e.g., 0.5 = skip if damage > 50% health
     val skipIfDamageExceedsHealthMinus: Int,        // e.g., 2 = skip if damage >= health - 2
-    val skipWithoutWeaponThreshold: Double,         // e.g., 0.3 = more aggressive skipping without weapon
+    val skipWithoutWeaponDamageFraction: Double,    // e.g., 0.5 = skip if no weapon help and damage > 50% health
 
     // Card leave evaluation
     val monsterLeavePenaltyMultiplier: Double,      // e.g., 1.0 = linear, 2.0 = quadratic penalty
-    val potionLeaveBonus: Double,                   // e.g., 0.5 = prefer leaving potions
     val weaponLeavePenaltyIfNeeded: Double,         // e.g., 10.0 = big penalty for leaving needed weapons
 
-    // Combat decisions
-    val healingThresholdFraction: Double,           // e.g., 0.25 = heal first if health < 25%
-    val useWeaponOnSmallMonstersThreshold: Int,     // e.g., 5 = always use weapon if monster >= 5
+    // Weapon preservation (CRITICAL - most impactful parameters)
+    val weaponPreservationThreshold: Int,           // e.g., 8 = only use fresh weapon on monsters >= 8
+    val minDamageSavedToUseWeapon: Int,             // e.g., 3 = only use degraded weapon if it saves 3+ damage
+    val emergencyHealthBuffer: Int,                 // e.g., 2 = use weapon if health <= monster.value + buffer
 
     // Weapon equip decisions
     val equipFreshWeaponIfDegradedBelow: Int,       // e.g., 6 = equip fresh weapon if current degraded below 6
 )
 ```
+
+**8 parameters total** - focused on the decisions that matter most based on analysis.
 
 ### Phase 2: Create GA Framework
 
@@ -49,8 +55,8 @@ data class PlayerGenome(
 ```kotlin
 class GeneticOptimizer(
     val populationSize: Int = 50,
-    val gamesPerEvaluation: Int = 1000,
-    val mutationRate: Double = 0.1,
+    val gamesPerEvaluation: Int = 5000,  // Higher for less noise with sparse wins
+    val mutationRate: Double = 0.15,
     val crossoverRate: Double = 0.7,
     val eliteCount: Int = 5,
 )
@@ -58,8 +64,8 @@ class GeneticOptimizer(
 
 **Key functions:**
 1. `randomGenome()` - Create random genome within valid bounds
-2. `evaluate(genome: PlayerGenome): FitnessResult` - Play N games, return win rate + avg score
-3. `select(population: List<ScoredGenome>): List<PlayerGenome>` - Tournament or roulette selection
+2. `evaluate(genome: PlayerGenome): FitnessResult` - Play N games, return weighted fitness
+3. `select(population: List<ScoredGenome>): List<PlayerGenome>` - Tournament selection
 4. `crossover(parent1: PlayerGenome, parent2: PlayerGenome): PlayerGenome` - Blend parameters
 5. `mutate(genome: PlayerGenome): PlayerGenome` - Random perturbation
 6. `evolve(generations: Int): PlayerGenome` - Main loop
@@ -72,8 +78,8 @@ class GeneticOptimizer(
 @Test
 fun `evolve optimal player`() {
     val optimizer = GeneticOptimizer(
-        populationSize = 100,
-        gamesPerEvaluation = 2000,
+        populationSize = 50,
+        gamesPerEvaluation = 5000,
         mutationRate = 0.15,
     )
 
@@ -99,22 +105,43 @@ Once we find good parameters:
 
 ### Performance
 - Current speed: ~50,000-90,000 games/sec
-- Population of 100, 2000 games each = 200,000 games per generation
-- At 50k games/sec = ~4 seconds per generation
-- 50 generations = ~3-4 minutes total
+- Population of 50, 5000 games each = 250,000 games per generation
+- At 50k games/sec = ~5 seconds per generation
+- 50 generations = ~4-5 minutes total
+- With parallelization: ~1-2 minutes total
 
-### Fitness Function Options
-1. **Win rate only** - Simple, but most games lose so signal is sparse
-2. **Win rate + average score** - Better gradient (surviving longer = higher score even in loss)
-3. **Weighted combination** - `winRate * 1000 + avgScore`
+### Fitness Function
+
+Use weighted combination to get gradient even from losses:
+
+```kotlin
+fun fitness(results: SimulationResults): Double {
+    // Wins are worth a lot, but losses still provide signal
+    // Score in losses is negative (e.g., -50 to -150), wins are positive (1-20)
+    return results.winRate * 10000 + results.averageScore
+}
+```
+
+This gives partial credit for "better" losses (dying later with fewer cards remaining).
 
 ### Parameter Bounds
 ```kotlin
 val GENOME_BOUNDS = mapOf(
-    "skipIfDamageExceedsHealthFraction" to 0.2..0.9,
+    // Room skip
     "skipIfDamageExceedsHealthMinus" to 0..10,
+    "skipWithoutWeaponDamageFraction" to 0.3..0.8,
+
+    // Card leaving
     "monsterLeavePenaltyMultiplier" to 0.5..3.0,
-    // etc.
+    "weaponLeavePenaltyIfNeeded" to 0.0..20.0,
+
+    // Weapon preservation (CRITICAL)
+    "weaponPreservationThreshold" to 5..12,
+    "minDamageSavedToUseWeapon" to 0..5,
+    "emergencyHealthBuffer" to 0..5,
+
+    // Weapon equip
+    "equipFreshWeaponIfDegradedBelow" to 3..10,
 )
 ```
 
@@ -131,10 +158,14 @@ val GENOME_BOUNDS = mapOf(
 
 ## Files to Create
 
-1. `ParameterizedPlayer.kt` - Player that uses genome parameters
-2. `PlayerGenome.kt` - Data class for parameters (or nested in ParameterizedPlayer)
-3. `GeneticOptimizer.kt` - GA implementation
-4. `GeneticOptimizerTest.kt` - Test runner
+1. `PlayerGenome.kt` - Data class with 8 tunable parameters
+2. `ParameterizedPlayer.kt` - Player that uses genome parameters for decisions
+3. `GeneticOptimizer.kt` - GA implementation with fitness evaluation
+4. `GeneticOptimizerTest.kt` - Test runner that evolves and validates
+
+**Existing files to keep:**
+- `GameLog.kt` - Already created for logging/analysis
+- `LoggingHeuristicPlayer.kt` - Useful for debugging evolved strategies
 
 ## Alternative Approaches (if GA doesn't work well)
 

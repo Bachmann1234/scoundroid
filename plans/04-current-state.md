@@ -398,49 +398,70 @@
   - Font sizes scale with card dimensions
   - Fixed flaky tests related to card rendering
 
-## Session 11 In Progress (2026-01-11)
+## Session 11 & 12 Completed (2026-01-11)
 
-**Seed Solver & Win Probability Analysis**
+**Seed Solver & Win Probability Analysis - GA Optimization Complete**
 
 **Branch:** `seed-solver`
 
-**Accomplishments:**
+**Session 11 Accomplishments:**
 
 - ✅ **Exhaustive Solver** (abandoned - intractable)
-  - `GameSolver.kt` - DFS exploration of all game states
-  - Too slow even with 1M node limit
+- ✅ **Monte Carlo Simulator** - 0% wins with random play
+- ✅ **Heuristic Player** - Initial ~0.06% win rate
 
-- ✅ **Monte Carlo Simulator**
-  - `MonteCarloSimulator.kt` - Random play sampling
-  - Result: 0% wins with random play (game too hard)
+**Session 12 Accomplishments:**
 
-- ✅ **Optimal Solver with Pruning**
-  - `OptimalSolver.kt` - DFS with early termination
-  - Still too slow to find wins in reasonable time
+- ✅ **Logging Infrastructure**
+  - `GameLog.kt` - Data classes for game events and death analysis
+  - `LoggingHeuristicPlayer.kt` - Player that records all decisions
+  - `LoggingSimulatorTest.kt` - Analysis of game losses
 
-- ✅ **Heuristic Player**
-  - `HeuristicPlayer.kt` - Intelligent decision-making AI
-  - `HeuristicSimulator.kt` - Runs heuristic games
-  - Speed: ~50,000-90,000 games/sec
-  - Current win rate: **0.094%** (94 wins out of 100,000 seeds)
+- ✅ **Key Insight: Weapon Degradation**
+  - 95% of deaths had unused weapon
+  - 77% where weapon COULD have helped if not degraded
+  - Implemented weapon preservation threshold (2.3x improvement)
 
-- ✅ **Key Strategy Fixes**
-  - Evaluate which card to leave based on total damage (not just "leave smallest")
-  - Consider weapon degradation when equipping new weapons
-  - Penalize leaving big monsters (harder to fight later)
-  - Smart room skipping based on estimated damage
+- ✅ **Genetic Algorithm Optimization**
+  - `PlayerGenome.kt` - 8 tunable parameters with crossover/mutation
+  - `ParameterizedPlayer.kt` - Player using genome parameters
+  - `GeneticOptimizer.kt` - Parallel GA with tournament selection
+  - Ran 50 generations, 5000 games/evaluation
+  - **Result: 0.2% win rate (3-4x improvement from 0.06%)**
+
+- ✅ **Evolved Parameters**
+  - `weaponPreservationThreshold = 9` (was 8)
+  - `skipDamageHealthBuffer = 5` (was 2)
+  - `skipWithoutWeaponFraction = 0.444` (was 0.5)
+  - `equipFreshWeaponIfDegradedBelow = 10` (was 6)
+  - `emergencyHealthBuffer = 0` (trust preservation strategy)
+
+- ✅ **Winnable Seeds Collection**
+  - Ran 500k games, collected **1,018 winnable seeds**
+  - Saved to `app/build/winnable-seeds.txt`
+  - Enables focused testing on winnable games
+
+- ✅ **Winnable Seed Analysis**
+  - **Key finding:** Early weapon availability is #1 predictor
+  - 78% of wins had weapon in Room 1 (vs 62% of losses)
+  - Winning games have lower late-game difficulty
+  - All-monster Room 1 strongly correlates with losing
 
 **Files Created:**
-- `domain/solver/SolveResult.kt` - Result types for solvers
-- `domain/solver/GameSolver.kt` - Exhaustive solver (abandoned)
-- `domain/solver/MonteCarloSimulator.kt` - Random sampling
-- `domain/solver/OptimalSolver.kt` - Pruned DFS solver
-- `domain/solver/HeuristicPlayer.kt` - Smart AI player
-- Test files for all solvers
+- `domain/solver/GameLog.kt` - Logging data structures
+- `domain/solver/LoggingHeuristicPlayer.kt` - Logging player
+- `domain/solver/PlayerGenome.kt` - GA genome with 8 parameters
+- `domain/solver/ParameterizedPlayer.kt` - Genome-based player
+- `domain/solver/GeneticOptimizer.kt` - GA implementation
+- `domain/solver/GeneticOptimizerTest.kt` - GA tests
+- `LoggingSimulatorTest.kt` - Analysis and seed collection tests
 
-**Next Step:** Genetic Algorithm to optimize heuristic player parameters
-- See `plans/06-genetic-algorithm-player.md` for implementation plan
-- Goal: Improve win rate from 0.1% to >1%
+**Next Step:** Deck Knowledge-Based Player
+- See `plans/07-deck-knowledge-player.md` for implementation plan
+- Use card counting to inform decisions
+- Track remaining monsters, weapons, potions
+- Probability-based decision making
+- Goal: 0.5%+ win rate
 
 ## Session 10 Completed (2026-01-09)
 
