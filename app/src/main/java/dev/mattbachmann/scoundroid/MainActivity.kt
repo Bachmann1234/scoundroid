@@ -38,8 +38,9 @@ class MainActivity : ComponentActivity() {
  * Determines the screen size class based on screen dimensions and orientation.
  * - COMPACT: Small phones (height < 700dp) - aggressive space saving
  * - MEDIUM: Fold cover screens, regular phones (height >= 700dp, width < height)
- * - LANDSCAPE: Phones in landscape (width > height, width < 900dp) - horizontal layout
- * - TABLET: Unfolded foldables, tablets (width >= 900dp) - spacious two-column layout
+ * - LANDSCAPE: Phones in landscape (width > height, height < 500dp) - compact horizontal layout
+ * - TABLET: Unfolded foldables, tablets in landscape - spacious two-column layout
+ * - TABLET_PORTRAIT: Unfolded foldables, tablets in portrait - vertical layout with large elements
  */
 @Composable
 private fun getScreenSizeClass(): ScreenSizeClass {
@@ -49,11 +50,22 @@ private fun getScreenSizeClass(): ScreenSizeClass {
     val widthDp = with(density) { containerSize.width.toDp() }
     val heightDp = with(density) { containerSize.height.toDp() }
 
-    return when {
-        // Large screens (tablets, unfolded foldables)
-        widthDp.value >= 900 -> ScreenSizeClass.TABLET
+    val minDimension = minOf(widthDp.value, heightDp.value)
+    val maxDimension = maxOf(widthDp.value, heightDp.value)
+    val isLargeScreen = minDimension >= 550 && maxDimension >= 800
 
-        // Landscape phones (wider than tall, but not tablet-sized)
+    return when {
+        // Landscape phones (wider than tall with limited height - includes folded phone landscape)
+        // Must check this BEFORE tablet to catch folded landscape correctly
+        widthDp.value > heightDp.value && heightDp.value < 500 -> ScreenSizeClass.LANDSCAPE
+
+        // Large screens in landscape (tablets, unfolded foldables)
+        isLargeScreen && widthDp.value > heightDp.value -> ScreenSizeClass.TABLET
+
+        // Large screens in portrait (tablets, unfolded foldables)
+        isLargeScreen && heightDp.value >= widthDp.value -> ScreenSizeClass.TABLET_PORTRAIT
+
+        // Landscape phones (wider than tall, moderate height)
         widthDp.value > heightDp.value -> ScreenSizeClass.LANDSCAPE
 
         // Small portrait phones

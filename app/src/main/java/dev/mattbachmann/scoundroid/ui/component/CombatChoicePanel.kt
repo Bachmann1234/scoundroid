@@ -41,67 +41,78 @@ fun CombatChoicePanel(
     screenSizeClass: ScreenSizeClass = ScreenSizeClass.MEDIUM,
     showButtons: Boolean = true,
 ) {
-    val isTablet = screenSizeClass == ScreenSizeClass.TABLET
+    val isTablet = screenSizeClass == ScreenSizeClass.TABLET || screenSizeClass == ScreenSizeClass.TABLET_PORTRAIT
     val isLandscape = screenSizeClass == ScreenSizeClass.LANDSCAPE
 
     // Card sizing based on screen class
-    val cardWidth = when {
-        isTablet -> 120.dp
-        isLandscape -> 100.dp
-        else -> 90.dp
-    }
-    val cardHeight = when {
-        isTablet -> 168.dp
-        isLandscape -> 140.dp
-        else -> 126.dp
-    }
-    val padding = when {
-        isTablet -> 24.dp
-        isLandscape -> 20.dp
-        else -> 16.dp
-    }
-    val cardSpacing = when {
-        isTablet -> 20.dp
-        isLandscape -> 16.dp
-        else -> 12.dp
-    }
-    val labelSpacing = when {
-        isTablet -> 8.dp
-        isLandscape -> 6.dp
-        else -> 4.dp
-    }
-    val buttonSpacing = when {
-        isTablet -> 24.dp
-        isLandscape -> 20.dp
-        else -> 16.dp
-    }
+    val cardWidth =
+        when {
+            isTablet -> 120.dp
+            isLandscape -> 100.dp
+            else -> 90.dp
+        }
+    val cardHeight =
+        when {
+            isTablet -> 168.dp
+            isLandscape -> 140.dp
+            else -> 126.dp
+        }
+    val padding =
+        when {
+            isTablet -> 24.dp
+            isLandscape -> 20.dp
+            else -> 16.dp
+        }
+    val cardSpacing =
+        when {
+            isTablet -> 20.dp
+            isLandscape -> 16.dp
+            else -> 12.dp
+        }
+    val labelSpacing =
+        when {
+            isTablet -> 8.dp
+            isLandscape -> 6.dp
+            else -> 4.dp
+        }
+    val buttonSpacing =
+        when {
+            isTablet -> 24.dp
+            isLandscape -> 20.dp
+            else -> 16.dp
+        }
 
     // Typography styles
-    val titleStyle = when {
-        isTablet -> MaterialTheme.typography.headlineMedium
-        isLandscape -> MaterialTheme.typography.headlineSmall
-        else -> MaterialTheme.typography.titleLarge
-    }
-    val labelStyle = when {
-        isTablet -> MaterialTheme.typography.titleMedium
-        isLandscape -> MaterialTheme.typography.titleSmall
-        else -> MaterialTheme.typography.labelMedium
-    }
-    val vsStyle = when {
-        isTablet -> MaterialTheme.typography.headlineSmall
-        isLandscape -> MaterialTheme.typography.titleLarge
-        else -> MaterialTheme.typography.titleMedium
-    }
-    val buttonTitleStyle = when {
-        isTablet -> MaterialTheme.typography.titleMedium
-        isLandscape -> MaterialTheme.typography.titleSmall
-        else -> MaterialTheme.typography.bodyMedium
-    }
-    val buttonBodyStyle = when {
-        isTablet -> MaterialTheme.typography.bodyMedium
-        isLandscape -> MaterialTheme.typography.bodySmall
-        else -> MaterialTheme.typography.bodySmall
-    }
+    val titleStyle =
+        when {
+            isTablet -> MaterialTheme.typography.headlineMedium
+            isLandscape -> MaterialTheme.typography.headlineSmall
+            else -> MaterialTheme.typography.titleLarge
+        }
+    val labelStyle =
+        when {
+            isTablet -> MaterialTheme.typography.titleMedium
+            isLandscape -> MaterialTheme.typography.titleSmall
+            else -> MaterialTheme.typography.labelMedium
+        }
+    val vsStyle =
+        when {
+            isTablet -> MaterialTheme.typography.headlineSmall
+            isLandscape -> MaterialTheme.typography.titleLarge
+            else -> MaterialTheme.typography.titleMedium
+        }
+    val buttonTitleStyle =
+        when {
+            isTablet -> MaterialTheme.typography.titleMedium
+            isLandscape -> MaterialTheme.typography.titleSmall
+            else -> MaterialTheme.typography.bodyMedium
+        }
+    val buttonBodyStyle =
+        when {
+            isTablet -> MaterialTheme.typography.bodyMedium
+            isLandscape -> MaterialTheme.typography.bodySmall
+            else -> MaterialTheme.typography.bodySmall
+        }
 
     Card(
         modifier = modifier.fillMaxWidth(),
