@@ -73,11 +73,13 @@ import dev.mattbachmann.scoundroid.ui.theme.ScoundroidTheme
  * Screen size classes for responsive layouts.
  * - COMPACT: Small phones (height < 700dp) - aggressive space saving, 1x4 cards
  * - MEDIUM: Fold cover screens, regular phones - comfortable layout, 2x2 cards
+ * - LANDSCAPE: Phones in landscape orientation - horizontal layout, 2x2 cards
  * - TABLET: Unfolded foldables, tablets (width >= 600dp) - two-column layout, 2x2 cards
  */
 enum class ScreenSizeClass {
     COMPACT,
     MEDIUM,
+    LANDSCAPE,
     TABLET,
 }
 
@@ -94,6 +96,7 @@ fun GameScreen(
     screenSizeClass: ScreenSizeClass = ScreenSizeClass.MEDIUM,
 ) {
     val isTabletScreen = screenSizeClass == ScreenSizeClass.TABLET
+    val isLandscapeScreen = screenSizeClass == ScreenSizeClass.LANDSCAPE
     val uiState by viewModel.uiState.collectAsState()
     var selectedCards by remember { mutableStateOf(listOf<Card>()) }
     val sheetState = rememberModalBottomSheetState()
@@ -161,7 +164,7 @@ fun GameScreen(
             }
 
         if (isTabletScreen) {
-            // Tablet layout: two-column side-by-side layout
+            // Tablet layout: spacious two-column layout for large screens
             Column(
                 modifier =
                     Modifier
@@ -276,8 +279,110 @@ fun GameScreen(
                     }
                 }
             }
+        } else if (isLandscapeScreen) {
+            // Landscape layout: compact horizontal layout for phones in landscape
+            Row(
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .background(backgroundGradient)
+                        .padding(innerPadding)
+                        .padding(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                // Left column: Cards (narrower - 45% of screen)
+                Column(
+                    modifier =
+                        Modifier
+                            .weight(0.45f)
+                            .fillMaxSize(),
+                    verticalArrangement = Arrangement.Top,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    // Title at top of left column
+                    Text(
+                        text = "Scoundroid",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = Purple80,
+                        modifier = Modifier.padding(bottom = 8.dp),
+                    )
+
+                    ExpandedCardsSection(
+                        uiState = uiState,
+                        selectedCards = selectedCards,
+                        onSelectedCardsChange = { selectedCards = it },
+                        onIntent = viewModel::onIntent,
+                        screenSizeClass = screenSizeClass,
+                    )
+                }
+
+                // Right column: Status + Controls (wider - 55% of screen)
+                Column(
+                    modifier =
+                        Modifier
+                            .weight(0.55f)
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.Top,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    // Action buttons at top right
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End,
+                    ) {
+                        IconButton(onClick = { viewModel.onIntent(GameIntent.ShowActionLog) }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.List,
+                                contentDescription = "Action Log",
+                                tint = Purple80,
+                            )
+                        }
+                        IconButton(onClick = { viewModel.onIntent(GameIntent.ShowHelp) }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.Help,
+                                contentDescription = "Help",
+                                tint = Purple80,
+                            )
+                        }
+                    }
+
+                    // Inline status bar (horizontal)
+                    GameStatusBar(
+                        health = uiState.health,
+                        score = uiState.score,
+                        deckSize = uiState.deckSize,
+                        weaponState = uiState.weaponState,
+                        defeatedMonstersCount = uiState.defeatedMonstersCount,
+                        layout = StatusBarLayout.INLINE,
+                        modifier = Modifier.padding(bottom = 8.dp),
+                    )
+
+                    // Controls section (preview + buttons)
+                    TabletControlsSection(
+                        uiState = uiState,
+                        selectedCards = selectedCards,
+                        onSelectedCardsChange = { selectedCards = it },
+                        onIntent = viewModel::onIntent,
+                        simulateProcessing = viewModel::simulateProcessing,
+                        onCopySeed = {
+                            val clip =
+                                ClipData.newPlainText(
+                                    "Seed",
+                                    uiState.gameSeed.toString(),
+                                )
+                            clipboardManager.setPrimaryClip(clip)
+                            Toast
+                                .makeText(context, "Seed copied!", Toast.LENGTH_SHORT)
+                                .show()
+                        },
+                        onPlaySeed = { showSeedDialog = true },
+                    )
+                }
+            }
         } else {
-            // Compact layout: vertical stack with scroll fallback for smaller screens
+            // Portrait layout: vertical stack with scroll fallback for smaller screens
             Column(
                 modifier =
                     Modifier
@@ -323,6 +428,7 @@ fun GameScreen(
                     when (screenSizeClass) {
                         ScreenSizeClass.COMPACT -> StatusBarLayout.COMPACT
                         ScreenSizeClass.MEDIUM -> StatusBarLayout.MEDIUM
+                        ScreenSizeClass.LANDSCAPE -> StatusBarLayout.INLINE
                         ScreenSizeClass.TABLET -> StatusBarLayout.INLINE
                     }
                 GameStatusBar(
@@ -604,7 +710,7 @@ private fun GameContent(
     onPlaySeed: () -> Unit,
 ) {
     val isTablet = screenSizeClass == ScreenSizeClass.TABLET
-    val isCompact = !isTablet
+    val isCompact = screenSizeClass == ScreenSizeClass.COMPACT || screenSizeClass == ScreenSizeClass.MEDIUM
 
     // Use displayMode for consistent rendering across layouts
     when (val mode = uiState.displayMode) {
