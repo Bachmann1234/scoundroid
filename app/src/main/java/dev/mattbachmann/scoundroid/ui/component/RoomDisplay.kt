@@ -51,21 +51,22 @@ fun RoomDisplay(
     // Card sizes and layout based on screen size class
     // COMPACT: 76x106dp in 1x4 row (small phones)
     // MEDIUM: 85x119dp in 2x2 grid (fold cover, regular phones)
-    // EXPANDED: 160x224dp in 1x4 row (tablets, unfolded)
+    // TABLET: 150x210dp in 2x2 grid (unfolded foldables, tablets - two-column layout)
     val (cardWidth, cardHeight, cardSpacing, useGridLayout) =
         when (screenSizeClass) {
             ScreenSizeClass.COMPACT -> CardLayoutConfig(76.dp, 106.dp, 4.dp, false)
             ScreenSizeClass.MEDIUM -> CardLayoutConfig(85.dp, 119.dp, 8.dp, true)
-            ScreenSizeClass.EXPANDED -> CardLayoutConfig(160.dp, 224.dp, 16.dp, false)
+            ScreenSizeClass.TABLET -> CardLayoutConfig(150.dp, 210.dp, 16.dp, true)
         }
-    val isExpanded = screenSizeClass == ScreenSizeClass.EXPANDED
+    val isTablet = screenSizeClass == ScreenSizeClass.TABLET
 
     Column(
         modifier =
             modifier
                 .fillMaxWidth()
-                .padding(bottom = if (isExpanded) 12.dp else 0.dp),
-        verticalArrangement = Arrangement.spacedBy(if (isExpanded) 16.dp else 8.dp),
+                .padding(bottom = if (isTablet) 12.dp else 0.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(if (isTablet) 16.dp else 8.dp),
     ) {
         Text(
             text =
@@ -74,17 +75,17 @@ fun RoomDisplay(
                     cards.size == 1 -> "Leftover Card"
                     else -> "Current Room"
                 },
-            style = if (isExpanded) MaterialTheme.typography.titleLarge else MaterialTheme.typography.titleMedium,
+            style = if (isTablet) MaterialTheme.typography.titleLarge else MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             color = Purple80,
         )
 
         // Only show instruction text when 4 cards present, use fixed height to prevent layout shift
-        Box(modifier = Modifier.height(if (isExpanded) 20.dp else 16.dp)) {
+        Box(modifier = Modifier.height(if (isTablet) 20.dp else 16.dp)) {
             if (cards.size == 4) {
                 Text(
                     text = "Select 3 cards to process (leave 1 for next room)",
-                    style = if (isExpanded) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.bodySmall,
+                    style = if (isTablet) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.bodySmall,
                     color = PurpleGrey80,
                 )
             }
@@ -203,18 +204,6 @@ fun RoomDisplay(
                 }
             }
         }
-
-        // Only show selection count when cards are selected, use fixed height to prevent layout shift
-        Box(modifier = Modifier.height(if (isExpanded) 24.dp else 16.dp)) {
-            if (selectedCards.isNotEmpty()) {
-                Text(
-                    text = "Selected: ${selectedCards.size} / 3",
-                    style = if (isExpanded) MaterialTheme.typography.bodyLarge else MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-            }
-        }
     }
 }
 
@@ -262,17 +251,17 @@ fun RoomDisplayMediumPreview() {
 
 @Preview(
     showBackground = true,
-    name = "Tablet/Unfolded (EXPANDED)",
+    name = "Tablet/Unfolded (TABLET)",
     device = "spec:width=600dp,height=900dp,dpi=420",
 )
 @Composable
-fun RoomDisplayExpandedPreview() {
+fun RoomDisplayTabletPreview() {
     ScoundroidTheme {
         RoomDisplay(
             cards = previewRoomCards,
             selectedCards = listOf(previewRoomCards[0], previewRoomCards[2]),
             onCardClick = {},
-            screenSizeClass = ScreenSizeClass.EXPANDED,
+            screenSizeClass = ScreenSizeClass.TABLET,
         )
     }
 }

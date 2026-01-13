@@ -38,7 +38,7 @@ class MainActivity : ComponentActivity() {
  * Determines the screen size class based on screen dimensions.
  * - COMPACT: Small phones (height < 700dp) - aggressive space saving
  * - MEDIUM: Fold cover screens, regular phones (height >= 700dp, width < 600dp)
- * - EXPANDED: Tablets, unfolded foldables (width >= 600dp)
+ * - TABLET: Unfolded foldables, tablets (width >= 600dp) - two-column layout
  */
 @Composable
 private fun getScreenSizeClass(): ScreenSizeClass {
@@ -48,7 +48,7 @@ private fun getScreenSizeClass(): ScreenSizeClass {
     val widthDp = with(density) { containerSize.width.toDp() }
     val heightDp = with(density) { containerSize.height.toDp() }
     return when {
-        widthDp.value >= 600 -> ScreenSizeClass.EXPANDED
+        widthDp.value >= 600 -> ScreenSizeClass.TABLET
         heightDp.value < 700 -> ScreenSizeClass.COMPACT
         else -> ScreenSizeClass.MEDIUM
     }

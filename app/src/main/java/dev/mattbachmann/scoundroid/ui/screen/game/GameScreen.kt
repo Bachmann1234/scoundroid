@@ -73,12 +73,12 @@ import dev.mattbachmann.scoundroid.ui.theme.ScoundroidTheme
  * Screen size classes for responsive layouts.
  * - COMPACT: Small phones (height < 700dp) - aggressive space saving, 1x4 cards
  * - MEDIUM: Fold cover screens, regular phones - comfortable layout, 2x2 cards
- * - EXPANDED: Tablets, unfolded foldables - large cards in horizontal row
+ * - TABLET: Unfolded foldables, tablets (width >= 600dp) - two-column layout, 2x2 cards
  */
 enum class ScreenSizeClass {
     COMPACT,
     MEDIUM,
-    EXPANDED,
+    TABLET,
 }
 
 /**
@@ -93,7 +93,7 @@ fun GameScreen(
     viewModel: GameViewModel = viewModel(),
     screenSizeClass: ScreenSizeClass = ScreenSizeClass.MEDIUM,
 ) {
-    val isExpandedScreen = screenSizeClass == ScreenSizeClass.EXPANDED
+    val isTabletScreen = screenSizeClass == ScreenSizeClass.TABLET
     val uiState by viewModel.uiState.collectAsState()
     var selectedCards by remember { mutableStateOf(listOf<Card>()) }
     val sheetState = rememberModalBottomSheetState()
@@ -160,15 +160,15 @@ fun GameScreen(
                 )
             }
 
-        if (isExpandedScreen) {
-            // Expanded layout: title at top, cards in center, controls on bottom
+        if (isTabletScreen) {
+            // Tablet layout: two-column side-by-side layout
             Column(
                 modifier =
                     Modifier
                         .fillMaxSize()
                         .background(backgroundGradient)
                         .padding(innerPadding)
-                        .padding(16.dp),
+                        .padding(24.dp),
             ) {
                 // Title row at the top
                 Row(
@@ -178,7 +178,7 @@ fun GameScreen(
                 ) {
                     Text(
                         text = "Scoundroid",
-                        style = MaterialTheme.typography.headlineMedium,
+                        style = MaterialTheme.typography.headlineLarge,
                         fontWeight = FontWeight.Bold,
                         color = Purple80,
                     )
@@ -188,6 +188,7 @@ fun GameScreen(
                                 imageVector = Icons.AutoMirrored.Filled.List,
                                 contentDescription = "Action Log",
                                 tint = Purple80,
+                                modifier = Modifier.size(32.dp),
                             )
                         }
                         IconButton(onClick = { viewModel.onIntent(GameIntent.ShowHelp) }) {
@@ -195,59 +196,84 @@ fun GameScreen(
                                 imageVector = Icons.AutoMirrored.Filled.Help,
                                 contentDescription = "Help",
                                 tint = Purple80,
+                                modifier = Modifier.size(32.dp),
                             )
                         }
                     }
                 }
 
-                // Center section: Cards (takes available space)
-                Column(
+                // Two-column layout
+                Row(
                     modifier =
                         Modifier
                             .weight(1f)
-                            .fillMaxWidth(),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    ExpandedCardsSection(
-                        uiState = uiState,
-                        selectedCards = selectedCards,
-                        onSelectedCardsChange = { selectedCards = it },
-                        onIntent = viewModel::onIntent,
-                    )
-                }
-
-                // Bottom section: status, preview, buttons
-                Column(
-                    modifier =
-                        Modifier
                             .fillMaxWidth()
-                            .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                            .padding(top = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(24.dp),
                 ) {
-                    // Status bar (inline horizontal)
-                    GameStatusBar(
-                        health = uiState.health,
-                        score = uiState.score,
-                        deckSize = uiState.deckSize,
-                        weaponState = uiState.weaponState,
-                        defeatedMonstersCount = uiState.defeatedMonstersCount,
-                        layout = StatusBarLayout.INLINE,
-                    )
+                    // Left column: Cards
+                    Column(
+                        modifier =
+                            Modifier
+                                .weight(1f)
+                                .fillMaxSize(),
+                        verticalArrangement = Arrangement.Top,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        ExpandedCardsSection(
+                            uiState = uiState,
+                            selectedCards = selectedCards,
+                            onSelectedCardsChange = { selectedCards = it },
+                            onIntent = viewModel::onIntent,
+                            screenSizeClass = screenSizeClass,
+                        )
+                    }
 
-                    // Controls section
-                    ExpandedControlsSection(
-                        uiState = uiState,
-                        selectedCards = selectedCards,
-                        onSelectedCardsChange = { selectedCards = it },
-                        onIntent = viewModel::onIntent,
-                        simulateProcessing = viewModel::simulateProcessing,
-                        onCopySeed = {
-                            clipboardManager.setPrimaryClip(ClipData.newPlainText("Seed", uiState.gameSeed.toString()))
-                            Toast.makeText(context, "Seed copied!", Toast.LENGTH_SHORT).show()
-                        },
-                        onPlaySeed = { showSeedDialog = true },
-                    )
+                    // Right column: Status, Preview, Buttons
+                    Column(
+                        modifier =
+                            Modifier
+                                .weight(1f)
+                                .fillMaxSize(),
+                        verticalArrangement = Arrangement.Top,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(16.dp),
+                        ) {
+                            // Status bar
+                            GameStatusBar(
+                                health = uiState.health,
+                                score = uiState.score,
+                                deckSize = uiState.deckSize,
+                                weaponState = uiState.weaponState,
+                                defeatedMonstersCount = uiState.defeatedMonstersCount,
+                                layout = StatusBarLayout.MEDIUM,
+                            )
+
+                            // Controls section (preview + buttons)
+                            TabletControlsSection(
+                                uiState = uiState,
+                                selectedCards = selectedCards,
+                                onSelectedCardsChange = { selectedCards = it },
+                                onIntent = viewModel::onIntent,
+                                simulateProcessing = viewModel::simulateProcessing,
+                                onCopySeed = {
+                                    val clip =
+                                        ClipData.newPlainText(
+                                            "Seed",
+                                            uiState.gameSeed.toString(),
+                                        )
+                                    clipboardManager.setPrimaryClip(clip)
+                                    Toast
+                                        .makeText(context, "Seed copied!", Toast.LENGTH_SHORT)
+                                        .show()
+                                },
+                                onPlaySeed = { showSeedDialog = true },
+                            )
+                        }
+                    }
                 }
             }
         } else {
@@ -297,7 +323,7 @@ fun GameScreen(
                     when (screenSizeClass) {
                         ScreenSizeClass.COMPACT -> StatusBarLayout.COMPACT
                         ScreenSizeClass.MEDIUM -> StatusBarLayout.MEDIUM
-                        ScreenSizeClass.EXPANDED -> StatusBarLayout.INLINE
+                        ScreenSizeClass.TABLET -> StatusBarLayout.INLINE
                     }
                 GameStatusBar(
                     health = uiState.health,
@@ -577,8 +603,8 @@ private fun GameContent(
     onCopySeed: () -> Unit,
     onPlaySeed: () -> Unit,
 ) {
-    val isExpandedScreen = screenSizeClass == ScreenSizeClass.EXPANDED
-    val isCompact = !isExpandedScreen
+    val isTablet = screenSizeClass == ScreenSizeClass.TABLET
+    val isCompact = !isTablet
 
     // Use displayMode for consistent rendering across layouts
     when (val mode = uiState.displayMode) {
@@ -699,6 +725,7 @@ private fun ExpandedCardsSection(
     selectedCards: List<Card>,
     onSelectedCardsChange: (List<Card>) -> Unit,
     onIntent: (GameIntent) -> Unit,
+    screenSizeClass: ScreenSizeClass,
 ) {
     when (val mode = uiState.displayMode) {
         is GameDisplayMode.GameOver -> {
@@ -733,7 +760,7 @@ private fun ExpandedCardsSection(
                 choice = mode.choice,
                 onUseWeapon = { onIntent(GameIntent.ResolveCombatChoice(useWeapon = true)) },
                 onFightBarehanded = { onIntent(GameIntent.ResolveCombatChoice(useWeapon = false)) },
-                screenSizeClass = ScreenSizeClass.EXPANDED,
+                screenSizeClass = screenSizeClass,
                 showButtons = false,
             )
         }
@@ -741,7 +768,7 @@ private fun ExpandedCardsSection(
             RoomCardsDisplay(
                 currentRoom = mode.currentRoom,
                 selectedCards = selectedCards,
-                screenSizeClass = ScreenSizeClass.EXPANDED,
+                screenSizeClass = screenSizeClass,
                 onCardClick = { card ->
                     onSelectedCardsChange(toggleCardSelection(card, selectedCards))
                 },
@@ -751,11 +778,11 @@ private fun ExpandedCardsSection(
 }
 
 /**
- * Controls section for expanded mode - action buttons.
- * Uses displayMode for consistent rendering with compact layout.
+ * Controls section for tablet mode - preview and action buttons in right column.
+ * Optimized for two-column layout with larger touch targets.
  */
 @Composable
-private fun ExpandedControlsSection(
+private fun TabletControlsSection(
     uiState: GameUiState,
     selectedCards: List<Card>,
     onSelectedCardsChange: (List<Card>) -> Unit,
@@ -764,9 +791,9 @@ private fun ExpandedControlsSection(
     onCopySeed: () -> Unit,
     onPlaySeed: () -> Unit,
 ) {
-    val buttonShape = remember { RoundedCornerShape(12.dp) }
+    val buttonShape = remember { RoundedCornerShape(16.dp) }
     val primaryButtonColors = ButtonDefaults.buttonColors(containerColor = ButtonPrimary, contentColor = Color.White)
-    val primaryButtonElevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp, pressedElevation = 8.dp)
+    val primaryButtonElevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp, pressedElevation = 10.dp)
     val outlinedButtonColors = ButtonDefaults.outlinedButtonColors(contentColor = Purple80)
 
     when (val mode = uiState.displayMode) {
@@ -774,21 +801,52 @@ private fun ExpandedControlsSection(
             val choice = mode.choice
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
+                // Combat info card
+                androidx.compose.material3.Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors =
+                        androidx.compose.material3.CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        ),
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Text(
+                            text = "Combat Choice",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                        )
+                        Text(
+                            text = "Monster: ${choice.monster.displayName} (${choice.monster.value} damage)",
+                            style = MaterialTheme.typography.bodyLarge,
+                        )
+                        Text(
+                            text = "Your weapon: ${choice.weapon.displayName}",
+                            style = MaterialTheme.typography.bodyLarge,
+                        )
+                    }
+                }
+
                 // Use Weapon button
                 Button(
                     onClick = { onIntent(GameIntent.ResolveCombatChoice(useWeapon = true)) },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
+                    shape = buttonShape,
                     colors =
                         ButtonDefaults.buttonColors(
                             containerColor = Color(0xFF1976D2),
                             contentColor = Color.White,
                         ),
-                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp),
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp),
                 ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Column(
+                        modifier = Modifier.padding(vertical = 8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
                         Text(
                             text = "Use Weapon",
                             style = MaterialTheme.typography.titleLarge,
@@ -801,7 +859,7 @@ private fun ExpandedControlsSection(
                                 } else {
                                     "Take ${choice.weaponDamage} damage"
                                 },
-                            style = MaterialTheme.typography.bodyMedium,
+                            style = MaterialTheme.typography.bodyLarge,
                         )
                         Text(
                             text = "Degrades to ${choice.weaponDegradedTo}",
@@ -814,10 +872,13 @@ private fun ExpandedControlsSection(
                 OutlinedButton(
                     onClick = { onIntent(GameIntent.ResolveCombatChoice(useWeapon = false)) },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Purple80),
+                    shape = buttonShape,
+                    colors = outlinedButtonColors,
                 ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Column(
+                        modifier = Modifier.padding(vertical = 8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
                         Text(
                             text = "Fight Barehanded",
                             style = MaterialTheme.typography.titleLarge,
@@ -825,7 +886,7 @@ private fun ExpandedControlsSection(
                         )
                         Text(
                             text = "Take ${choice.barehandedDamage} damage",
-                            style = MaterialTheme.typography.bodyMedium,
+                            style = MaterialTheme.typography.bodyLarge,
                         )
                         Text(
                             text = "Keeps weapon",
@@ -836,7 +897,6 @@ private fun ExpandedControlsSection(
             }
         }
         is GameDisplayMode.GameOver, is GameDisplayMode.GameWon -> {
-            // Show seed display and buttons during game over/won
             val gameSeed =
                 when (mode) {
                     is GameDisplayMode.GameOver -> mode.gameSeed
@@ -844,7 +904,7 @@ private fun ExpandedControlsSection(
                 }
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 // Seed display with copy button
                 Row(
@@ -854,18 +914,18 @@ private fun ExpandedControlsSection(
                 ) {
                     Text(
                         text = "Seed: $gameSeed",
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     IconButton(
                         onClick = onCopySeed,
-                        modifier = Modifier.size(32.dp),
+                        modifier = Modifier.size(40.dp),
                     ) {
                         Icon(
                             imageVector = Icons.Default.ContentCopy,
                             contentDescription = "Copy seed",
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(18.dp),
+                            modifier = Modifier.size(24.dp),
                         )
                     }
                 }
@@ -883,6 +943,7 @@ private fun ExpandedControlsSection(
                     Text(
                         text = "Retry",
                         style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.padding(vertical = 8.dp),
                     )
                 }
 
@@ -900,6 +961,7 @@ private fun ExpandedControlsSection(
                     Text(
                         text = "New Game",
                         style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.padding(vertical = 8.dp),
                     )
                 }
 
@@ -910,82 +972,212 @@ private fun ExpandedControlsSection(
                 ) {
                     Text(
                         text = "Play Custom Seed",
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = MaterialTheme.typography.titleMedium,
                     )
                 }
             }
         }
         is GameDisplayMode.ActiveGame -> {
             val currentRoom = mode.currentRoom
-            when {
-                currentRoom != null && currentRoom.size == 4 -> {
-                    PreviewPanel(
-                        previewEntries = simulateProcessing(selectedCards),
-                    )
-                    RoomActionButtons(
-                        currentRoom = currentRoom,
-                        selectedCards = selectedCards,
-                        canAvoidRoom = mode.canAvoidRoom,
-                        isGameOver = false,
-                        isGameWon = false,
-                        onAvoidRoom = {
-                            onIntent(GameIntent.AvoidRoom)
-                            onSelectedCardsChange(emptyList())
-                        },
-                        onProcessCards = {
-                            onIntent(GameIntent.ProcessSelectedCards(selectedCards))
-                            onSelectedCardsChange(emptyList())
-                        },
-                        onDrawRoom = { onIntent(GameIntent.DrawRoom) },
-                        onNewGame = {
-                            onIntent(GameIntent.NewGame)
-                            onSelectedCardsChange(emptyList())
-                        },
-                    )
-                }
-                currentRoom == null -> {
-                    PreviewPanel(
-                        previewEntries = emptyList(),
-                        placeholderText = "Draw a room to see preview",
-                    )
-                    RoomActionButtons(
-                        currentRoom = null,
-                        selectedCards = selectedCards,
-                        canAvoidRoom = false,
-                        isGameOver = false,
-                        isGameWon = false,
-                        onAvoidRoom = {},
-                        onProcessCards = {},
-                        onDrawRoom = { onIntent(GameIntent.DrawRoom) },
-                        onNewGame = {
-                            onIntent(GameIntent.NewGame)
-                            onSelectedCardsChange(emptyList())
-                        },
-                        onPlaySeed = onPlaySeed,
-                    )
-                }
-                else -> {
-                    // Room has 1 card remaining
-                    PreviewPanel(
-                        previewEntries = emptyList(),
-                        placeholderText = "Draw next room to see preview",
-                    )
-                    RoomActionButtons(
-                        currentRoom = currentRoom,
-                        selectedCards = selectedCards,
-                        canAvoidRoom = false,
-                        isGameOver = false,
-                        isGameWon = false,
-                        onAvoidRoom = {},
-                        onProcessCards = {},
-                        onDrawRoom = { onIntent(GameIntent.DrawRoom) },
-                        onNewGame = {
-                            onIntent(GameIntent.NewGame)
-                            onSelectedCardsChange(emptyList())
-                        },
-                    )
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                when {
+                    currentRoom != null && currentRoom.size == 4 -> {
+                        PreviewPanel(
+                            previewEntries = simulateProcessing(selectedCards),
+                            isTablet = true,
+                        )
+                        TabletRoomActionButtons(
+                            selectedCards = selectedCards,
+                            canAvoidRoom = mode.canAvoidRoom,
+                            onAvoidRoom = {
+                                onIntent(GameIntent.AvoidRoom)
+                                onSelectedCardsChange(emptyList())
+                            },
+                            onProcessCards = {
+                                onIntent(GameIntent.ProcessSelectedCards(selectedCards))
+                                onSelectedCardsChange(emptyList())
+                            },
+                            onNewGame = {
+                                onIntent(GameIntent.NewGame)
+                                onSelectedCardsChange(emptyList())
+                            },
+                        )
+                    }
+                    currentRoom == null -> {
+                        PreviewPanel(
+                            previewEntries = emptyList(),
+                            placeholderText = "Draw a room to see preview",
+                            isTablet = true,
+                        )
+                        // Draw Room button
+                        Button(
+                            onClick = { onIntent(GameIntent.DrawRoom) },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = buttonShape,
+                            colors = primaryButtonColors,
+                            elevation = primaryButtonElevation,
+                        ) {
+                            Text(
+                                text = "Draw Room",
+                                style = MaterialTheme.typography.titleLarge,
+                                modifier = Modifier.padding(vertical = 8.dp),
+                            )
+                        }
+                        // New Game and Play Custom Seed in a row
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            OutlinedButton(
+                                onClick = {
+                                    onIntent(GameIntent.NewGame)
+                                    onSelectedCardsChange(emptyList())
+                                },
+                                modifier = Modifier.weight(1f),
+                                shape = buttonShape,
+                                colors = outlinedButtonColors,
+                            ) {
+                                Text(
+                                    text = "New Game",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    modifier = Modifier.padding(vertical = 4.dp),
+                                )
+                            }
+                            OutlinedButton(
+                                onClick = onPlaySeed,
+                                modifier = Modifier.weight(1f),
+                                shape = buttonShape,
+                                colors = outlinedButtonColors,
+                            ) {
+                                Text(
+                                    text = "Custom Seed",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    modifier = Modifier.padding(vertical = 4.dp),
+                                )
+                            }
+                        }
+                    }
+                    else -> {
+                        // Room has 1 card remaining
+                        PreviewPanel(
+                            previewEntries = emptyList(),
+                            placeholderText = "Draw next room to see preview",
+                            isTablet = true,
+                        )
+                        // Draw Room button
+                        Button(
+                            onClick = { onIntent(GameIntent.DrawRoom) },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = buttonShape,
+                            colors = primaryButtonColors,
+                            elevation = primaryButtonElevation,
+                        ) {
+                            Text(
+                                text = "Draw Room",
+                                style = MaterialTheme.typography.titleLarge,
+                                modifier = Modifier.padding(vertical = 8.dp),
+                            )
+                        }
+                        // New Game button
+                        OutlinedButton(
+                            onClick = {
+                                onIntent(GameIntent.NewGame)
+                                onSelectedCardsChange(emptyList())
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = buttonShape,
+                            colors = outlinedButtonColors,
+                        ) {
+                            Text(
+                                text = "New Game",
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.padding(vertical = 4.dp),
+                            )
+                        }
+                    }
                 }
             }
+        }
+    }
+}
+
+/**
+ * Action buttons for tablet mode when room has 4 cards.
+ */
+@Composable
+private fun TabletRoomActionButtons(
+    selectedCards: List<Card>,
+    canAvoidRoom: Boolean,
+    onAvoidRoom: () -> Unit,
+    onProcessCards: () -> Unit,
+    onNewGame: () -> Unit,
+) {
+    val buttonShape = remember { RoundedCornerShape(16.dp) }
+    val primaryButtonColors =
+        ButtonDefaults.buttonColors(
+            containerColor = ButtonPrimary,
+            contentColor = Color.White,
+            disabledContainerColor = ButtonPrimary.copy(alpha = 0.38f),
+            disabledContentColor = Color.White.copy(alpha = 0.6f),
+        )
+    val primaryButtonElevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp, pressedElevation = 10.dp)
+    val outlinedButtonColors = ButtonDefaults.outlinedButtonColors(contentColor = Purple80)
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        // Avoid Room / Pick 3 buttons in a row
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            // Avoid Room button
+            FilledTonalButton(
+                onClick = onAvoidRoom,
+                modifier = Modifier.weight(1f),
+                enabled = canAvoidRoom,
+                shape = buttonShape,
+            ) {
+                Text(
+                    text = "Avoid Room",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(vertical = 8.dp),
+                )
+            }
+
+            // Pick 3 button
+            Button(
+                onClick = onProcessCards,
+                modifier = Modifier.weight(1f),
+                enabled = selectedCards.size == 3,
+                shape = buttonShape,
+                colors = primaryButtonColors,
+                elevation = primaryButtonElevation,
+            ) {
+                Text(
+                    text = "Pick 3",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(vertical = 8.dp),
+                )
+            }
+        }
+
+        // New Game button
+        OutlinedButton(
+            onClick = onNewGame,
+            modifier = Modifier.fillMaxWidth(),
+            shape = buttonShape,
+            colors = outlinedButtonColors,
+        ) {
+            Text(
+                text = "New Game",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(vertical = 4.dp),
+            )
         }
     }
 }
