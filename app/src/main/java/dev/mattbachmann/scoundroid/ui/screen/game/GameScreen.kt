@@ -578,116 +578,120 @@ private fun GameContent(
     onPlaySeed: () -> Unit,
 ) {
     val isExpandedScreen = screenSizeClass == ScreenSizeClass.EXPANDED
+    val isCompact = !isExpandedScreen
 
-    // Game over / won message
-    if (uiState.isGameOver) {
-        GameOverScreen(
-            score = uiState.score,
-            highestScore = uiState.highestScore,
-            isNewHighScore = uiState.isNewHighScore,
-            gameSeed = uiState.gameSeed,
-            onNewGame = {
-                onIntent(GameIntent.NewGame)
-                onSelectedCardsChange(emptyList())
-            },
-            onRetryGame = {
-                onIntent(GameIntent.RetryGame)
-                onSelectedCardsChange(emptyList())
-            },
-            onCopySeed = onCopySeed,
-            onPlaySeed = onPlaySeed,
-        )
-    } else if (uiState.isGameWon) {
-        GameWonScreen(
-            score = uiState.score,
-            highestScore = uiState.highestScore,
-            isNewHighScore = uiState.isNewHighScore,
-            gameSeed = uiState.gameSeed,
-            onNewGame = {
-                onIntent(GameIntent.NewGame)
-                onSelectedCardsChange(emptyList())
-            },
-            onRetryGame = {
-                onIntent(GameIntent.RetryGame)
-                onSelectedCardsChange(emptyList())
-            },
-            onCopySeed = onCopySeed,
-            onPlaySeed = onPlaySeed,
-        )
-    } else if (uiState.pendingCombatChoice != null) {
-        // Combat choice needed - show the choice panel
-        CombatChoicePanel(
-            choice = uiState.pendingCombatChoice,
-            onUseWeapon = { onIntent(GameIntent.ResolveCombatChoice(useWeapon = true)) },
-            onFightBarehanded = { onIntent(GameIntent.ResolveCombatChoice(useWeapon = false)) },
-            screenSizeClass = screenSizeClass,
-        )
-    } else {
-        // Active game - show room cards
-        RoomCardsDisplay(
-            currentRoom = uiState.currentRoom,
-            selectedCards = selectedCards,
-            screenSizeClass = screenSizeClass,
-            onCardClick = { card ->
-                onSelectedCardsChange(toggleCardSelection(card, selectedCards))
-            },
-        )
-
-        // Always show preview panel to prevent layout jumping
-        val currentRoom = uiState.currentRoom
-        val isCompact = !isExpandedScreen
-        when {
-            currentRoom != null && currentRoom.size == 4 -> {
-                PreviewPanel(
-                    previewEntries = simulateProcessing(selectedCards),
-                    isCompact = isCompact,
-                )
-            }
-            currentRoom == null -> {
-                PreviewPanel(
-                    previewEntries = emptyList(),
-                    placeholderText = "Draw a room to see preview",
-                    isCompact = isCompact,
-                )
-            }
-            else -> {
-                // Room has 1 card remaining
-                PreviewPanel(
-                    previewEntries = emptyList(),
-                    placeholderText = "Draw next room to see preview",
-                    isCompact = isCompact,
-                )
-            }
+    // Use displayMode for consistent rendering across layouts
+    when (val mode = uiState.displayMode) {
+        is GameDisplayMode.GameOver -> {
+            GameOverScreen(
+                score = mode.score,
+                highestScore = mode.highestScore,
+                isNewHighScore = mode.isNewHighScore,
+                gameSeed = mode.gameSeed,
+                onNewGame = {
+                    onIntent(GameIntent.NewGame)
+                    onSelectedCardsChange(emptyList())
+                },
+                onRetryGame = {
+                    onIntent(GameIntent.RetryGame)
+                    onSelectedCardsChange(emptyList())
+                },
+                onCopySeed = onCopySeed,
+                onPlaySeed = onPlaySeed,
+            )
         }
+        is GameDisplayMode.GameWon -> {
+            GameWonScreen(
+                score = mode.score,
+                highestScore = mode.highestScore,
+                isNewHighScore = mode.isNewHighScore,
+                gameSeed = mode.gameSeed,
+                onNewGame = {
+                    onIntent(GameIntent.NewGame)
+                    onSelectedCardsChange(emptyList())
+                },
+                onRetryGame = {
+                    onIntent(GameIntent.RetryGame)
+                    onSelectedCardsChange(emptyList())
+                },
+                onCopySeed = onCopySeed,
+                onPlaySeed = onPlaySeed,
+            )
+        }
+        is GameDisplayMode.CombatChoice -> {
+            CombatChoicePanel(
+                choice = mode.choice,
+                onUseWeapon = { onIntent(GameIntent.ResolveCombatChoice(useWeapon = true)) },
+                onFightBarehanded = { onIntent(GameIntent.ResolveCombatChoice(useWeapon = false)) },
+                screenSizeClass = screenSizeClass,
+            )
+        }
+        is GameDisplayMode.ActiveGame -> {
+            // Active game - show room cards
+            RoomCardsDisplay(
+                currentRoom = mode.currentRoom,
+                selectedCards = selectedCards,
+                screenSizeClass = screenSizeClass,
+                onCardClick = { card ->
+                    onSelectedCardsChange(toggleCardSelection(card, selectedCards))
+                },
+            )
 
-        // Action buttons
-        RoomActionButtons(
-            currentRoom = uiState.currentRoom,
-            selectedCards = selectedCards,
-            canAvoidRoom = uiState.canAvoidRoom,
-            isGameOver = false,
-            isGameWon = false,
-            isCompact = isCompact,
-            onAvoidRoom = {
-                onIntent(GameIntent.AvoidRoom)
-                onSelectedCardsChange(emptyList())
-            },
-            onProcessCards = {
-                onIntent(GameIntent.ProcessSelectedCards(selectedCards))
-                onSelectedCardsChange(emptyList())
-            },
-            onDrawRoom = { onIntent(GameIntent.DrawRoom) },
-            onNewGame = {
-                onIntent(GameIntent.NewGame)
-                onSelectedCardsChange(emptyList())
-            },
-            onPlaySeed = onPlaySeed,
-        )
+            // Always show preview panel to prevent layout jumping
+            when {
+                mode.currentRoom != null && mode.currentRoom.size == 4 -> {
+                    PreviewPanel(
+                        previewEntries = simulateProcessing(selectedCards),
+                        isCompact = isCompact,
+                    )
+                }
+                mode.currentRoom == null -> {
+                    PreviewPanel(
+                        previewEntries = emptyList(),
+                        placeholderText = "Draw a room to see preview",
+                        isCompact = isCompact,
+                    )
+                }
+                else -> {
+                    // Room has 1 card remaining
+                    PreviewPanel(
+                        previewEntries = emptyList(),
+                        placeholderText = "Draw next room to see preview",
+                        isCompact = isCompact,
+                    )
+                }
+            }
+
+            // Action buttons
+            RoomActionButtons(
+                currentRoom = mode.currentRoom,
+                selectedCards = selectedCards,
+                canAvoidRoom = mode.canAvoidRoom,
+                isGameOver = false,
+                isGameWon = false,
+                isCompact = isCompact,
+                onAvoidRoom = {
+                    onIntent(GameIntent.AvoidRoom)
+                    onSelectedCardsChange(emptyList())
+                },
+                onProcessCards = {
+                    onIntent(GameIntent.ProcessSelectedCards(selectedCards))
+                    onSelectedCardsChange(emptyList())
+                },
+                onDrawRoom = { onIntent(GameIntent.DrawRoom) },
+                onNewGame = {
+                    onIntent(GameIntent.NewGame)
+                    onSelectedCardsChange(emptyList())
+                },
+                onPlaySeed = onPlaySeed,
+            )
+        }
     }
 }
 
 /**
  * Cards section for expanded mode - displays just the room cards.
+ * Uses displayMode for consistent rendering with compact layout.
  */
 @Composable
 private fun ExpandedCardsSection(
@@ -696,53 +700,59 @@ private fun ExpandedCardsSection(
     onSelectedCardsChange: (List<Card>) -> Unit,
     onIntent: (GameIntent) -> Unit,
 ) {
-    if (uiState.isGameOver) {
-        GameOverScreen(
-            score = uiState.score,
-            highestScore = uiState.highestScore,
-            isNewHighScore = uiState.isNewHighScore,
-            gameSeed = uiState.gameSeed,
-            onNewGame = {},
-            onRetryGame = {},
-            onCopySeed = {},
-            onPlaySeed = {},
-            showButton = false,
-        )
-    } else if (uiState.isGameWon) {
-        GameWonScreen(
-            score = uiState.score,
-            highestScore = uiState.highestScore,
-            isNewHighScore = uiState.isNewHighScore,
-            gameSeed = uiState.gameSeed,
-            onNewGame = {},
-            onRetryGame = {},
-            onCopySeed = {},
-            onPlaySeed = {},
-            showButton = false,
-        )
-    } else if (uiState.pendingCombatChoice != null) {
-        // Combat choice needed - show cards only, buttons go in controls section
-        CombatChoicePanel(
-            choice = uiState.pendingCombatChoice,
-            onUseWeapon = { onIntent(GameIntent.ResolveCombatChoice(useWeapon = true)) },
-            onFightBarehanded = { onIntent(GameIntent.ResolveCombatChoice(useWeapon = false)) },
-            screenSizeClass = ScreenSizeClass.EXPANDED,
-            showButtons = false,
-        )
-    } else {
-        RoomCardsDisplay(
-            currentRoom = uiState.currentRoom,
-            selectedCards = selectedCards,
-            screenSizeClass = ScreenSizeClass.EXPANDED,
-            onCardClick = { card ->
-                onSelectedCardsChange(toggleCardSelection(card, selectedCards))
-            },
-        )
+    when (val mode = uiState.displayMode) {
+        is GameDisplayMode.GameOver -> {
+            GameOverScreen(
+                score = mode.score,
+                highestScore = mode.highestScore,
+                isNewHighScore = mode.isNewHighScore,
+                gameSeed = mode.gameSeed,
+                onNewGame = {},
+                onRetryGame = {},
+                onCopySeed = {},
+                onPlaySeed = {},
+                showButton = false,
+            )
+        }
+        is GameDisplayMode.GameWon -> {
+            GameWonScreen(
+                score = mode.score,
+                highestScore = mode.highestScore,
+                isNewHighScore = mode.isNewHighScore,
+                gameSeed = mode.gameSeed,
+                onNewGame = {},
+                onRetryGame = {},
+                onCopySeed = {},
+                onPlaySeed = {},
+                showButton = false,
+            )
+        }
+        is GameDisplayMode.CombatChoice -> {
+            // Combat choice needed - show cards only, buttons go in controls section
+            CombatChoicePanel(
+                choice = mode.choice,
+                onUseWeapon = { onIntent(GameIntent.ResolveCombatChoice(useWeapon = true)) },
+                onFightBarehanded = { onIntent(GameIntent.ResolveCombatChoice(useWeapon = false)) },
+                screenSizeClass = ScreenSizeClass.EXPANDED,
+                showButtons = false,
+            )
+        }
+        is GameDisplayMode.ActiveGame -> {
+            RoomCardsDisplay(
+                currentRoom = mode.currentRoom,
+                selectedCards = selectedCards,
+                screenSizeClass = ScreenSizeClass.EXPANDED,
+                onCardClick = { card ->
+                    onSelectedCardsChange(toggleCardSelection(card, selectedCards))
+                },
+            )
+        }
     }
 }
 
 /**
  * Controls section for expanded mode - action buttons.
+ * Uses displayMode for consistent rendering with compact layout.
  */
 @Composable
 private fun ExpandedControlsSection(
@@ -754,84 +764,84 @@ private fun ExpandedControlsSection(
     onCopySeed: () -> Unit,
     onPlaySeed: () -> Unit,
 ) {
-    // During combat choice, show combat buttons
-    if (uiState.pendingCombatChoice != null) {
-        val choice = uiState.pendingCombatChoice
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            // Use Weapon button
-            Button(
-                onClick = { onIntent(GameIntent.ResolveCombatChoice(useWeapon = true)) },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors =
-                    ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF1976D2),
-                        contentColor = Color.White,
-                    ),
-                elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp),
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = "Use Weapon",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                    )
-                    Text(
-                        text =
-                            if (choice.weaponDamage == 0) {
-                                "No damage!"
-                            } else {
-                                "Take ${choice.weaponDamage} damage"
-                            },
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                    Text(
-                        text = "Degrades to ${choice.weaponDegradedTo}",
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
-            }
-
-            // Fight Barehanded button
-            OutlinedButton(
-                onClick = { onIntent(GameIntent.ResolveCombatChoice(useWeapon = false)) },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = Purple80),
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = "Fight Barehanded",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                    )
-                    Text(
-                        text = "Take ${choice.barehandedDamage} damage",
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                    Text(
-                        text = "Keeps weapon",
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
-            }
-        }
-        return
-    }
-
     val buttonShape = remember { RoundedCornerShape(12.dp) }
     val primaryButtonColors = ButtonDefaults.buttonColors(containerColor = ButtonPrimary, contentColor = Color.White)
     val primaryButtonElevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp, pressedElevation = 8.dp)
     val outlinedButtonColors = ButtonDefaults.outlinedButtonColors(contentColor = Purple80)
 
-    // Always show preview panel to prevent layout jumping
-    val currentRoom = uiState.currentRoom
-    when {
-        uiState.isGameOver || uiState.isGameWon -> {
-            // Show seed display and buttons during game over
+    when (val mode = uiState.displayMode) {
+        is GameDisplayMode.CombatChoice -> {
+            val choice = mode.choice
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                // Use Weapon button
+                Button(
+                    onClick = { onIntent(GameIntent.ResolveCombatChoice(useWeapon = true)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors =
+                        ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF1976D2),
+                            contentColor = Color.White,
+                        ),
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 4.dp),
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "Use Weapon",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                        )
+                        Text(
+                            text =
+                                if (choice.weaponDamage == 0) {
+                                    "No damage!"
+                                } else {
+                                    "Take ${choice.weaponDamage} damage"
+                                },
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                        Text(
+                            text = "Degrades to ${choice.weaponDegradedTo}",
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
+                }
+
+                // Fight Barehanded button
+                OutlinedButton(
+                    onClick = { onIntent(GameIntent.ResolveCombatChoice(useWeapon = false)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Purple80),
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "Fight Barehanded",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                        )
+                        Text(
+                            text = "Take ${choice.barehandedDamage} damage",
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                        Text(
+                            text = "Keeps weapon",
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
+                }
+            }
+        }
+        is GameDisplayMode.GameOver, is GameDisplayMode.GameWon -> {
+            // Show seed display and buttons during game over/won
+            val gameSeed =
+                when (mode) {
+                    is GameDisplayMode.GameOver -> mode.gameSeed
+                    is GameDisplayMode.GameWon -> mode.gameSeed
+                }
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -843,7 +853,7 @@ private fun ExpandedControlsSection(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = "Seed: ${uiState.gameSeed}",
+                        text = "Seed: $gameSeed",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -905,72 +915,77 @@ private fun ExpandedControlsSection(
                 }
             }
         }
-        currentRoom != null && currentRoom.size == 4 -> {
-            PreviewPanel(
-                previewEntries = simulateProcessing(selectedCards),
-            )
-            RoomActionButtons(
-                currentRoom = currentRoom,
-                selectedCards = selectedCards,
-                canAvoidRoom = uiState.canAvoidRoom,
-                isGameOver = false,
-                isGameWon = false,
-                onAvoidRoom = {
-                    onIntent(GameIntent.AvoidRoom)
-                    onSelectedCardsChange(emptyList())
-                },
-                onProcessCards = {
-                    onIntent(GameIntent.ProcessSelectedCards(selectedCards))
-                    onSelectedCardsChange(emptyList())
-                },
-                onDrawRoom = { onIntent(GameIntent.DrawRoom) },
-                onNewGame = {
-                    onIntent(GameIntent.NewGame)
-                    onSelectedCardsChange(emptyList())
-                },
-            )
-        }
-        currentRoom == null -> {
-            PreviewPanel(
-                previewEntries = emptyList(),
-                placeholderText = "Draw a room to see preview",
-            )
-            RoomActionButtons(
-                currentRoom = null,
-                selectedCards = selectedCards,
-                canAvoidRoom = false,
-                isGameOver = false,
-                isGameWon = false,
-                onAvoidRoom = {},
-                onProcessCards = {},
-                onDrawRoom = { onIntent(GameIntent.DrawRoom) },
-                onNewGame = {
-                    onIntent(GameIntent.NewGame)
-                    onSelectedCardsChange(emptyList())
-                },
-                onPlaySeed = onPlaySeed,
-            )
-        }
-        else -> {
-            // Room has 1 card remaining
-            PreviewPanel(
-                previewEntries = emptyList(),
-                placeholderText = "Draw next room to see preview",
-            )
-            RoomActionButtons(
-                currentRoom = currentRoom,
-                selectedCards = selectedCards,
-                canAvoidRoom = false,
-                isGameOver = false,
-                isGameWon = false,
-                onAvoidRoom = {},
-                onProcessCards = {},
-                onDrawRoom = { onIntent(GameIntent.DrawRoom) },
-                onNewGame = {
-                    onIntent(GameIntent.NewGame)
-                    onSelectedCardsChange(emptyList())
-                },
-            )
+        is GameDisplayMode.ActiveGame -> {
+            val currentRoom = mode.currentRoom
+            when {
+                currentRoom != null && currentRoom.size == 4 -> {
+                    PreviewPanel(
+                        previewEntries = simulateProcessing(selectedCards),
+                    )
+                    RoomActionButtons(
+                        currentRoom = currentRoom,
+                        selectedCards = selectedCards,
+                        canAvoidRoom = mode.canAvoidRoom,
+                        isGameOver = false,
+                        isGameWon = false,
+                        onAvoidRoom = {
+                            onIntent(GameIntent.AvoidRoom)
+                            onSelectedCardsChange(emptyList())
+                        },
+                        onProcessCards = {
+                            onIntent(GameIntent.ProcessSelectedCards(selectedCards))
+                            onSelectedCardsChange(emptyList())
+                        },
+                        onDrawRoom = { onIntent(GameIntent.DrawRoom) },
+                        onNewGame = {
+                            onIntent(GameIntent.NewGame)
+                            onSelectedCardsChange(emptyList())
+                        },
+                    )
+                }
+                currentRoom == null -> {
+                    PreviewPanel(
+                        previewEntries = emptyList(),
+                        placeholderText = "Draw a room to see preview",
+                    )
+                    RoomActionButtons(
+                        currentRoom = null,
+                        selectedCards = selectedCards,
+                        canAvoidRoom = false,
+                        isGameOver = false,
+                        isGameWon = false,
+                        onAvoidRoom = {},
+                        onProcessCards = {},
+                        onDrawRoom = { onIntent(GameIntent.DrawRoom) },
+                        onNewGame = {
+                            onIntent(GameIntent.NewGame)
+                            onSelectedCardsChange(emptyList())
+                        },
+                        onPlaySeed = onPlaySeed,
+                    )
+                }
+                else -> {
+                    // Room has 1 card remaining
+                    PreviewPanel(
+                        previewEntries = emptyList(),
+                        placeholderText = "Draw next room to see preview",
+                    )
+                    RoomActionButtons(
+                        currentRoom = currentRoom,
+                        selectedCards = selectedCards,
+                        canAvoidRoom = false,
+                        isGameOver = false,
+                        isGameWon = false,
+                        onAvoidRoom = {},
+                        onProcessCards = {},
+                        onDrawRoom = { onIntent(GameIntent.DrawRoom) },
+                        onNewGame = {
+                            onIntent(GameIntent.NewGame)
+                            onSelectedCardsChange(emptyList())
+                        },
+                    )
+                }
+            }
         }
     }
 }
