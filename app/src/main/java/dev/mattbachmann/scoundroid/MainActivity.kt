@@ -35,10 +35,12 @@ class MainActivity : ComponentActivity() {
 }
 
 /**
- * Determines the screen size class based on screen dimensions.
+ * Determines the screen size class based on screen dimensions and orientation.
  * - COMPACT: Small phones (height < 700dp) - aggressive space saving
- * - MEDIUM: Fold cover screens, regular phones (height >= 700dp, width < 600dp)
- * - TABLET: Unfolded foldables, tablets (width >= 600dp) - two-column layout
+ * - MEDIUM: Fold cover screens, regular phones (height >= 700dp, width < height)
+ * - LANDSCAPE: Phones in landscape (width > height, height < 500dp) - compact horizontal layout
+ * - TABLET: Unfolded foldables, tablets in landscape - spacious two-column layout
+ * - TABLET_PORTRAIT: Unfolded foldables, tablets in portrait - vertical layout with large elements
  */
 @Composable
 private fun getScreenSizeClass(): ScreenSizeClass {
@@ -47,9 +49,29 @@ private fun getScreenSizeClass(): ScreenSizeClass {
     val containerSize = windowInfo.containerSize
     val widthDp = with(density) { containerSize.width.toDp() }
     val heightDp = with(density) { containerSize.height.toDp() }
+
+    val minDimension = minOf(widthDp.value, heightDp.value)
+    val maxDimension = maxOf(widthDp.value, heightDp.value)
+    val isLargeScreen = minDimension >= 550 && maxDimension >= 800
+
     return when {
-        widthDp.value >= 600 -> ScreenSizeClass.TABLET
+        // Landscape phones (wider than tall with limited height - includes folded phone landscape)
+        // Must check this BEFORE tablet to catch folded landscape correctly
+        widthDp.value > heightDp.value && heightDp.value < 500 -> ScreenSizeClass.LANDSCAPE
+
+        // Large screens in landscape (tablets, unfolded foldables)
+        isLargeScreen && widthDp.value > heightDp.value -> ScreenSizeClass.TABLET
+
+        // Large screens in portrait (tablets, unfolded foldables)
+        isLargeScreen && heightDp.value >= widthDp.value -> ScreenSizeClass.TABLET_PORTRAIT
+
+        // Landscape phones (wider than tall, moderate height)
+        widthDp.value > heightDp.value -> ScreenSizeClass.LANDSCAPE
+
+        // Small portrait phones
         heightDp.value < 700 -> ScreenSizeClass.COMPACT
+
+        // Regular portrait phones
         else -> ScreenSizeClass.MEDIUM
     }
 }

@@ -6,6 +6,7 @@ import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -51,14 +52,17 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.mattbachmann.scoundroid.data.model.Card
 import dev.mattbachmann.scoundroid.data.model.LogEntry
 import dev.mattbachmann.scoundroid.ui.component.ActionLogPanel
+import dev.mattbachmann.scoundroid.ui.component.CardView
 import dev.mattbachmann.scoundroid.ui.component.CombatChoicePanel
 import dev.mattbachmann.scoundroid.ui.component.GameStatusBar
 import dev.mattbachmann.scoundroid.ui.component.HelpContent
+import dev.mattbachmann.scoundroid.ui.component.MiniCardBackIcon
 import dev.mattbachmann.scoundroid.ui.component.PreviewPanel
 import dev.mattbachmann.scoundroid.ui.component.RoomDisplay
 import dev.mattbachmann.scoundroid.ui.component.StatusBarLayout
@@ -73,12 +77,16 @@ import dev.mattbachmann.scoundroid.ui.theme.ScoundroidTheme
  * Screen size classes for responsive layouts.
  * - COMPACT: Small phones (height < 700dp) - aggressive space saving, 1x4 cards
  * - MEDIUM: Fold cover screens, regular phones - comfortable layout, 2x2 cards
- * - TABLET: Unfolded foldables, tablets (width >= 600dp) - two-column layout, 2x2 cards
+ * - LANDSCAPE: Phones in landscape orientation - horizontal layout, 1x4 cards
+ * - TABLET: Unfolded foldables, tablets in landscape - two-column layout, 2x2 cards
+ * - TABLET_PORTRAIT: Unfolded foldables, tablets in portrait - vertical centered layout, 2x2 cards
  */
 enum class ScreenSizeClass {
     COMPACT,
     MEDIUM,
+    LANDSCAPE,
     TABLET,
+    TABLET_PORTRAIT,
 }
 
 /**
@@ -94,6 +102,8 @@ fun GameScreen(
     screenSizeClass: ScreenSizeClass = ScreenSizeClass.MEDIUM,
 ) {
     val isTabletScreen = screenSizeClass == ScreenSizeClass.TABLET
+    val isTabletPortraitScreen = screenSizeClass == ScreenSizeClass.TABLET_PORTRAIT
+    val isLandscapeScreen = screenSizeClass == ScreenSizeClass.LANDSCAPE
     val uiState by viewModel.uiState.collectAsState()
     var selectedCards by remember { mutableStateOf(listOf<Card>()) }
     val sheetState = rememberModalBottomSheetState()
@@ -161,7 +171,7 @@ fun GameScreen(
             }
 
         if (isTabletScreen) {
-            // Tablet layout: two-column side-by-side layout
+            // Tablet layout: spacious two-column layout for large screens
             Column(
                 modifier =
                     Modifier
@@ -276,8 +286,222 @@ fun GameScreen(
                     }
                 }
             }
+        } else if (isTabletPortraitScreen) {
+            // Tablet portrait layout: vertical single-column layout with larger elements
+            Column(
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .background(backgroundGradient)
+                        .padding(innerPadding)
+                        .verticalScroll(rememberScrollState())
+                        .padding(24.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                // Title row at the top
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = "Scoundroid",
+                        style = MaterialTheme.typography.headlineLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = Purple80,
+                    )
+                    Row {
+                        IconButton(onClick = { viewModel.onIntent(GameIntent.ShowActionLog) }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.List,
+                                contentDescription = "Action Log",
+                                tint = Purple80,
+                                modifier = Modifier.size(32.dp),
+                            )
+                        }
+                        IconButton(onClick = { viewModel.onIntent(GameIntent.ShowHelp) }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.Help,
+                                contentDescription = "Help",
+                                tint = Purple80,
+                                modifier = Modifier.size(32.dp),
+                            )
+                        }
+                    }
+                }
+
+                // Status bar
+                GameStatusBar(
+                    health = uiState.health,
+                    score = uiState.score,
+                    deckSize = uiState.deckSize,
+                    weaponState = uiState.weaponState,
+                    defeatedMonstersCount = uiState.defeatedMonstersCount,
+                    layout = StatusBarLayout.MEDIUM,
+                )
+
+                // Game content (cards, preview, buttons) - use tablet card sizes
+                GameContent(
+                    uiState = uiState,
+                    selectedCards = selectedCards,
+                    onSelectedCardsChange = { selectedCards = it },
+                    onIntent = viewModel::onIntent,
+                    simulateProcessing = viewModel::simulateProcessing,
+                    screenSizeClass = screenSizeClass,
+                    onCopySeed = {
+                        clipboardManager.setPrimaryClip(ClipData.newPlainText("Seed", uiState.gameSeed.toString()))
+                        Toast.makeText(context, "Seed copied!", Toast.LENGTH_SHORT).show()
+                    },
+                    onPlaySeed = { showSeedDialog = true },
+                )
+            }
+        } else if (isLandscapeScreen) {
+            // Landscape layout: ultra-compact for phones in landscape (limited vertical space)
+            // Use only vertical innerPadding to keep content horizontally centered regardless of camera position
+            Box(
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .background(backgroundGradient)
+                        .padding(
+                            start = 16.dp,
+                            end = 16.dp,
+                            top = innerPadding.calculateTopPadding() + 4.dp,
+                            bottom = innerPadding.calculateBottomPadding() + 4.dp,
+                        ),
+                contentAlignment = Alignment.Center,
+            ) {
+                // Top row: Title + Status + Action buttons (pinned to top)
+                Row(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .align(Alignment.TopCenter),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = "Scoundroid",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Purple80,
+                    )
+
+                    // Compact inline status
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = "♥${uiState.health}",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = Color.White,
+                        )
+                        Text(
+                            text = "⚔${uiState.weaponState?.weapon?.displayName ?: "-"}",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = Color.White,
+                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            MiniCardBackIcon(size = 14.dp)
+                            Text(
+                                text = "${uiState.deckSize}",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = Color.White,
+                            )
+                        }
+                    }
+
+                    Row {
+                        IconButton(
+                            onClick = { viewModel.onIntent(GameIntent.ShowActionLog) },
+                            modifier = Modifier.size(36.dp),
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.List,
+                                contentDescription = "Action Log",
+                                tint = Purple80,
+                                modifier = Modifier.size(20.dp),
+                            )
+                        }
+                        IconButton(
+                            onClick = { viewModel.onIntent(GameIntent.ShowHelp) },
+                            modifier = Modifier.size(36.dp),
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.Help,
+                                contentDescription = "Help",
+                                tint = Purple80,
+                                modifier = Modifier.size(20.dp),
+                            )
+                        }
+                    }
+                }
+
+                // Main content: Cards on left, buttons on right (centered with offset for header)
+                Row(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .align(Alignment.Center)
+                            .padding(top = 20.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    // Cards section (60% of width) - add start padding for camera cutout
+                    Box(
+                        modifier =
+                            Modifier
+                                .weight(0.6f)
+                                .padding(start = innerPadding.calculateLeftPadding(LayoutDirection.Ltr)),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        LandscapeCardsSection(
+                            uiState = uiState,
+                            selectedCards = selectedCards,
+                            onSelectedCardsChange = { selectedCards = it },
+                            onIntent = viewModel::onIntent,
+                            screenSizeClass = screenSizeClass,
+                        )
+                    }
+
+                    // Buttons section (40% of width) - add end padding for camera cutout
+                    Column(
+                        modifier =
+                            Modifier
+                                .weight(0.4f)
+                                .padding(end = innerPadding.calculateRightPadding(LayoutDirection.Ltr)),
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        LandscapeControlsSection(
+                            uiState = uiState,
+                            selectedCards = selectedCards,
+                            onSelectedCardsChange = { selectedCards = it },
+                            onIntent = viewModel::onIntent,
+                            simulateProcessing = viewModel::simulateProcessing,
+                            onCopySeed = {
+                                val clip =
+                                    ClipData.newPlainText(
+                                        "Seed",
+                                        uiState.gameSeed.toString(),
+                                    )
+                                clipboardManager.setPrimaryClip(clip)
+                                Toast
+                                    .makeText(context, "Seed copied!", Toast.LENGTH_SHORT)
+                                    .show()
+                            },
+                            onPlaySeed = { showSeedDialog = true },
+                        )
+                    }
+                }
+            }
         } else {
-            // Compact layout: vertical stack with scroll fallback for smaller screens
+            // Portrait layout: vertical stack with scroll fallback for smaller screens
             Column(
                 modifier =
                     Modifier
@@ -323,7 +547,9 @@ fun GameScreen(
                     when (screenSizeClass) {
                         ScreenSizeClass.COMPACT -> StatusBarLayout.COMPACT
                         ScreenSizeClass.MEDIUM -> StatusBarLayout.MEDIUM
+                        ScreenSizeClass.LANDSCAPE -> StatusBarLayout.INLINE
                         ScreenSizeClass.TABLET -> StatusBarLayout.INLINE
+                        ScreenSizeClass.TABLET_PORTRAIT -> StatusBarLayout.MEDIUM
                     }
                 GameStatusBar(
                     health = uiState.health,
@@ -503,6 +729,7 @@ private fun RoomActionButtons(
                 }
             }
         } else {
+            // Initial state - no room drawn yet
             Button(
                 onClick = onDrawRoom,
                 modifier = Modifier.fillMaxWidth(),
@@ -516,35 +743,18 @@ private fun RoomActionButtons(
                 )
             }
 
-            // New Game and Play Custom Seed in a row
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(buttonSpacing),
-            ) {
+            // Only show Custom Seed (no New Game since we're already in a fresh game)
+            if (onPlaySeed != null) {
                 OutlinedButton(
-                    onClick = onNewGame,
-                    modifier = Modifier.weight(1f),
+                    onClick = onPlaySeed,
+                    modifier = Modifier.fillMaxWidth(),
                     shape = buttonShape,
                     colors = outlinedButtonColors,
                 ) {
                     Text(
-                        text = "New Game",
+                        text = "Custom Seed",
                         style = buttonTextStyle,
                     )
-                }
-
-                if (onPlaySeed != null) {
-                    OutlinedButton(
-                        onClick = onPlaySeed,
-                        modifier = Modifier.weight(1f),
-                        shape = buttonShape,
-                        colors = outlinedButtonColors,
-                    ) {
-                        Text(
-                            text = "Custom Seed",
-                            style = buttonTextStyle,
-                        )
-                    }
                 }
             }
         }
@@ -603,8 +813,8 @@ private fun GameContent(
     onCopySeed: () -> Unit,
     onPlaySeed: () -> Unit,
 ) {
-    val isTablet = screenSizeClass == ScreenSizeClass.TABLET
-    val isCompact = !isTablet
+    val isTablet = screenSizeClass == ScreenSizeClass.TABLET || screenSizeClass == ScreenSizeClass.TABLET_PORTRAIT
+    val isCompact = screenSizeClass == ScreenSizeClass.COMPACT || screenSizeClass == ScreenSizeClass.MEDIUM
 
     // Use displayMode for consistent rendering across layouts
     when (val mode = uiState.displayMode) {
@@ -773,6 +983,364 @@ private fun ExpandedCardsSection(
                     onSelectedCardsChange(toggleCardSelection(card, selectedCards))
                 },
             )
+        }
+    }
+}
+
+/**
+ * Cards section for landscape mode - minimal display optimized for limited vertical space.
+ */
+@Composable
+private fun LandscapeCardsSection(
+    uiState: GameUiState,
+    selectedCards: List<Card>,
+    onSelectedCardsChange: (List<Card>) -> Unit,
+    onIntent: (GameIntent) -> Unit,
+    screenSizeClass: ScreenSizeClass,
+) {
+    when (val mode = uiState.displayMode) {
+        is GameDisplayMode.GameOver -> {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+            ) {
+                Text(
+                    text = "Game Over",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.error,
+                )
+                Text(
+                    text = "Score: ${mode.score}",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = Color.White,
+                )
+                if (mode.isNewHighScore) {
+                    Text(
+                        text = "NEW HIGH SCORE!",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.tertiary,
+                    )
+                }
+            }
+        }
+        is GameDisplayMode.GameWon -> {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+            ) {
+                Text(
+                    text = "Victory!",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+                Text(
+                    text = "Score: ${mode.score}",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = Color.White,
+                )
+                if (mode.isNewHighScore) {
+                    Text(
+                        text = "NEW HIGH SCORE!",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.tertiary,
+                    )
+                }
+            }
+        }
+        is GameDisplayMode.CombatChoice -> {
+            // Show monster and weapon cards side by side
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "Monster",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = PurpleGrey80,
+                    )
+                    CardView(
+                        card = mode.choice.monster,
+                        cardWidth = 70.dp,
+                        cardHeight = 98.dp,
+                    )
+                }
+                Text(
+                    text = "VS",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = PurpleGrey80,
+                )
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "Weapon",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = PurpleGrey80,
+                    )
+                    CardView(
+                        card = mode.choice.weapon,
+                        cardWidth = 70.dp,
+                        cardHeight = 98.dp,
+                    )
+                }
+            }
+        }
+        is GameDisplayMode.ActiveGame -> {
+            RoomCardsDisplay(
+                currentRoom = mode.currentRoom,
+                selectedCards = selectedCards,
+                screenSizeClass = screenSizeClass,
+                onCardClick = { card ->
+                    onSelectedCardsChange(toggleCardSelection(card, selectedCards))
+                },
+            )
+        }
+    }
+}
+
+/**
+ * Controls section for landscape mode - compact buttons optimized for limited vertical space.
+ */
+@Composable
+private fun LandscapeControlsSection(
+    uiState: GameUiState,
+    selectedCards: List<Card>,
+    onSelectedCardsChange: (List<Card>) -> Unit,
+    onIntent: (GameIntent) -> Unit,
+    simulateProcessing: (List<Card>) -> List<LogEntry>,
+    onCopySeed: () -> Unit,
+    onPlaySeed: () -> Unit,
+) {
+    val buttonShape = remember { RoundedCornerShape(8.dp) }
+    val primaryButtonColors =
+        ButtonDefaults.buttonColors(
+            containerColor = ButtonPrimary,
+            contentColor = Color.White,
+            disabledContainerColor = ButtonPrimary.copy(alpha = 0.38f),
+            disabledContentColor = Color.White.copy(alpha = 0.6f),
+        )
+    val outlinedButtonColors = ButtonDefaults.outlinedButtonColors(contentColor = Purple80)
+
+    when (val mode = uiState.displayMode) {
+        is GameDisplayMode.CombatChoice -> {
+            val choice = mode.choice
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                // Use Weapon button
+                Button(
+                    onClick = { onIntent(GameIntent.ResolveCombatChoice(useWeapon = true)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = buttonShape,
+                    colors =
+                        ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF1976D2),
+                            contentColor = Color.White,
+                        ),
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "Use Weapon",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                        )
+                        Text(
+                            text =
+                                if (choice.weaponDamage == 0) {
+                                    "No damage!"
+                                } else {
+                                    "-${choice.weaponDamage} HP"
+                                },
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                }
+
+                // Fight Barehanded button
+                OutlinedButton(
+                    onClick = { onIntent(GameIntent.ResolveCombatChoice(useWeapon = false)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = buttonShape,
+                    colors = outlinedButtonColors,
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "Barehanded",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                        )
+                        Text(
+                            text = "-${choice.barehandedDamage} HP",
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                }
+            }
+        }
+        is GameDisplayMode.GameOver, is GameDisplayMode.GameWon -> {
+            val gameSeed =
+                when (mode) {
+                    is GameDisplayMode.GameOver -> mode.gameSeed
+                    is GameDisplayMode.GameWon -> mode.gameSeed
+                }
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                // Seed display with copy
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = "Seed: $gameSeed",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = PurpleGrey80,
+                    )
+                    IconButton(
+                        onClick = onCopySeed,
+                        modifier = Modifier.size(28.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ContentCopy,
+                            contentDescription = "Copy seed",
+                            tint = PurpleGrey80,
+                            modifier = Modifier.size(16.dp),
+                        )
+                    }
+                }
+                OutlinedButton(
+                    onClick = {
+                        onIntent(GameIntent.RetryGame)
+                        onSelectedCardsChange(emptyList())
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = buttonShape,
+                    colors = outlinedButtonColors,
+                ) {
+                    Text(text = "Retry", style = MaterialTheme.typography.titleSmall)
+                }
+                Button(
+                    onClick = {
+                        onIntent(GameIntent.NewGame)
+                        onSelectedCardsChange(emptyList())
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = buttonShape,
+                    colors = primaryButtonColors,
+                ) {
+                    Text(text = "New Game", style = MaterialTheme.typography.titleSmall)
+                }
+                TextButton(
+                    onClick = onPlaySeed,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(text = "Custom Seed", style = MaterialTheme.typography.bodySmall)
+                }
+            }
+        }
+        is GameDisplayMode.ActiveGame -> {
+            val currentRoom = mode.currentRoom
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                when {
+                    currentRoom != null && currentRoom.size == 4 -> {
+                        // Avoid Room button (if available)
+                        if (mode.canAvoidRoom) {
+                            FilledTonalButton(
+                                onClick = {
+                                    onIntent(GameIntent.AvoidRoom)
+                                    onSelectedCardsChange(emptyList())
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = buttonShape,
+                            ) {
+                                Text(text = "Avoid", style = MaterialTheme.typography.titleSmall)
+                            }
+                        }
+                        // Process cards button
+                        Button(
+                            onClick = {
+                                onIntent(GameIntent.ProcessSelectedCards(selectedCards))
+                                onSelectedCardsChange(emptyList())
+                            },
+                            enabled = selectedCards.size == 3,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = buttonShape,
+                            colors = primaryButtonColors,
+                        ) {
+                            Text(
+                                text = if (selectedCards.size == 3) "Go!" else "Pick ${3 - selectedCards.size}",
+                                style = MaterialTheme.typography.titleSmall,
+                            )
+                        }
+                        // New Game button
+                        OutlinedButton(
+                            onClick = {
+                                onIntent(GameIntent.NewGame)
+                                onSelectedCardsChange(emptyList())
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = buttonShape,
+                            colors = outlinedButtonColors,
+                        ) {
+                            Text(text = "New Game", style = MaterialTheme.typography.titleSmall)
+                        }
+                        // Compact preview panel
+                        PreviewPanel(
+                            previewEntries = simulateProcessing(selectedCards),
+                            isCompact = true,
+                        )
+                    }
+                    currentRoom == null -> {
+                        Button(
+                            onClick = { onIntent(GameIntent.DrawRoom) },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = buttonShape,
+                            colors = primaryButtonColors,
+                        ) {
+                            Text(text = "Draw Room", style = MaterialTheme.typography.titleSmall)
+                        }
+                        OutlinedButton(
+                            onClick = onPlaySeed,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = buttonShape,
+                            colors = outlinedButtonColors,
+                        ) {
+                            Text(text = "Custom Seed", style = MaterialTheme.typography.titleSmall)
+                        }
+                    }
+                    else -> {
+                        // 1 card remaining
+                        Button(
+                            onClick = { onIntent(GameIntent.DrawRoom) },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = buttonShape,
+                            colors = primaryButtonColors,
+                        ) {
+                            Text(text = "Draw Next", style = MaterialTheme.typography.titleSmall)
+                        }
+                        // New Game button
+                        OutlinedButton(
+                            onClick = {
+                                onIntent(GameIntent.NewGame)
+                                onSelectedCardsChange(emptyList())
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = buttonShape,
+                            colors = outlinedButtonColors,
+                        ) {
+                            Text(text = "New Game", style = MaterialTheme.typography.titleSmall)
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -1026,38 +1594,18 @@ private fun TabletControlsSection(
                                 modifier = Modifier.padding(vertical = 8.dp),
                             )
                         }
-                        // New Game and Play Custom Seed in a row
-                        Row(
+                        // Only Custom Seed (no New Game since we're already in a fresh game)
+                        OutlinedButton(
+                            onClick = onPlaySeed,
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            shape = buttonShape,
+                            colors = outlinedButtonColors,
                         ) {
-                            OutlinedButton(
-                                onClick = {
-                                    onIntent(GameIntent.NewGame)
-                                    onSelectedCardsChange(emptyList())
-                                },
-                                modifier = Modifier.weight(1f),
-                                shape = buttonShape,
-                                colors = outlinedButtonColors,
-                            ) {
-                                Text(
-                                    text = "New Game",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    modifier = Modifier.padding(vertical = 4.dp),
-                                )
-                            }
-                            OutlinedButton(
-                                onClick = onPlaySeed,
-                                modifier = Modifier.weight(1f),
-                                shape = buttonShape,
-                                colors = outlinedButtonColors,
-                            ) {
-                                Text(
-                                    text = "Custom Seed",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    modifier = Modifier.padding(vertical = 4.dp),
-                                )
-                            }
+                            Text(
+                                text = "Custom Seed",
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.padding(vertical = 4.dp),
+                            )
                         }
                     }
                     else -> {

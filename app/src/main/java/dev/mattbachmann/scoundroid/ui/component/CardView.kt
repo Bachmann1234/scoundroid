@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -24,8 +25,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
@@ -352,6 +355,92 @@ fun PlaceholderCardView(
             }
         }
     }
+}
+
+/**
+ * A tiny card back icon for use in status bars and compact displays.
+ * Shows a simplified version of the card back design.
+ */
+@Composable
+fun MiniCardBackIcon(
+    modifier: Modifier = Modifier,
+    size: Dp = 20.dp,
+) {
+    val aspectRatio = 1.4f // Standard card aspect ratio
+    val width = size
+    val height = size * aspectRatio
+    val cornerRadius = 2.dp
+
+    Box(
+        modifier =
+            modifier
+                .size(width = width, height = height)
+                .clip(RoundedCornerShape(cornerRadius))
+                .background(color = Color(0xFF8B0000))
+                .drawWithCache {
+                    val patternColor = Color(0xFFCD5C5C)
+                    val borderColor = Color(0xFFF5F5DC)
+                    val spacing = 6f
+                    val strokeWidth = 0.8f
+                    val borderWidth = 1.5f
+                    val centerX = this.size.width / 2
+                    val centerY = this.size.height / 2
+                    val ovalWidth = this.size.width * 0.5f
+                    val ovalHeight = this.size.height * 0.4f
+
+                    onDrawBehind {
+                        // Draw diagonal lines
+                        var x = -this.size.height
+                        while (x < this.size.width + this.size.height) {
+                            drawLine(
+                                color = patternColor,
+                                start = Offset(x, 0f),
+                                end = Offset(x + this.size.height, this.size.height),
+                                strokeWidth = strokeWidth,
+                            )
+                            x += spacing
+                        }
+                        x = 0f
+                        while (x < this.size.width + this.size.height) {
+                            drawLine(
+                                color = patternColor,
+                                start = Offset(x, 0f),
+                                end = Offset(x - this.size.height, this.size.height),
+                                strokeWidth = strokeWidth,
+                            )
+                            x += spacing
+                        }
+
+                        // Draw center oval
+                        drawOval(
+                            color = borderColor,
+                            topLeft =
+                                Offset(
+                                    centerX - ovalWidth / 2,
+                                    centerY - ovalHeight / 2,
+                                ),
+                            size = Size(ovalWidth, ovalHeight),
+                            style = Stroke(width = 1.5f),
+                        )
+                        drawOval(
+                            color = Color(0xFF8B0000),
+                            topLeft =
+                                Offset(
+                                    centerX - ovalWidth / 2 + 1,
+                                    centerY - ovalHeight / 2 + 1,
+                                ),
+                            size = Size(ovalWidth - 2, ovalHeight - 2),
+                        )
+
+                        // Draw border on top
+                        drawRoundRect(
+                            color = borderColor,
+                            style = Stroke(width = borderWidth),
+                            cornerRadius = CornerRadius(4f, 4f),
+                        )
+                    }
+                },
+    )
 }
 
 @Preview(showBackground = true)
