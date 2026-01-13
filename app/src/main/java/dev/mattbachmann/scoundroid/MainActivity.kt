@@ -39,8 +39,8 @@ class MainActivity : ComponentActivity() {
  * - COMPACT: Small phones (height < 700dp) - aggressive space saving
  * - MEDIUM: Fold cover screens, regular phones (height >= 700dp, width < height)
  * - LANDSCAPE: Phones in landscape (width > height, height < 500dp) - compact horizontal layout
- * - TABLET: Unfolded foldables, tablets in landscape - spacious two-column layout
- * - TABLET_PORTRAIT: Unfolded foldables, tablets in portrait - vertical layout with large elements
+ * - TABLET: Unfolded foldables (nearly-square screens), tablets in landscape - spacious two-column layout
+ * - TABLET_PORTRAIT: Tablets in portrait (non-square) - vertical layout with large elements
  */
 @Composable
 private fun getScreenSizeClass(): ScreenSizeClass {
@@ -53,11 +53,16 @@ private fun getScreenSizeClass(): ScreenSizeClass {
     val minDimension = minOf(widthDp.value, heightDp.value)
     val maxDimension = maxOf(widthDp.value, heightDp.value)
     val isLargeScreen = minDimension >= 550 && maxDimension >= 800
+    val aspectRatio = maxDimension / minDimension
+    val isNearlySquare = aspectRatio < 1.1f // Less than 10% difference between dimensions
 
     return when {
         // Landscape phones (wider than tall with limited height - includes folded phone landscape)
         // Must check this BEFORE tablet to catch folded landscape correctly
         widthDp.value > heightDp.value && heightDp.value < 500 -> ScreenSizeClass.LANDSCAPE
+
+        // Nearly-square large screens (like foldable inner displays) - use TABLET layout regardless of orientation
+        isLargeScreen && isNearlySquare -> ScreenSizeClass.TABLET
 
         // Large screens in landscape (tablets, unfolded foldables)
         isLargeScreen && widthDp.value > heightDp.value -> ScreenSizeClass.TABLET
