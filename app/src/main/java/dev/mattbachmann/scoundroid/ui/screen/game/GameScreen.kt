@@ -1184,7 +1184,6 @@ private fun LandscapeControlsSection(
                 when (mode) {
                     is GameDisplayMode.GameOver -> mode.gameSeed
                     is GameDisplayMode.GameWon -> mode.gameSeed
-                    else -> 0L
                 }
             Column(
                 modifier = Modifier.fillMaxWidth(),
