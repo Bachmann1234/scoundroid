@@ -58,15 +58,15 @@ fun RoomDisplay(
             ScreenSizeClass.MEDIUM -> CardLayoutConfig(85.dp, 119.dp, 8.dp, true)
             ScreenSizeClass.TABLET -> CardLayoutConfig(150.dp, 210.dp, 16.dp, true)
         }
-    val isExpanded = screenSizeClass == ScreenSizeClass.TABLET
+    val isTablet = screenSizeClass == ScreenSizeClass.TABLET
 
     Column(
         modifier =
             modifier
                 .fillMaxWidth()
-                .padding(bottom = if (isExpanded) 12.dp else 0.dp),
+                .padding(bottom = if (isTablet) 12.dp else 0.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(if (isExpanded) 16.dp else 8.dp),
+        verticalArrangement = Arrangement.spacedBy(if (isTablet) 16.dp else 8.dp),
     ) {
         Text(
             text =
@@ -75,17 +75,17 @@ fun RoomDisplay(
                     cards.size == 1 -> "Leftover Card"
                     else -> "Current Room"
                 },
-            style = if (isExpanded) MaterialTheme.typography.titleLarge else MaterialTheme.typography.titleMedium,
+            style = if (isTablet) MaterialTheme.typography.titleLarge else MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             color = Purple80,
         )
 
         // Only show instruction text when 4 cards present, use fixed height to prevent layout shift
-        Box(modifier = Modifier.height(if (isExpanded) 20.dp else 16.dp)) {
+        Box(modifier = Modifier.height(if (isTablet) 20.dp else 16.dp)) {
             if (cards.size == 4) {
                 Text(
                     text = "Select 3 cards to process (leave 1 for next room)",
-                    style = if (isExpanded) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.bodySmall,
+                    style = if (isTablet) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.bodySmall,
                     color = PurpleGrey80,
                 )
             }

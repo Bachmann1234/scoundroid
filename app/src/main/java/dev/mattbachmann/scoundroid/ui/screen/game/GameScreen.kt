@@ -73,7 +73,7 @@ import dev.mattbachmann.scoundroid.ui.theme.ScoundroidTheme
  * Screen size classes for responsive layouts.
  * - COMPACT: Small phones (height < 700dp) - aggressive space saving, 1x4 cards
  * - MEDIUM: Fold cover screens, regular phones - comfortable layout, 2x2 cards
- * - TABLET: Unfolded foldables, tablets (width >= 600dp) - two-column layout
+ * - TABLET: Unfolded foldables, tablets (width >= 600dp) - two-column layout, 2x2 cards
  */
 enum class ScreenSizeClass {
     COMPACT,
@@ -990,7 +990,6 @@ private fun TabletControlsSection(
                             isTablet = true,
                         )
                         TabletRoomActionButtons(
-                            currentRoom = currentRoom,
                             selectedCards = selectedCards,
                             canAvoidRoom = mode.canAvoidRoom,
                             onAvoidRoom = {
@@ -1027,21 +1026,38 @@ private fun TabletControlsSection(
                                 modifier = Modifier.padding(vertical = 8.dp),
                             )
                         }
-                        // New Game button
-                        OutlinedButton(
-                            onClick = {
-                                onIntent(GameIntent.NewGame)
-                                onSelectedCardsChange(emptyList())
-                            },
+                        // New Game and Play Custom Seed in a row
+                        Row(
                             modifier = Modifier.fillMaxWidth(),
-                            shape = buttonShape,
-                            colors = outlinedButtonColors,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
                         ) {
-                            Text(
-                                text = "New Game",
-                                style = MaterialTheme.typography.titleMedium,
-                                modifier = Modifier.padding(vertical = 4.dp),
-                            )
+                            OutlinedButton(
+                                onClick = {
+                                    onIntent(GameIntent.NewGame)
+                                    onSelectedCardsChange(emptyList())
+                                },
+                                modifier = Modifier.weight(1f),
+                                shape = buttonShape,
+                                colors = outlinedButtonColors,
+                            ) {
+                                Text(
+                                    text = "New Game",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    modifier = Modifier.padding(vertical = 4.dp),
+                                )
+                            }
+                            OutlinedButton(
+                                onClick = onPlaySeed,
+                                modifier = Modifier.weight(1f),
+                                shape = buttonShape,
+                                colors = outlinedButtonColors,
+                            ) {
+                                Text(
+                                    text = "Custom Seed",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    modifier = Modifier.padding(vertical = 4.dp),
+                                )
+                            }
                         }
                     }
                     else -> {
@@ -1093,7 +1109,6 @@ private fun TabletControlsSection(
  */
 @Composable
 private fun TabletRoomActionButtons(
-    currentRoom: List<Card>,
     selectedCards: List<Card>,
     canAvoidRoom: Boolean,
     onAvoidRoom: () -> Unit,
