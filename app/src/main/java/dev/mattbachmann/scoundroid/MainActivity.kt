@@ -36,8 +36,8 @@ class MainActivity : ComponentActivity() {
 
 /**
  * Determines the screen size class based on screen dimensions and orientation.
- * - COMPACT: Small phones (height < 700dp) - aggressive space saving
- * - MEDIUM: Fold cover screens, regular phones (height >= 700dp, width < height)
+ * - COMPACT: Small phones (height < 780dp) - aggressive space saving
+ * - MEDIUM: Fold cover screens, regular phones (height >= 780dp, width < height)
  * - LANDSCAPE: Phones in landscape (width > height, height < 500dp) - compact horizontal layout
  * - TABLET: Unfolded foldables (nearly-square screens), tablets in landscape - spacious two-column layout
  * - TABLET_PORTRAIT: Tablets in portrait (non-square) - vertical layout with large elements
@@ -73,8 +73,8 @@ private fun getScreenSizeClass(): ScreenSizeClass {
         // Landscape phones (wider than tall, moderate height)
         widthDp.value > heightDp.value -> ScreenSizeClass.LANDSCAPE
 
-        // Small portrait phones
-        heightDp.value < 700 -> ScreenSizeClass.COMPACT
+        // Small portrait phones (includes budget phones like Galaxy A01 at ~760dp)
+        heightDp.value < 780 -> ScreenSizeClass.COMPACT
 
         // Regular portrait phones
         else -> ScreenSizeClass.MEDIUM

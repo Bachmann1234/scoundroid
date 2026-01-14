@@ -75,7 +75,7 @@ import dev.mattbachmann.scoundroid.ui.theme.ScoundroidTheme
 
 /**
  * Screen size classes for responsive layouts.
- * - COMPACT: Small phones (height < 700dp) - aggressive space saving, 1x4 cards
+ * - COMPACT: Small phones (height < 780dp) - aggressive space saving, 1x4 cards
  * - MEDIUM: Fold cover screens, regular phones - comfortable layout, 2x2 cards
  * - LANDSCAPE: Phones in landscape orientation - horizontal layout, 1x4 cards
  * - TABLET: Unfolded foldables, tablets in landscape - two-column layout, 2x2 cards
