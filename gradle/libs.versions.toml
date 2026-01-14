@@ -14,6 +14,7 @@ coroutinesTest = "1.10.2"
 turbine = "1.2.1"
 mockk = "1.14.7"
 room = "2.8.4"
+paparazzi = "2.0.0-alpha02"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -59,4 +60,5 @@ kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version = "2.3.4" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version = "14.0.1" }
+paparazzi = { id = "app.cash.paparazzi", version.ref = "paparazzi" }
 
