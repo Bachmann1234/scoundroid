@@ -139,7 +139,7 @@ fun GameStatusBar(
             ),
     ) {
         Column(
-            modifier = Modifier.padding(if (isCompact) 10.dp else 16.dp),
+            modifier = Modifier.padding(if (isCompact) 12.dp else 16.dp),
             verticalArrangement = Arrangement.spacedBy(if (isCompact) 6.dp else 12.dp),
         ) {
             when (layout) {
