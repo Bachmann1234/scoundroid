@@ -61,11 +61,11 @@ import dev.mattbachmann.scoundroid.ui.component.ActionLogPanel
 import dev.mattbachmann.scoundroid.ui.component.CardView
 import dev.mattbachmann.scoundroid.ui.component.CombatChoicePanel
 import dev.mattbachmann.scoundroid.ui.component.GameStatusBar
-import dev.mattbachmann.scoundroid.ui.component.HelpContent
 import dev.mattbachmann.scoundroid.ui.component.MiniCardBackIcon
 import dev.mattbachmann.scoundroid.ui.component.PreviewPanel
 import dev.mattbachmann.scoundroid.ui.component.RoomDisplay
 import dev.mattbachmann.scoundroid.ui.component.StatusBarLayout
+import dev.mattbachmann.scoundroid.ui.component.TutorialContent
 import dev.mattbachmann.scoundroid.ui.theme.ButtonPrimary
 import dev.mattbachmann.scoundroid.ui.theme.GradientBottom
 import dev.mattbachmann.scoundroid.ui.theme.GradientTop
@@ -120,13 +120,15 @@ fun GameScreen(
         }
     }
 
-    // Help bottom sheet
+    // Help/Tutorial bottom sheet
     if (uiState.showHelp) {
         ModalBottomSheet(
             onDismissRequest = { viewModel.onIntent(GameIntent.HideHelp) },
-            sheetState = sheetState,
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         ) {
-            HelpContent()
+            TutorialContent(
+                onDismiss = { viewModel.onIntent(GameIntent.HideHelp) },
+            )
         }
     }
 
@@ -281,6 +283,7 @@ fun GameScreen(
                                         .show()
                                 },
                                 onPlaySeed = { showSeedDialog = true },
+                                onShowTutorial = { viewModel.onIntent(GameIntent.ShowHelp) },
                             )
                         }
                     }
@@ -354,6 +357,7 @@ fun GameScreen(
                         Toast.makeText(context, "Seed copied!", Toast.LENGTH_SHORT).show()
                     },
                     onPlaySeed = { showSeedDialog = true },
+                    onShowTutorial = { viewModel.onIntent(GameIntent.ShowHelp) },
                 )
             }
         } else if (isLandscapeScreen) {
@@ -496,6 +500,7 @@ fun GameScreen(
                                     .show()
                             },
                             onPlaySeed = { showSeedDialog = true },
+                            onShowTutorial = { viewModel.onIntent(GameIntent.ShowHelp) },
                         )
                     }
                 }
@@ -572,6 +577,7 @@ fun GameScreen(
                         Toast.makeText(context, "Seed copied!", Toast.LENGTH_SHORT).show()
                     },
                     onPlaySeed = { showSeedDialog = true },
+                    onShowTutorial = { viewModel.onIntent(GameIntent.ShowHelp) },
                 )
             }
         }
@@ -610,6 +616,7 @@ private fun RoomActionButtons(
     onNewGame: () -> Unit,
     modifier: Modifier = Modifier,
     onPlaySeed: (() -> Unit)? = null,
+    onShowTutorial: (() -> Unit)? = null,
     isCompact: Boolean = false,
 ) {
     val buttonSpacing = if (isCompact) 4.dp else 8.dp
@@ -757,6 +764,21 @@ private fun RoomActionButtons(
                     )
                 }
             }
+
+            // Tutorial button
+            if (onShowTutorial != null) {
+                OutlinedButton(
+                    onClick = onShowTutorial,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = buttonShape,
+                    colors = outlinedButtonColors,
+                ) {
+                    Text(
+                        text = "Tutorial",
+                        style = buttonTextStyle,
+                    )
+                }
+            }
         }
     }
 }
@@ -812,6 +834,7 @@ private fun GameContent(
     screenSizeClass: ScreenSizeClass,
     onCopySeed: () -> Unit,
     onPlaySeed: () -> Unit,
+    onShowTutorial: () -> Unit,
 ) {
     val isTablet = screenSizeClass == ScreenSizeClass.TABLET || screenSizeClass == ScreenSizeClass.TABLET_PORTRAIT
     val isCompact = screenSizeClass == ScreenSizeClass.COMPACT || screenSizeClass == ScreenSizeClass.MEDIUM
@@ -920,6 +943,7 @@ private fun GameContent(
                     onSelectedCardsChange(emptyList())
                 },
                 onPlaySeed = onPlaySeed,
+                onShowTutorial = onShowTutorial,
             )
         }
     }
@@ -1112,6 +1136,7 @@ private fun LandscapeControlsSection(
     simulateProcessing: (List<Card>) -> List<LogEntry>,
     onCopySeed: () -> Unit,
     onPlaySeed: () -> Unit,
+    onShowTutorial: () -> Unit,
 ) {
     val buttonShape = remember { RoundedCornerShape(8.dp) }
     val primaryButtonColors =
@@ -1315,6 +1340,14 @@ private fun LandscapeControlsSection(
                         ) {
                             Text(text = "Custom Seed", style = MaterialTheme.typography.titleSmall)
                         }
+                        OutlinedButton(
+                            onClick = onShowTutorial,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = buttonShape,
+                            colors = outlinedButtonColors,
+                        ) {
+                            Text(text = "Tutorial", style = MaterialTheme.typography.titleSmall)
+                        }
                     }
                     else -> {
                         // 1 card remaining
@@ -1358,6 +1391,7 @@ private fun TabletControlsSection(
     simulateProcessing: (List<Card>) -> List<LogEntry>,
     onCopySeed: () -> Unit,
     onPlaySeed: () -> Unit,
+    onShowTutorial: () -> Unit,
 ) {
     val buttonShape = remember { RoundedCornerShape(16.dp) }
     val primaryButtonColors = ButtonDefaults.buttonColors(containerColor = ButtonPrimary, contentColor = Color.White)
@@ -1603,6 +1637,19 @@ private fun TabletControlsSection(
                         ) {
                             Text(
                                 text = "Custom Seed",
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.padding(vertical = 4.dp),
+                            )
+                        }
+                        // Tutorial button
+                        OutlinedButton(
+                            onClick = onShowTutorial,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = buttonShape,
+                            colors = outlinedButtonColors,
+                        ) {
+                            Text(
+                                text = "Tutorial",
                                 style = MaterialTheme.typography.titleMedium,
                                 modifier = Modifier.padding(vertical = 4.dp),
                             )

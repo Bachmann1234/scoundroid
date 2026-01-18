@@ -1148,7 +1148,7 @@ class GameViewModelTest {
 
                 viewModel.onIntent(GameIntent.NewGame)
                 testDispatcher.scheduler.advanceUntilIdle()
-                val newState = expectMostRecentItem()
+                val newState = awaitItem()
 
                 // New game should have a different seed
                 // (extremely unlikely to be the same with time-based seeds)

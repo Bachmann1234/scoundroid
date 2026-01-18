@@ -33,7 +33,7 @@ data class GameUiState(
     val highestScore: Int? = null,
     /** Whether the current score is a new high score */
     val isNewHighScore: Boolean = false,
-    /** Whether to show the help/rules screen */
+    /** Whether to show the help/tutorial screen */
     val showHelp: Boolean = false,
     /** The action log entries */
     val actionLog: List<LogEntry> = emptyList(),
