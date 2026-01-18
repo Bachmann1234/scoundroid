@@ -59,7 +59,6 @@ class GameStateTest {
                 discardPile = emptyList(),
                 lastRoomAvoided = false,
                 usedPotionThisTurn = false,
-                lastCardProcessed = null,
             )
         val newState = gameState.drawRoom()
 
@@ -194,7 +193,6 @@ class GameStateTest {
                 discardPile = emptyList(),
                 lastRoomAvoided = false,
                 usedPotionThisTurn = false,
-                lastCardProcessed = null,
             )
 
         assertTrue(gameState.isGameWon)
@@ -263,7 +261,6 @@ class GameStateTest {
                 discardPile = emptyList(),
                 lastRoomAvoided = false,
                 usedPotionThisTurn = false,
-                lastCardProcessed = null,
             )
 
         val newState = gameState.drawRoom()
@@ -290,7 +287,6 @@ class GameStateTest {
                 discardPile = emptyList(),
                 lastRoomAvoided = false,
                 usedPotionThisTurn = false,
-                lastCardProcessed = null,
             )
 
         val newState = gameState.drawRoom()
@@ -312,7 +308,6 @@ class GameStateTest {
                 discardPile = emptyList(),
                 lastRoomAvoided = false,
                 usedPotionThisTurn = false,
-                lastCardProcessed = null,
             )
 
         val newState = gameState.drawRoom()
@@ -333,7 +328,6 @@ class GameStateTest {
                 discardPile = emptyList(),
                 lastRoomAvoided = false,
                 usedPotionThisTurn = false,
-                lastCardProcessed = null,
             )
 
         val newState = gameState.drawRoom()
@@ -365,7 +359,6 @@ class GameStateTest {
                 discardPile = emptyList(),
                 lastRoomAvoided = false,
                 usedPotionThisTurn = false,
-                lastCardProcessed = null,
             )
 
         // Draw room (deck now empty)
@@ -420,7 +413,6 @@ class GameStateTest {
                 discardPile = emptyList(),
                 lastRoomAvoided = false,
                 usedPotionThisTurn = false,
-                lastCardProcessed = null,
             )
 
         val newState = gameState.drawRoom()

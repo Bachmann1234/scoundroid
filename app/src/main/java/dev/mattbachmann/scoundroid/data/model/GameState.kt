@@ -11,7 +11,6 @@ package dev.mattbachmann.scoundroid.data.model
  * @property discardPile Cards that have been discarded
  * @property lastRoomAvoided Whether the last room was avoided (for tracking consecutive avoidance)
  * @property usedPotionThisTurn Whether a potion has been used this turn (only 1 per turn allowed)
- * @property lastCardProcessed The last card processed (monster/weapon/potion) for special scoring
  */
 data class GameState(
     val deck: Deck,
@@ -22,7 +21,6 @@ data class GameState(
     val discardPile: List<Card>,
     val lastRoomAvoided: Boolean,
     val usedPotionThisTurn: Boolean,
-    val lastCardProcessed: Card?,
 ) {
     companion object {
         const val MAX_HEALTH = 20
@@ -44,7 +42,6 @@ data class GameState(
                 discardPile = emptyList(),
                 lastRoomAvoided = false,
                 usedPotionThisTurn = false,
-                lastCardProcessed = null,
             )
     }
 
@@ -134,10 +131,7 @@ data class GameState(
      */
     fun equipWeapon(weapon: Card): GameState {
         require(weapon.type == CardType.WEAPON) { "Can only equip weapon cards" }
-        return copy(
-            weaponState = WeaponState(weapon),
-            lastCardProcessed = weapon,
-        )
+        return copy(weaponState = WeaponState(weapon))
     }
 
     /**
@@ -160,7 +154,6 @@ data class GameState(
             health = (health - damage).coerceAtLeast(0),
             weaponState = newWeaponState,
             defeatedMonsters = defeatedMonsters + monster,
-            lastCardProcessed = monster,
         )
     }
 
@@ -177,8 +170,6 @@ data class GameState(
         return copy(
             health = (health - monster.value).coerceAtLeast(0),
             defeatedMonsters = defeatedMonsters + monster,
-            lastCardProcessed = monster,
-            // weaponState unchanged - not used
         )
     }
 
@@ -212,7 +203,6 @@ data class GameState(
      * - Potions restore health by their value
      * - Health is capped at MAX_HEALTH (20)
      * - Second potion in same turn is discarded without effect
-     * - Tracks last card processed for special scoring
      *
      * @param potion The potion card to use
      * @return New game state after using (or discarding) the potion
@@ -225,10 +215,9 @@ data class GameState(
             copy(
                 health = (health + potion.value).coerceAtMost(MAX_HEALTH),
                 usedPotionThisTurn = true,
-                lastCardProcessed = potion,
             )
         } else {
-            // Second potion this turn: no effect, don't update lastCardProcessed
+            // Second potion this turn: no effect
             copy(usedPotionThisTurn = true)
         }
     }
