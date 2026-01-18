@@ -1,5 +1,6 @@
 package dev.mattbachmann.scoundroid.ui.component
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -56,19 +58,21 @@ fun TutorialContent(
     val pagerState = rememberPagerState(pageCount = { TOTAL_PAGES })
     val coroutineScope = rememberCoroutineScope()
     val isLastPage = pagerState.currentPage == TOTAL_PAGES - 1
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     Column(
         modifier =
             modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(if (isLandscape) 8.dp else 16.dp),
     ) {
         // Progress dots
         Row(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 16.dp),
+                    .padding(bottom = if (isLandscape) 4.dp else 16.dp),
             horizontalArrangement = Arrangement.Center,
         ) {
             repeat(TOTAL_PAGES) { index ->
@@ -76,7 +80,7 @@ fun TutorialContent(
                     modifier =
                         Modifier
                             .padding(horizontal = 3.dp)
-                            .size(8.dp)
+                            .size(if (isLandscape) 6.dp else 8.dp)
                             .clip(CircleShape)
                             .background(
                                 if (index == pagerState.currentPage) {
@@ -98,19 +102,19 @@ fun TutorialContent(
                     .fillMaxWidth(),
         ) { page ->
             when (page) {
-                0 -> GoalSlide()
-                1 -> CardTypesSlide()
-                2 -> RoomsSlide()
-                3 -> AvoidRoomSlide()
-                4 -> PotionsSlide()
-                5 -> WeaponsSlide()
-                6 -> CombatSlide()
-                7 -> WeaponDegradationSlide()
-                8 -> ScoringSlide()
+                0 -> GoalSlide(isLandscape)
+                1 -> CardTypesSlide(isLandscape)
+                2 -> RoomsSlide(isLandscape)
+                3 -> AvoidRoomSlide(isLandscape)
+                4 -> PotionsSlide(isLandscape)
+                5 -> WeaponsSlide(isLandscape)
+                6 -> CombatSlide(isLandscape)
+                7 -> WeaponDegradationSlide(isLandscape)
+                8 -> ScoringSlide(isLandscape)
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(if (isLandscape) 4.dp else 16.dp))
 
         // Navigation buttons
         Row(
@@ -168,7 +172,7 @@ fun TutorialContent(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(if (isLandscape) 4.dp else 16.dp))
     }
 }
 
@@ -176,74 +180,132 @@ fun TutorialContent(
  * Slide 1: Goal - Survive the dungeon
  */
 @Composable
-private fun GoalSlide() {
-    Column(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Text(
-            text = "Goal",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary,
-        )
+private fun GoalSlide(isLandscape: Boolean) {
+    if (isLandscape) {
+        Row(
+            modifier = Modifier.fillMaxSize(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            // Left: Health
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = "20",
+                    style = MaterialTheme.typography.displayMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFE57373),
+                )
+                Text(
+                    text = "Health",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
 
-        Spacer(modifier = Modifier.height(24.dp))
+            // Center: Goal text
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = "Goal",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Survive the dungeon",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    textAlign = TextAlign.Center,
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Based on Scoundrel by Zach Gage & Kurt Bieg",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
 
-        // Health indicator
-        Text(
-            text = "20",
-            style = MaterialTheme.typography.displayLarge,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFFE57373),
-        )
-        Text(
-            text = "Health",
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Deck visual
-        Row(horizontalArrangement = Arrangement.spacedBy((-30).dp)) {
-            repeat(3) {
-                PlaceholderCardView(cardWidth = 60.dp, cardHeight = 84.dp)
+            // Right: Deck
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Row(horizontalArrangement = Arrangement.spacedBy((-25).dp)) {
+                    repeat(3) {
+                        PlaceholderCardView(cardWidth = 45.dp, cardHeight = 63.dp)
+                    }
+                }
+                Text(
+                    text = "44 Cards",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 4.dp),
+                )
             }
         }
-        Text(
-            text = "44 Cards",
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = 8.dp),
-        )
+    } else {
+        Column(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            Text(
+                text = "Goal",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+            )
 
-        Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-        Text(
-            text = "Survive the dungeon",
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.SemiBold,
-            textAlign = TextAlign.Center,
-        )
+            Text(
+                text = "20",
+                style = MaterialTheme.typography.displayLarge,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFFE57373),
+            )
+            Text(
+                text = "Health",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
 
-        Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-        // Attribution
-        Text(
-            text = "Based on Scoundrel",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Text(
-            text = "by Zach Gage & Kurt Bieg",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+            Row(horizontalArrangement = Arrangement.spacedBy((-30).dp)) {
+                repeat(3) {
+                    PlaceholderCardView(cardWidth = 60.dp, cardHeight = 84.dp)
+                }
+            }
+            Text(
+                text = "44 Cards",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                text = "Survive the dungeon",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Center,
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                text = "Based on Scoundrel",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                text = "by Zach Gage & Kurt Bieg",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }
 
@@ -251,90 +313,95 @@ private fun GoalSlide() {
  * Slide 2: Card Types - Monster, Weapon, Potion
  */
 @Composable
-private fun CardTypesSlide() {
-    Column(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
+private fun CardTypesSlide(isLandscape: Boolean) {
+    val cardSize = if (isLandscape) 50.dp to 70.dp else 70.dp to 98.dp
+
+    Row(
+        modifier = Modifier.fillMaxSize(),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            text = "Card Types",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary,
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalAlignment = Alignment.Top,
-        ) {
-            // Monster
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                CardView(
-                    card = Card(Suit.SPADES, Rank.KING),
-                    cardWidth = 70.dp,
-                    cardHeight = 98.dp,
-                )
-                Spacer(modifier = Modifier.height(8.dp))
+        if (!isLandscape) {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+            ) {
                 Text(
-                    text = "Monster",
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color(0xFFE57373),
+                    text = "Card Types",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
                 )
-                Text(
-                    text = "Deals damage",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                Spacer(modifier = Modifier.height(24.dp))
+                CardTypesRow(cardSize.first, cardSize.second)
             }
+        } else {
+            Text(
+                text = "Card Types",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(end = 24.dp),
+            )
+            CardTypesRow(cardSize.first, cardSize.second)
+        }
+    }
+}
 
-            // Weapon
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                CardView(
-                    card = Card(Suit.DIAMONDS, Rank.SEVEN),
-                    cardWidth = 70.dp,
-                    cardHeight = 98.dp,
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Weapon",
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color(0xFF64B5F6),
-                )
-                Text(
-                    text = "Blocks damage",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-
-            // Potion
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                CardView(
-                    card = Card(Suit.HEARTS, Rank.FIVE),
-                    cardWidth = 70.dp,
-                    cardHeight = 98.dp,
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Potion",
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color(0xFF81C784),
-                )
-                Text(
-                    text = "Heals you",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+@Composable
+private fun CardTypesRow(
+    cardWidth: androidx.compose.ui.unit.Dp,
+    cardHeight: androidx.compose.ui.unit.Dp,
+) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalAlignment = Alignment.Top,
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            CardView(card = Card(Suit.SPADES, Rank.KING), cardWidth = cardWidth, cardHeight = cardHeight)
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                "Monster",
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = Color(0xFFE57373),
+            )
+            Text(
+                "Deals damage",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            CardView(card = Card(Suit.DIAMONDS, Rank.SEVEN), cardWidth = cardWidth, cardHeight = cardHeight)
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                "Weapon",
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = Color(0xFF64B5F6),
+            )
+            Text(
+                "Blocks damage",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            CardView(card = Card(Suit.HEARTS, Rank.FIVE), cardWidth = cardWidth, cardHeight = cardHeight)
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                "Potion",
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = Color(0xFF81C784),
+            )
+            Text(
+                "Heals you",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }
@@ -343,74 +410,111 @@ private fun CardTypesSlide() {
  * Slide 3: Rooms - Draw 4, choose 3
  */
 @Composable
-private fun RoomsSlide() {
-    Column(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Text(
-            text = "Rooms",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary,
-        )
+private fun RoomsSlide(isLandscape: Boolean) {
+    val cardSize = if (isLandscape) 45.dp to 63.dp else 60.dp to 84.dp
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // 4 example cards
+    if (isLandscape) {
         Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxSize(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            CardView(
-                card = Card(Suit.CLUBS, Rank.EIGHT),
-                cardWidth = 60.dp,
-                cardHeight = 84.dp,
-                isSelected = true,
-                selectionOrder = 1,
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = "Rooms",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("Draw 4 cards", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                Text(
+                    "Choose 3 to process",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
+                    "4th stays for next room",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                CardView(
+                    card = Card(Suit.CLUBS, Rank.EIGHT),
+                    cardWidth = cardSize.first,
+                    cardHeight = cardSize.second,
+                    isSelected = true,
+                    selectionOrder = 1,
+                )
+                CardView(
+                    card = Card(Suit.DIAMONDS, Rank.FOUR),
+                    cardWidth = cardSize.first,
+                    cardHeight = cardSize.second,
+                    isSelected = true,
+                    selectionOrder = 2,
+                )
+                CardView(
+                    card = Card(Suit.HEARTS, Rank.SIX),
+                    cardWidth = cardSize.first,
+                    cardHeight = cardSize.second,
+                    isSelected = true,
+                    selectionOrder = 3,
+                )
+                CardView(card = Card(Suit.SPADES, Rank.JACK), cardWidth = cardSize.first, cardHeight = cardSize.second)
+            }
+        }
+    } else {
+        Column(
+            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            Text(
+                text = "Rooms",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
             )
-            CardView(
-                card = Card(Suit.DIAMONDS, Rank.FOUR),
-                cardWidth = 60.dp,
-                cardHeight = 84.dp,
-                isSelected = true,
-                selectionOrder = 2,
+            Spacer(modifier = Modifier.height(24.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                CardView(
+                    card = Card(Suit.CLUBS, Rank.EIGHT),
+                    cardWidth = cardSize.first,
+                    cardHeight = cardSize.second,
+                    isSelected = true,
+                    selectionOrder = 1,
+                )
+                CardView(
+                    card = Card(Suit.DIAMONDS, Rank.FOUR),
+                    cardWidth = cardSize.first,
+                    cardHeight = cardSize.second,
+                    isSelected = true,
+                    selectionOrder = 2,
+                )
+                CardView(
+                    card = Card(Suit.HEARTS, Rank.SIX),
+                    cardWidth = cardSize.first,
+                    cardHeight = cardSize.second,
+                    isSelected = true,
+                    selectionOrder = 3,
+                )
+                CardView(card = Card(Suit.SPADES, Rank.JACK), cardWidth = cardSize.first, cardHeight = cardSize.second)
+            }
+            Spacer(modifier = Modifier.height(24.dp))
+            Text("Draw 4 cards", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+            Text(
+                "Choose 3 to process",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            CardView(
-                card = Card(Suit.HEARTS, Rank.SIX),
-                cardWidth = 60.dp,
-                cardHeight = 84.dp,
-                isSelected = true,
-                selectionOrder = 3,
-            )
-            CardView(
-                card = Card(Suit.SPADES, Rank.JACK),
-                cardWidth = 60.dp,
-                cardHeight = 84.dp,
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                "The 4th stays for next room",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Text(
-            text = "Draw 4 cards",
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.SemiBold,
-        )
-        Text(
-            text = "Choose 3 to process",
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = "The 4th stays for next room",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
     }
 }
 
@@ -418,97 +522,137 @@ private fun RoomsSlide() {
  * Slide 4: Avoid Room - Skip a room, but not twice in a row
  */
 @Composable
-private fun AvoidRoomSlide() {
-    Column(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Text(
-            text = "Avoid Room",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary,
-        )
+private fun AvoidRoomSlide(isLandscape: Boolean) {
+    val cardSize = if (isLandscape) 40.dp to 56.dp else 50.dp to 70.dp
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // 4 cards going to bottom of deck
+    if (isLandscape) {
         Row(
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier.fillMaxSize(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            CardView(
-                card = Card(Suit.CLUBS, Rank.ACE),
-                cardWidth = 50.dp,
-                cardHeight = 70.dp,
-            )
-            CardView(
-                card = Card(Suit.SPADES, Rank.KING),
-                cardWidth = 50.dp,
-                cardHeight = 70.dp,
-            )
-            CardView(
-                card = Card(Suit.CLUBS, Rank.QUEEN),
-                cardWidth = 50.dp,
-                cardHeight = 70.dp,
-            )
-            CardView(
-                card = Card(Suit.SPADES, Rank.JACK),
-                cardWidth = 50.dp,
-                cardHeight = 70.dp,
-            )
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = "\u2193",
-            style = MaterialTheme.typography.headlineLarge,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary,
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Deck visual
-        Row(horizontalArrangement = Arrangement.spacedBy((-30).dp)) {
-            repeat(3) {
-                PlaceholderCardView(cardWidth = 50.dp, cardHeight = 70.dp)
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    "Avoid Room",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("Skip a bad room", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                Text(
+                    "Cards go to bottom of deck",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    "Cannot skip twice in a row!",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                    CardView(
+                        card = Card(Suit.CLUBS, Rank.ACE),
+                        cardWidth = cardSize.first,
+                        cardHeight = cardSize.second,
+                    )
+                    CardView(
+                        card = Card(Suit.SPADES, Rank.KING),
+                        cardWidth = cardSize.first,
+                        cardHeight = cardSize.second,
+                    )
+                    CardView(
+                        card = Card(Suit.CLUBS, Rank.QUEEN),
+                        cardWidth = cardSize.first,
+                        cardHeight = cardSize.second,
+                    )
+                    CardView(
+                        card = Card(Suit.SPADES, Rank.JACK),
+                        cardWidth = cardSize.first,
+                        cardHeight = cardSize.second,
+                    )
+                }
+                Text(
+                    "\u2192",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Row(horizontalArrangement = Arrangement.spacedBy((-20).dp)) {
+                        repeat(3) { PlaceholderCardView(cardWidth = cardSize.first, cardHeight = cardSize.second) }
+                    }
+                    Text(
+                        "Deck",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
         }
-        Text(
-            text = "Bottom of deck",
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = 4.dp),
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Text(
-            text = "Skip a bad room",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-            textAlign = TextAlign.Center,
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = "All 4 cards go to bottom of deck",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-        )
-        Spacer(modifier = Modifier.height(12.dp))
-        Text(
-            text = "Cannot skip twice in a row!",
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.error,
-            textAlign = TextAlign.Center,
-        )
+    } else {
+        Column(
+            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            Text(
+                "Avoid Room",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                CardView(card = Card(Suit.CLUBS, Rank.ACE), cardWidth = cardSize.first, cardHeight = cardSize.second)
+                CardView(card = Card(Suit.SPADES, Rank.KING), cardWidth = cardSize.first, cardHeight = cardSize.second)
+                CardView(card = Card(Suit.CLUBS, Rank.QUEEN), cardWidth = cardSize.first, cardHeight = cardSize.second)
+                CardView(card = Card(Suit.SPADES, Rank.JACK), cardWidth = cardSize.first, cardHeight = cardSize.second)
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                "\u2193",
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy((-30).dp)) {
+                repeat(3) { PlaceholderCardView(cardWidth = cardSize.first, cardHeight = cardSize.second) }
+            }
+            Text(
+                "Bottom of deck",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 4.dp),
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(
+                "Skip a bad room",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Center,
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                "All 4 cards go to bottom of deck",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                "Cannot skip twice in a row!",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.error,
+                textAlign = TextAlign.Center,
+            )
+        }
     }
 }
 
@@ -516,80 +660,123 @@ private fun AvoidRoomSlide() {
  * Slide 5: Potions - Only 1 per room, max health 20
  */
 @Composable
-private fun PotionsSlide() {
-    Column(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Text(
-            text = "Potions",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary,
-        )
+private fun PotionsSlide(isLandscape: Boolean) {
+    val cardSize = if (isLandscape) 50.dp to 70.dp else 70.dp to 98.dp
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Two potions - one works, one crossed out
+    if (isLandscape) {
         Row(
-            horizontalArrangement = Arrangement.spacedBy(24.dp),
+            modifier = Modifier.fillMaxSize(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // First potion - works
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                CardView(
-                    card = Card(Suit.HEARTS, Rank.SEVEN),
-                    cardWidth = 70.dp,
-                    cardHeight = 98.dp,
-                )
-                Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "+7 health",
-                    style = MaterialTheme.typography.labelLarge,
+                    "Potions",
+                    style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF81C784),
+                    color = MaterialTheme.colorScheme.primary,
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    "Only 1 potion works per room",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                    "Max health is 20",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-
-            // Second potion - doesn't work
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Box {
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     CardView(
-                        card = Card(Suit.HEARTS, Rank.FOUR),
-                        cardWidth = 70.dp,
-                        cardHeight = 98.dp,
+                        card = Card(Suit.HEARTS, Rank.SEVEN),
+                        cardWidth = cardSize.first,
+                        cardHeight = cardSize.second,
+                    )
+                    Text(
+                        "+7 health",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF81C784),
                     )
                 }
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "No effect",
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textDecoration = TextDecoration.LineThrough,
-                )
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CardView(
+                        card = Card(Suit.HEARTS, Rank.FOUR),
+                        cardWidth = cardSize.first,
+                        cardHeight = cardSize.second,
+                    )
+                    Text(
+                        "No effect",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textDecoration = TextDecoration.LineThrough,
+                    )
+                }
             }
         }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Text(
-            text = "Only 1 potion works per room",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-            textAlign = TextAlign.Center,
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = "Max health is 20",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-        )
+    } else {
+        Column(
+            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            Text(
+                "Potions",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(24.dp), verticalAlignment = Alignment.CenterVertically) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CardView(
+                        card = Card(Suit.HEARTS, Rank.SEVEN),
+                        cardWidth = cardSize.first,
+                        cardHeight = cardSize.second,
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        "+7 health",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF81C784),
+                    )
+                }
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CardView(
+                        card = Card(Suit.HEARTS, Rank.FOUR),
+                        cardWidth = cardSize.first,
+                        cardHeight = cardSize.second,
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        "No effect",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textDecoration = TextDecoration.LineThrough,
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(
+                "Only 1 potion works per room",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Center,
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                "Max health is 20",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+        }
     }
 }
 
@@ -597,86 +784,134 @@ private fun PotionsSlide() {
  * Slide 6: Weapons - Must equip, replaces old weapon
  */
 @Composable
-private fun WeaponsSlide() {
-    Column(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Text(
-            text = "Weapons",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary,
-        )
+private fun WeaponsSlide(isLandscape: Boolean) {
+    val cardSize = if (isLandscape) 45.dp to 63.dp else 60.dp to 84.dp
+    val newCardSize = if (isLandscape) 50.dp to 70.dp else 70.dp to 98.dp
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Old weapon being replaced by new weapon
+    if (isLandscape) {
         Row(
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.fillMaxSize(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // Old weapon
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Box {
-                    CardView(
-                        card = Card(Suit.DIAMONDS, Rank.THREE),
-                        cardWidth = 60.dp,
-                        cardHeight = 84.dp,
-                    )
-                }
-                Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "Old",
-                    style = MaterialTheme.typography.labelMedium,
+                    "Weapons",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    "Must equip new weapons",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                    "Replaces your current weapon",
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textDecoration = TextDecoration.LineThrough,
                 )
             }
-
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CardView(
+                        card = Card(Suit.DIAMONDS, Rank.THREE),
+                        cardWidth = cardSize.first,
+                        cardHeight = cardSize.second,
+                    )
+                    Text(
+                        "Old",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textDecoration = TextDecoration.LineThrough,
+                    )
+                }
+                Text(
+                    "\u2192",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CardView(
+                        card = Card(Suit.DIAMONDS, Rank.EIGHT),
+                        cardWidth = newCardSize.first,
+                        cardHeight = newCardSize.second,
+                    )
+                    Text(
+                        "Equipped!",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF64B5F6),
+                    )
+                }
+            }
+        }
+    } else {
+        Column(
+            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
             Text(
-                text = "\u2192",
+                "Weapons",
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
             )
-
-            // New weapon
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                CardView(
-                    card = Card(Suit.DIAMONDS, Rank.EIGHT),
-                    cardWidth = 70.dp,
-                    cardHeight = 98.dp,
-                )
-                Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(24.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CardView(
+                        card = Card(Suit.DIAMONDS, Rank.THREE),
+                        cardWidth = cardSize.first,
+                        cardHeight = cardSize.second,
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        "Old",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textDecoration = TextDecoration.LineThrough,
+                    )
+                }
                 Text(
-                    text = "Equipped!",
-                    style = MaterialTheme.typography.labelLarge,
+                    "\u2192",
+                    style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF64B5F6),
+                    color = MaterialTheme.colorScheme.primary,
                 )
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CardView(
+                        card = Card(Suit.DIAMONDS, Rank.EIGHT),
+                        cardWidth = newCardSize.first,
+                        cardHeight = newCardSize.second,
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        "Equipped!",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF64B5F6),
+                    )
+                }
             }
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(
+                "Must equip new weapons",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Center,
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                "Replaces your current weapon",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
         }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Text(
-            text = "Must equip new weapons",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-            textAlign = TextAlign.Center,
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = "Replaces your current weapon",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-        )
     }
 }
 
@@ -684,101 +919,138 @@ private fun WeaponsSlide() {
  * Slide 7: Combat - Weapon reduces damage
  */
 @Composable
-private fun CombatSlide() {
-    Column(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Text(
-            text = "Combat",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary,
-        )
+private fun CombatSlide(isLandscape: Boolean) {
+    val cardSize = if (isLandscape) 45.dp to 63.dp else 70.dp to 98.dp
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Visual comparison: Monster vs Weapon
+    if (isLandscape) {
         Row(
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.fillMaxSize(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // Monster
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                CardView(
-                    card = Card(Suit.CLUBS, Rank.QUEEN),
-                    cardWidth = 70.dp,
-                    cardHeight = 98.dp,
-                )
-                Text(
-                    text = "12 damage",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = Color(0xFFE57373),
-                    modifier = Modifier.padding(top = 4.dp),
-                )
-            }
-
-            Text(
-                text = "-",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-            )
-
-            // Weapon
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                CardView(
-                    card = Card(Suit.DIAMONDS, Rank.SEVEN),
-                    cardWidth = 70.dp,
-                    cardHeight = 98.dp,
-                )
-                Text(
-                    text = "7 blocked",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = Color(0xFF64B5F6),
-                    modifier = Modifier.padding(top = 4.dp),
-                )
-            }
-
-            Text(
-                text = "=",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-            )
-
-            // Result
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    text = "5",
-                    style = MaterialTheme.typography.displayMedium,
+                    "Combat",
+                    style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFFE57373),
+                    color = MaterialTheme.colorScheme.primary,
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    "Weapon blocks damage",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
                 )
                 Text(
-                    text = "damage",
-                    style = MaterialTheme.typography.labelLarge,
+                    "Or fight barehanded",
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CardView(
+                        card = Card(Suit.CLUBS, Rank.QUEEN),
+                        cardWidth = cardSize.first,
+                        cardHeight = cardSize.second,
+                    )
+                    Text("12", style = MaterialTheme.typography.labelMedium, color = Color(0xFFE57373))
+                }
+                Text("-", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CardView(
+                        card = Card(Suit.DIAMONDS, Rank.SEVEN),
+                        cardWidth = cardSize.first,
+                        cardHeight = cardSize.second,
+                    )
+                    Text("7", style = MaterialTheme.typography.labelMedium, color = Color(0xFF64B5F6))
+                }
+                Text("=", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        "5",
+                        style = MaterialTheme.typography.displaySmall,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFFE57373),
+                    )
+                    Text(
+                        "damage",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
         }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Text(
-            text = "Weapon blocks monster damage",
-            style = MaterialTheme.typography.titleMedium,
-            textAlign = TextAlign.Center,
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = "Or fight barehanded (full damage)",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-        )
+    } else {
+        Column(
+            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            Text(
+                "Combat",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CardView(
+                        card = Card(Suit.CLUBS, Rank.QUEEN),
+                        cardWidth = cardSize.first,
+                        cardHeight = cardSize.second,
+                    )
+                    Text(
+                        "12 damage",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = Color(0xFFE57373),
+                        modifier = Modifier.padding(top = 4.dp),
+                    )
+                }
+                Text("-", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CardView(
+                        card = Card(Suit.DIAMONDS, Rank.SEVEN),
+                        cardWidth = cardSize.first,
+                        cardHeight = cardSize.second,
+                    )
+                    Text(
+                        "7 blocked",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = Color(0xFF64B5F6),
+                        modifier = Modifier.padding(top = 4.dp),
+                    )
+                }
+                Text("=", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        "5",
+                        style = MaterialTheme.typography.displayMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFFE57373),
+                    )
+                    Text(
+                        "damage",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(
+                "Weapon blocks monster damage",
+                style = MaterialTheme.typography.titleMedium,
+                textAlign = TextAlign.Center,
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                "Or fight barehanded (full damage)",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+        }
     }
 }
 
@@ -786,127 +1058,185 @@ private fun CombatSlide() {
  * Slide 8: Weapon Degradation - Can only fight weaker monsters
  */
 @Composable
-private fun WeaponDegradationSlide() {
-    Column(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Text(
-            text = "Weapon Wear",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary,
-        )
+private fun WeaponDegradationSlide(isLandscape: Boolean) {
+    val cardSize = if (isLandscape) 40.dp to 56.dp else 55.dp to 77.dp
+    val smallCardSize = if (isLandscape) 35.dp to 49.dp else 50.dp to 70.dp
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Example: Weapon used on Queen, now can only fight Queen or lower
+    if (isLandscape) {
         Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxSize(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // Weapon
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                CardView(
-                    card = Card(Suit.DIAMONDS, Rank.SEVEN),
-                    cardWidth = 55.dp,
-                    cardHeight = 77.dp,
+                Text(
+                    "Weapon Wear",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    "After defeating a monster,",
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.SemiBold,
                 )
                 Text(
-                    text = "7",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = Color(0xFF64B5F6),
+                    "weapon limit = monster value",
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.SemiBold,
                 )
             }
-
-            Text(
-                text = "vs",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-
-            // Defeated monster (Queen)
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                CardView(
-                    card = Card(Suit.CLUBS, Rank.QUEEN),
-                    cardWidth = 55.dp,
-                    cardHeight = 77.dp,
-                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        CardView(
+                            card = Card(Suit.DIAMONDS, Rank.SEVEN),
+                            cardWidth = cardSize.first,
+                            cardHeight = cardSize.second,
+                        )
+                        Text("7", style = MaterialTheme.typography.labelSmall, color = Color(0xFF64B5F6))
+                    }
+                    Text(
+                        "vs",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        CardView(
+                            card = Card(Suit.CLUBS, Rank.QUEEN),
+                            cardWidth = cardSize.first,
+                            cardHeight = cardSize.second,
+                        )
+                        Text("12", style = MaterialTheme.typography.labelSmall, color = Color(0xFFE57373))
+                    }
+                }
                 Text(
-                    text = "12",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = Color(0xFFE57373),
+                    "Limit now 12",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.Top) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CardView(
+                        card = Card(Suit.SPADES, Rank.SIX),
+                        cardWidth = smallCardSize.first,
+                        cardHeight = smallCardSize.second,
+                    )
+                    Text(
+                        "Can use",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF81C784),
+                    )
+                }
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CardView(
+                        card = Card(Suit.CLUBS, Rank.KING),
+                        cardWidth = smallCardSize.first,
+                        cardHeight = smallCardSize.second,
+                    )
+                    Text(
+                        "Barehanded",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFFE57373),
+                    )
+                }
             }
         }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Text(
-            text = "After defeating Q, weapon limit = 12",
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Can fight / Can't fight examples
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(24.dp),
-            verticalAlignment = Alignment.Top,
+    } else {
+        Column(
+            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
         ) {
-            // Can fight - 6 or lower
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                CardView(
-                    card = Card(Suit.SPADES, Rank.SIX),
-                    cardWidth = 50.dp,
-                    cardHeight = 70.dp,
-                )
-                Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                "Weapon Wear",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CardView(
+                        card = Card(Suit.DIAMONDS, Rank.SEVEN),
+                        cardWidth = cardSize.first,
+                        cardHeight = cardSize.second,
+                    )
+                    Text("7", style = MaterialTheme.typography.labelMedium, color = Color(0xFF64B5F6))
+                }
                 Text(
-                    text = "Can use",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF81C784),
+                    "vs",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CardView(
+                        card = Card(Suit.CLUBS, Rank.QUEEN),
+                        cardWidth = cardSize.first,
+                        cardHeight = cardSize.second,
+                    )
+                    Text("12", style = MaterialTheme.typography.labelMedium, color = Color(0xFFE57373))
+                }
             }
-
-            // Can't fight - King is higher than 12
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                CardView(
-                    card = Card(Suit.CLUBS, Rank.KING),
-                    cardWidth = 50.dp,
-                    cardHeight = 70.dp,
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "Barehanded",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFFE57373),
-                )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                "After defeating Q, weapon limit = 12",
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(24.dp), verticalAlignment = Alignment.Top) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CardView(
+                        card = Card(Suit.SPADES, Rank.SIX),
+                        cardWidth = smallCardSize.first,
+                        cardHeight = smallCardSize.second,
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        "Can use",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF81C784),
+                    )
+                }
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CardView(
+                        card = Card(Suit.CLUBS, Rank.KING),
+                        cardWidth = smallCardSize.first,
+                        cardHeight = smallCardSize.second,
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        "Barehanded",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFFE57373),
+                    )
+                }
             }
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                "Weapons can only fight monsters",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Center,
+            )
+            Text(
+                "equal or weaker than the last defeated",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Center,
+            )
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = "Weapons can only fight monsters",
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.SemiBold,
-            textAlign = TextAlign.Center,
-        )
-        Text(
-            text = "equal or weaker than the last defeated",
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.SemiBold,
-            textAlign = TextAlign.Center,
-        )
     }
 }
 
@@ -914,110 +1244,171 @@ private fun WeaponDegradationSlide() {
  * Slide 9: Scoring - Win/Lose conditions
  */
 @Composable
-private fun ScoringSlide() {
-    Column(
-        modifier =
-            Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Text(
-            text = "Scoring",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary,
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Win condition
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier =
-                Modifier
-                    .background(
-                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
-                        shape = MaterialTheme.shapes.medium,
-                    ).padding(12.dp),
+private fun ScoringSlide(isLandscape: Boolean) {
+    if (isLandscape) {
+        Row(
+            modifier = Modifier.fillMaxSize(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "Victory",
-                style = MaterialTheme.typography.titleMedium,
+                "Scoring",
+                style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
             )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "Score = Health remaining",
-                style = MaterialTheme.typography.bodyMedium,
-            )
-            Text(
-                text = "Example: 15 health = 15 points",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+
+            // Victory
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier =
+                    Modifier
+                        .background(
+                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                            shape = MaterialTheme.shapes.medium,
+                        ).padding(8.dp),
+            ) {
+                Text(
+                    "Victory",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+                Text("Score = Health", style = MaterialTheme.typography.bodySmall)
+            }
+
+            // Bonus
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier =
+                    Modifier
+                        .background(
+                            color = Color(0xFF81C784).copy(alpha = 0.2f),
+                            shape = MaterialTheme.shapes.medium,
+                        ).padding(8.dp),
+            ) {
+                Text(
+                    "Bonus",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF388E3C),
+                )
+                Text("20 HP + potion?", style = MaterialTheme.typography.bodySmall)
+                Text(
+                    "20 + potion value",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
+            // Defeat
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier =
+                    Modifier
+                        .background(
+                            color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f),
+                            shape = MaterialTheme.shapes.medium,
+                        ).padding(8.dp),
+            ) {
+                Text(
+                    "Defeat",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.error,
+                )
+                Text("Negative score", style = MaterialTheme.typography.bodySmall)
+            }
         }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Bonus condition
+    } else {
         Column(
+            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier =
-                Modifier
-                    .background(
-                        color = Color(0xFF81C784).copy(alpha = 0.2f),
-                        shape = MaterialTheme.shapes.medium,
-                    ).padding(12.dp),
+            verticalArrangement = Arrangement.Center,
         ) {
             Text(
-                text = "Bonus",
-                style = MaterialTheme.typography.titleMedium,
+                "Scoring",
+                style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF388E3C),
+                color = MaterialTheme.colorScheme.primary,
             )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "20 health + last card potion?",
-                style = MaterialTheme.typography.bodyMedium,
-            )
-            Text(
-                text = "Score = 20 + potion value",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
+            Spacer(modifier = Modifier.height(16.dp))
 
-        Spacer(modifier = Modifier.height(12.dp))
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier =
+                    Modifier
+                        .background(
+                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                            shape = MaterialTheme.shapes.medium,
+                        ).padding(12.dp),
+            ) {
+                Text(
+                    "Victory",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text("Score = Health remaining", style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    "Example: 15 health = 15 points",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
 
-        // Lose condition
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier =
-                Modifier
-                    .background(
-                        color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f),
-                        shape = MaterialTheme.shapes.medium,
-                    ).padding(12.dp),
-        ) {
-            Text(
-                text = "Defeat",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.error,
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "Score = Negative",
-                style = MaterialTheme.typography.bodyMedium,
-            )
-            Text(
-                text = "(Sum of remaining monsters)",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier =
+                    Modifier
+                        .background(
+                            color = Color(0xFF81C784).copy(alpha = 0.2f),
+                            shape = MaterialTheme.shapes.medium,
+                        ).padding(12.dp),
+            ) {
+                Text(
+                    "Bonus",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF388E3C),
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text("20 health + last card potion?", style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    "Score = 20 + potion value",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier =
+                    Modifier
+                        .background(
+                            color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f),
+                            shape = MaterialTheme.shapes.medium,
+                        ).padding(12.dp),
+            ) {
+                Text(
+                    "Defeat",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.error,
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text("Score = Negative", style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    "(Sum of remaining monsters)",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
     }
 }
