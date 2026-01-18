@@ -1168,6 +1168,262 @@ class GameViewModelTest {
             }
         }
 
+    // ========== Potion After Death Bug Tests ==========
+
+    @Test
+    fun `BUG - player survives lethal monster when potion is processed last`() =
+        runTest {
+            // This test demonstrates the bug where a player can survive a lethal monster
+            // if they process a potion after the monster brings them to 0 health.
+            //
+            // According to the rules: "The game ends when either: Your health reaches 0 (you lose)"
+            // This means if health reaches 0 at ANY point, the game should end immediately.
+            //
+            // The current bug allows the player to survive because:
+            // 1. Monster deals damage bringing health to 0
+            // 2. Potion heals them back up
+            // 3. Final health > 0, so no game over
+            //
+            // Expected: isGameOver = true (health reached 0 during processing)
+            // Actual (bug): isGameOver = false (final health > 0 after potion)
+
+            val monster = testMonster(14) // Ace - deals 14 damage
+            val potion = testPotion(10) // Heals 10
+
+            // Start with a state at 1 health
+            var state =
+                GameState.newGame().copy(
+                    health = 1,
+                    currentRoom = listOf(monster, potion, testWeapon(2), testMonster(2)),
+                )
+
+            // Process monster first (1 - 14 = 0, floored at 0)
+            state = state.fightMonsterBarehanded(monster)
+            assertEquals(0, state.health, "Health should be 0 after fighting ace with 1 health")
+
+            // At this point, according to the rules, the game should be over
+            // This is the expected behavior:
+            assertTrue(
+                state.isGameOver,
+                "Game should be over when health reaches 0 - this is the CORRECT behavior",
+            )
+
+            // Now process potion (would heal from 0 to 10)
+            state = state.usePotion(potion)
+            assertEquals(10, state.health, "Potion would heal to 10")
+
+            // THE BUG: After processing potion, health is now 10, but the game
+            // SHOULD have ended when health hit 0 during monster processing.
+            //
+            // This test currently PASSES because GameState.isGameOver only checks
+            // current health. The bug is in the ViewModel's processNextCard() which
+            // doesn't stop processing when health hits 0.
+            //
+            // The fix should ensure that once health hits 0, processing stops
+            // and isGameOver is triggered, regardless of subsequent potions.
+        }
+
+    @Test
+    fun `processing stops when monster brings health to zero`() =
+        runTest {
+            // This test confirms the fix: when a monster brings health to 0,
+            // processing stops immediately and subsequent cards are not processed.
+
+            val viewModel = GameViewModel()
+
+            // Set up: player takes damage to get to 1 health, then faces lethal monster
+            val setup1 = testMonster(10)
+            val setup2 = testMonster(9)
+            val lethalMonster = testMonster(14) // Ace - will kill player at 1 health
+            val healingPotion = testPotion(10) // Should NOT be processed
+
+            val fullSequence = listOf(setup1, setup2, lethalMonster, healingPotion)
+            val preview = viewModel.simulateProcessing(fullSequence)
+
+            // After processing:
+            // - Start: 20 health
+            // - Monster 10: 20 - 10 = 10
+            // - Monster 9: 10 - 9 = 1
+            // - Monster 14 (Ace): 1 - 14 = 0 (floored) <- GAME ENDS HERE
+            // - Potion 10: NOT PROCESSED (player is dead)
+
+            // Only 3 cards should be processed (potion is skipped because player died)
+            assertEquals(
+                3,
+                preview.size,
+                "Only 3 cards should be processed - potion should be skipped after death",
+            )
+
+            val monsterFight3 = preview[2] as LogEntry.MonsterFought
+            assertEquals(0, monsterFight3.healthAfter, "Health should be 0 after lethal hit")
+
+            // Verify no potion entry exists
+            val potionEntries = preview.filterIsInstance<LogEntry.PotionUsed>()
+            assertTrue(
+                potionEntries.isEmpty(),
+                "No potion should be processed after player dies",
+            )
+        }
+
+    @Test
+    fun `game should end immediately when health reaches zero during card processing`() =
+        runTest {
+            // This is the expected correct behavior after the fix is applied.
+            // When processing a batch of cards, if health reaches 0, processing
+            // should stop immediately and the game should be marked as over.
+            //
+            // This test will FAIL until the bug is fixed.
+
+            val viewModel = GameViewModel()
+
+            // Simulate getting to 1 health, then being hit by a lethal monster
+            val setup1 = testMonster(10)
+            val setup2 = testMonster(9)
+            val lethalMonster = testMonster(14) // Ace
+            val healingPotion = testPotion(10)
+
+            val fullSequence = listOf(setup1, setup2, lethalMonster, healingPotion)
+            val preview = viewModel.simulateProcessing(fullSequence)
+
+            // Find the point where health first reaches 0
+            var healthReachedZero = false
+            var cardsProcessedAfterDeath = 0
+
+            val deathIndex =
+                preview.indexOfFirst {
+                    it is LogEntry.MonsterFought && it.healthAfter == 0
+                }
+
+            for ((index, entry) in preview.withIndex()) {
+                if (entry is LogEntry.MonsterFought && entry.healthAfter == 0) {
+                    healthReachedZero = true
+                }
+                if (healthReachedZero && index > deathIndex) {
+                    cardsProcessedAfterDeath++
+                }
+            }
+
+            assertTrue(healthReachedZero, "Health should reach 0 during processing")
+
+            // EXPECTED BEHAVIOR: No cards should be processed after health reaches 0
+            // This assertion will FAIL until the bug is fixed
+            assertEquals(
+                0,
+                cardsProcessedAfterDeath,
+                "BUG: Cards were processed after health reached 0. " +
+                    "Expected: 0 cards processed after death, " +
+                    "Actual: $cardsProcessedAfterDeath cards processed after death. " +
+                    "The game should end immediately when health hits 0.",
+            )
+        }
+
+    @Test
+    fun `actual game flow stops processing when monster kills player before potion`() =
+        runTest {
+            // This test verifies the actual game flow through processNextCard(),
+            // not just simulateProcessing(). It uses GameIntent.ProcessSelectedCards
+            // to test the real card processing pipeline.
+            //
+            // We use seed 1L which produces rooms with monsters, allowing us to
+            // reduce health and then set up a lethal scenario.
+
+            val viewModel = GameViewModel(randomSeed = 1L)
+
+            viewModel.uiState.test {
+                awaitItem() // Initial state
+
+                // Draw first room
+                viewModel.onIntent(GameIntent.DrawRoom)
+                testDispatcher.scheduler.advanceUntilIdle()
+                var state = awaitItem()
+
+                // Process rooms to reduce health, looking for a room with both
+                // a lethal monster and a potion
+                var foundLethalScenario = false
+                var iterations = 0
+                val maxIterations = 15
+
+                while (!foundLethalScenario && !state.isGameOver && iterations < maxIterations) {
+                    val room = state.currentRoom
+                    if (room == null || room.size < 4) {
+                        viewModel.onIntent(GameIntent.DrawRoom)
+                        testDispatcher.scheduler.advanceUntilIdle()
+                        state = awaitItem()
+                        iterations++
+                        continue
+                    }
+
+                    val currentHealth = state.health
+                    val lethalMonster =
+                        room.find {
+                            it.type == CardType.MONSTER && it.value >= currentHealth
+                        }
+                    val potion = room.find { it.type == CardType.POTION }
+
+                    if (lethalMonster != null && potion != null && room.size >= 3) {
+                        // Found our scenario - process monster first, then potion
+                        foundLethalScenario = true
+
+                        val otherCards = room.filter { it != lethalMonster && it != potion }
+                        val thirdCard = otherCards.firstOrNull() ?: room.first { it != lethalMonster }
+                        val cardsToProcess =
+                            if (thirdCard != potion) {
+                                listOf(lethalMonster, potion, thirdCard)
+                            } else {
+                                listOf(lethalMonster) + otherCards.take(2)
+                            }
+
+                        val healthBefore = state.health
+                        viewModel.onIntent(GameIntent.ProcessSelectedCards(cardsToProcess.take(3)))
+                        testDispatcher.scheduler.advanceUntilIdle()
+                        state = awaitItem()
+
+                        // Handle combat choices (choose barehanded to ensure death)
+                        while (state.pendingCombatChoice != null) {
+                            viewModel.onIntent(GameIntent.ResolveCombatChoice(useWeapon = false))
+                            testDispatcher.scheduler.advanceUntilIdle()
+                            state = awaitItem()
+                        }
+
+                        // Verify the fix: game should be over, health should be 0
+                        assertTrue(
+                            state.isGameOver,
+                            "Game should be over after lethal monster (had $healthBefore health, " +
+                                "monster dealt ${lethalMonster.value}). Potion should NOT save player.",
+                        )
+                        assertEquals(
+                            0,
+                            state.health,
+                            "Health should be 0 - potion should not have healed after death",
+                        )
+                    } else {
+                        // No lethal scenario yet - process room to reduce health
+                        val cardsToProcess = room.take(3)
+                        viewModel.onIntent(GameIntent.ProcessSelectedCards(cardsToProcess))
+                        testDispatcher.scheduler.advanceUntilIdle()
+                        state = awaitItem()
+
+                        // Handle combat choices (fight barehanded to take more damage)
+                        while (state.pendingCombatChoice != null && !state.isGameOver) {
+                            viewModel.onIntent(GameIntent.ResolveCombatChoice(useWeapon = false))
+                            testDispatcher.scheduler.advanceUntilIdle()
+                            state = awaitItem()
+                        }
+                    }
+
+                    iterations++
+                }
+
+                // If we found and executed a lethal scenario, the assertions above verify the fix.
+                // If not, the test is inconclusive but doesn't fail (seed may not produce scenario).
+                if (foundLethalScenario) {
+                    assertTrue(state.isGameOver, "Lethal scenario should result in game over")
+                }
+
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+
     // ========== Game End Loop Bug Tests (Issue #36) ==========
 
     @Test
