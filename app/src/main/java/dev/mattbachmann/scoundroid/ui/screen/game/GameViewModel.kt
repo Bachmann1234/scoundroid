@@ -261,6 +261,14 @@ class GameViewModel(
                         )
                         processingState = newState
                         pendingCardsToProcess.removeAt(0)
+
+                        // Check for death - game ends immediately when health reaches 0
+                        if (newState.isGameOver) {
+                            pendingCardsToProcess.clear()
+                            updateGameState(newState)
+                            processingState = null
+                            return
+                        }
                         // Continue loop to process next card
                     }
                 }
@@ -337,7 +345,7 @@ class GameViewModel(
             ),
         )
 
-        // Clear the combat choice and continue processing
+        // Clear the combat choice
         processingState = newState
         pendingCardsToProcess.removeAt(0)
         _uiState.value =
@@ -346,6 +354,15 @@ class GameViewModel(
                 actionLog = actionLogEntries.toList(),
             )
 
+        // Check for death - game ends immediately when health reaches 0
+        if (newState.isGameOver) {
+            pendingCardsToProcess.clear()
+            updateGameState(newState)
+            processingState = null
+            return
+        }
+
+        // Continue processing remaining cards
         processNextCard()
     }
 
@@ -386,7 +403,10 @@ class GameViewModel(
         val previewEntries = mutableListOf<LogEntry>()
         var state = gameState.value
 
-        selectedCards.forEach { card ->
+        for (card in selectedCards) {
+            // Stop processing if player is already dead
+            if (state.isGameOver) break
+
             val healthBefore = state.health
             val weaponBefore = state.weaponState?.weapon
             val usedPotionBefore = state.usedPotionThisTurn
