@@ -387,6 +387,53 @@ class ScoringTest {
     }
 
     @Test
+    fun `potion bonus applies even with leftover card in room`() {
+        // This simulates actual gameplay where deck is empty but 1 card remains in currentRoom
+        val emptyDeck = Deck(emptyList())
+        val leftoverCard = Card(Suit.SPADES, Rank.FIVE) // A leftover monster in the room
+        var game =
+            GameState.newGame().copy(
+                deck = emptyDeck,
+                currentRoom = listOf(leftoverCard), // 1 card remains from selection
+                health = 15,
+            )
+
+        // Use a potion to reach 20
+        val potion = Card(Suit.HEARTS, Rank.FIVE) // 5♥
+        game = game.usePotion(potion)
+
+        assertEquals(20, game.health)
+        assertEquals(1, game.currentRoom?.size, "Leftover card should still be in room")
+
+        // Score should include potion bonus even with leftover card
+        val score = game.calculateScore()
+        // Note: score = health - remaining monster damage + potion bonus
+        // = 20 - 5 + 5 = 20 (leftover monster counts against score, but potion bonus adds back)
+        assertEquals(20, score, "Potion bonus (5) should apply even with leftover card in room")
+    }
+
+    @Test
+    fun `potion bonus with non-monster leftover card`() {
+        // Leftover card is a weapon, not a monster, so no deduction
+        val emptyDeck = Deck(emptyList())
+        val leftoverCard = Card(Suit.DIAMONDS, Rank.FIVE) // A leftover weapon in the room
+        var game =
+            GameState.newGame().copy(
+                deck = emptyDeck,
+                currentRoom = listOf(leftoverCard),
+                health = 15,
+            )
+
+        val potion = Card(Suit.HEARTS, Rank.FIVE) // 5♥
+        game = game.usePotion(potion)
+
+        assertEquals(20, game.health)
+        val score = game.calculateScore()
+        // Score = 20 - 0 (no monster) + 5 (potion bonus) = 25
+        assertEquals(25, score, "Potion bonus should apply fully when leftover card is not a monster")
+    }
+
+    @Test
     fun `EXPLOIT FIX - potion then monster does not apply potion bonus`() {
         val emptyDeck = Deck(emptyList())
         var game =
