@@ -93,7 +93,7 @@
 - `ScoringTest.kt` - 20 scoring tests (including special health=20 case and bug fixes)
 
 **Files Updated:**
-- `GameState.kt` - Added combat, potion, scoring logic, and lastCardProcessed tracking
+- `GameState.kt` - Added combat, potion, and scoring logic
 - `GameStateTest.kt` - Updated for new properties
 
 ## Session 3 Completed (2026-01-07)

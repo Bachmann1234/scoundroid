@@ -261,6 +261,7 @@ class GameViewModel(
                         )
                         processingState = newState
                         pendingCardsToProcess.removeAt(0)
+                        updateUiMidProcessing(newState)
 
                         // Check for death - game ends immediately when health reaches 0
                         if (newState.isGameOver) {
@@ -283,6 +284,7 @@ class GameViewModel(
                     )
                     processingState = newState
                     pendingCardsToProcess.removeAt(0)
+                    updateUiMidProcessing(newState)
                     // Continue loop to process next card
                 }
                 CardType.POTION -> {
@@ -301,6 +303,7 @@ class GameViewModel(
                     )
                     processingState = newState
                     pendingCardsToProcess.removeAt(0)
+                    updateUiMidProcessing(newState)
                     // Continue loop to process next card
                 }
             }
@@ -345,14 +348,12 @@ class GameViewModel(
             ),
         )
 
-        // Clear the combat choice
+        // Update state and UI
         processingState = newState
         pendingCardsToProcess.removeAt(0)
-        _uiState.value =
-            _uiState.value.copy(
-                pendingCombatChoice = null,
-                actionLog = actionLogEntries.toList(),
-            )
+        updateUiMidProcessing(newState)
+        // Clear the combat choice after UI update
+        _uiState.value = _uiState.value.copy(pendingCombatChoice = null)
 
         // Check for death - game ends immediately when health reaches 0
         if (newState.isGameOver) {
@@ -489,6 +490,26 @@ class GameViewModel(
                 showHelp = currentShowHelp,
                 showActionLog = currentShowActionLog,
                 actionLog = actionLogEntries.toList(),
+            )
+    }
+
+    /**
+     * Updates the UI state mid-processing to reflect the current game state.
+     * This ensures the score and other UI elements update in real-time as cards are processed.
+     */
+    private fun updateUiMidProcessing(newState: GameState) {
+        val currentScore = newState.calculateScore()
+        val currentShowHelp = _uiState.value.showHelp
+        val currentShowActionLog = _uiState.value.showActionLog
+        val currentPendingChoice = _uiState.value.pendingCombatChoice
+        _uiState.value =
+            newState.toUiState().copy(
+                highestScore = highestScore,
+                isNewHighScore = highestScore?.let { currentScore > it } ?: (highScoreRepository != null),
+                showHelp = currentShowHelp,
+                showActionLog = currentShowActionLog,
+                actionLog = actionLogEntries.toList(),
+                pendingCombatChoice = currentPendingChoice,
             )
     }
 
