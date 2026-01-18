@@ -84,7 +84,7 @@ The game ends when either:
 
 **If you win:**
 - Score = remaining health
-- Special case: if you have exactly 20 health and your last card was a potion, score = 20 + that potion's value
+- Special case: if you have exactly 20 health and the leftover card (the one you didn't select from the final room) is a potion, score = 20 + that potion's value
 
 **If you lose:**
 - Find all remaining monsters in the dungeon

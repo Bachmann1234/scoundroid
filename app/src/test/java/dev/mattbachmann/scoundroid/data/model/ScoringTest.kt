@@ -12,12 +12,12 @@ import kotlin.test.assertTrue
  *   - This shows the projected loss score, giving real-time feedback during gameplay
  *   - Can be negative when remaining monsters outweigh health
  * - **Win** (deck empty, health > 0): score = health - 0 = health
- * - **Win with full health and last potion** (deck empty, health = 20, last card was potion):
+ * - **Win with full health and leftover potion** (deck empty, health = 20, leftover card is potion):
  *   score = 20 + potion value (special case)
  * - **Lose** (health = 0): score = 0 - sum of remaining monsters (negative)
  *
  * Important: The potion bonus ONLY applies at game end (deck empty), with health = 20,
- * and the very last card processed was a health potion.
+ * and the leftover card (the one not selected from the final room) is a potion.
  */
 class ScoringTest {
     @Test
@@ -307,218 +307,121 @@ class ScoringTest {
     }
 
     @Test
-    fun `winning with full health and last potion adds potion value to score`() {
+    fun `potion bonus applies when leftover card is a potion`() {
+        // The leftover card (the one not selected from final room) is a potion
         val emptyDeck = Deck(emptyList())
-        var game =
+        val leftoverPotion = Card(Suit.HEARTS, Rank.SEVEN) // 7♥ potion left over
+        val game =
             GameState.newGame().copy(
                 deck = emptyDeck,
-                health = 15,
+                currentRoom = listOf(leftoverPotion),
+                health = 20,
             )
 
-        // Use a potion that brings health to exactly 20
-        val potion = Card(Suit.HEARTS, Rank.FIVE) // 5♥
-        game = game.usePotion(potion)
-
-        // Health should be 20
-        assertEquals(20, game.health)
-
-        // Score should be 20 + 5 = 25 (special case)
         val score = game.calculateScore()
-        assertEquals(25, score, "Win with health=20 after potion should score health + potion value")
+        // Score = 20 + 7 = 27 (health + leftover potion value)
+        assertEquals(27, score, "Potion bonus should add leftover potion value to score")
     }
 
     @Test
-    fun `winning with full health but no recent potion scores normal`() {
+    fun `potion bonus does not apply when leftover card is a monster`() {
+        val emptyDeck = Deck(emptyList())
+        val leftoverMonster = Card(Suit.SPADES, Rank.FIVE) // 5♠ monster left over
+        val game =
+            GameState.newGame().copy(
+                deck = emptyDeck,
+                currentRoom = listOf(leftoverMonster),
+                health = 20,
+            )
+
+        val score = game.calculateScore()
+        // Score = 20 - 5 = 15 (health minus remaining monster damage, no potion bonus)
+        assertEquals(15, score, "No potion bonus when leftover card is a monster")
+    }
+
+    @Test
+    fun `potion bonus does not apply when leftover card is a weapon`() {
+        val emptyDeck = Deck(emptyList())
+        val leftoverWeapon = Card(Suit.DIAMONDS, Rank.FIVE) // 5♦ weapon left over
+        val game =
+            GameState.newGame().copy(
+                deck = emptyDeck,
+                currentRoom = listOf(leftoverWeapon),
+                health = 20,
+            )
+
+        val score = game.calculateScore()
+        // Score = 20 - 0 = 20 (no monster damage, no potion bonus)
+        assertEquals(20, score, "No potion bonus when leftover card is a weapon")
+    }
+
+    @Test
+    fun `potion bonus does not apply when health is less than 20`() {
+        val emptyDeck = Deck(emptyList())
+        val leftoverPotion = Card(Suit.HEARTS, Rank.SEVEN) // 7♥ potion left over
+        val game =
+            GameState.newGame().copy(
+                deck = emptyDeck,
+                currentRoom = listOf(leftoverPotion),
+                health = 15,
+            )
+
+        val score = game.calculateScore()
+        // Score = 15 (no bonus because health < 20)
+        assertEquals(15, score, "No potion bonus when health is less than 20")
+    }
+
+    @Test
+    fun `potion bonus does not apply when no leftover card`() {
         val emptyDeck = Deck(emptyList())
         val game =
             GameState.newGame().copy(
                 deck = emptyDeck,
+                currentRoom = null,
                 health = 20,
             )
 
-        // No potion used, just at full health
         val score = game.calculateScore()
-        assertEquals(20, score, "Win with health=20 without potion should score 20")
+        // Score = 20 (no leftover card to provide bonus)
+        assertEquals(20, score, "No potion bonus when no leftover card")
     }
 
     @Test
-    fun `winning with full health after multiple potions uses last card if potion`() {
-        val emptyDeck = Deck(emptyList())
-        var game =
+    fun `potion bonus does not apply when deck is not empty`() {
+        val remainingDeck = Deck(listOf(Card(Suit.SPADES, Rank.TWO))) // 2♠ still in deck
+        val leftoverPotion = Card(Suit.HEARTS, Rank.SEVEN) // 7♥ potion left over
+        val game =
             GameState.newGame().copy(
-                deck = emptyDeck,
-                health = 10,
-            )
-
-        // Use first potion
-        val potion1 = Card(Suit.HEARTS, Rank.FIVE) // 5♥
-        game = game.usePotion(potion1)
-        assertEquals(15, game.health)
-
-        // Start new turn and use second potion to reach 20 (this is the LAST card)
-        game = game.drawRoom()
-        val potion2 = Card(Suit.HEARTS, Rank.SEVEN) // 7♥
-        game = game.usePotion(potion2)
-        assertEquals(20, game.health)
-
-        // Should use last card's potion value (7) because last card was a potion
-        val score = game.calculateScore()
-        assertEquals(27, score, "Should use last card potion value: 20 + 7 = 27")
-    }
-
-    @Test
-    fun `winning with health less than 20 after potion scores normally`() {
-        val emptyDeck = Deck(emptyList())
-        var game =
-            GameState.newGame().copy(
-                deck = emptyDeck,
-                health = 10,
-            )
-
-        val potion = Card(Suit.HEARTS, Rank.FIVE) // 5♥
-        game = game.usePotion(potion)
-
-        // Health is 15, not 20
-        assertEquals(15, game.health)
-
-        // Score should be just 15 (no special case)
-        val score = game.calculateScore()
-        assertEquals(15, score, "Win with health < 20 scores normally even after potion")
-    }
-
-    @Test
-    fun `potion bonus applies even with leftover card in room`() {
-        // This simulates actual gameplay where deck is empty but 1 card remains in currentRoom
-        val emptyDeck = Deck(emptyList())
-        val leftoverCard = Card(Suit.SPADES, Rank.FIVE) // A leftover monster in the room
-        var game =
-            GameState.newGame().copy(
-                deck = emptyDeck,
-                currentRoom = listOf(leftoverCard), // 1 card remains from selection
-                health = 15,
-            )
-
-        // Use a potion to reach 20
-        val potion = Card(Suit.HEARTS, Rank.FIVE) // 5♥
-        game = game.usePotion(potion)
-
-        assertEquals(20, game.health)
-        assertEquals(1, game.currentRoom?.size, "Leftover card should still be in room")
-
-        // Score should include potion bonus even with leftover card
-        val score = game.calculateScore()
-        // Note: score = health - remaining monster damage + potion bonus
-        // = 20 - 5 + 5 = 20 (leftover monster counts against score, but potion bonus adds back)
-        assertEquals(20, score, "Potion bonus (5) should apply even with leftover card in room")
-    }
-
-    @Test
-    fun `potion bonus with non-monster leftover card`() {
-        // Leftover card is a weapon, not a monster, so no deduction
-        val emptyDeck = Deck(emptyList())
-        val leftoverCard = Card(Suit.DIAMONDS, Rank.FIVE) // A leftover weapon in the room
-        var game =
-            GameState.newGame().copy(
-                deck = emptyDeck,
-                currentRoom = listOf(leftoverCard),
-                health = 15,
-            )
-
-        val potion = Card(Suit.HEARTS, Rank.FIVE) // 5♥
-        game = game.usePotion(potion)
-
-        assertEquals(20, game.health)
-        val score = game.calculateScore()
-        // Score = 20 - 0 (no monster) + 5 (potion bonus) = 25
-        assertEquals(25, score, "Potion bonus should apply fully when leftover card is not a monster")
-    }
-
-    @Test
-    fun `EXPLOIT FIX - potion then monster does not apply potion bonus`() {
-        val emptyDeck = Deck(emptyList())
-        var game =
-            GameState.newGame().copy(
-                deck = emptyDeck,
+                deck = remainingDeck,
+                currentRoom = listOf(leftoverPotion),
                 health = 20,
             )
 
-        // Use a potion at full health (no health gain, but sets flag)
-        val potion = Card(Suit.HEARTS, Rank.TEN) // 10♥
-        game = game.usePotion(potion)
-        assertEquals(20, game.health, "Health stays at 20")
-
-        // Then fight a monster (last card is now a monster, not potion)
-        val monster = Card(Suit.SPADES, Rank.TWO) // 2♠
-        game = game.fightMonster(monster)
-        assertEquals(18, game.health, "Health drops to 18 after barehanded combat")
-
-        // Then heal back to 20 with another potion
-        game = game.drawRoom() // New turn
-        val potion2 = Card(Suit.HEARTS, Rank.TWO) // 2♥
-        game = game.usePotion(potion2)
-        assertEquals(20, game.health, "Back to full health")
-
-        // Now fight another monster (last card = monster)
-        game = game.drawRoom()
-        val weapon = Card(Suit.DIAMONDS, Rank.TEN) // 10♦ weapon
-        game = game.equipWeapon(weapon)
-        val monster2 = Card(Suit.CLUBS, Rank.TWO) // 2♣
-        game = game.fightMonster(monster2)
-
-        // Score should be just 20, NOT 20 + 10 or 20 + 2
-        // because last card was a monster, not a potion
         val score = game.calculateScore()
-        assertEquals(20, score, "Score should be 20, not include potion bonus because last card was monster")
+        // Score = 20 - 2 = 18 (health minus remaining monster, no potion bonus yet)
+        assertEquals(18, score, "No potion bonus when deck is not empty")
     }
 
     @Test
-    fun `EXPLOIT FIX - potion then weapon does not apply potion bonus`() {
+    fun `potion bonus uses leftover potion value`() {
+        // Test different potion values
         val emptyDeck = Deck(emptyList())
-        var game =
-            GameState.newGame().copy(
-                deck = emptyDeck,
-                health = 10,
+
+        for (rank in listOf(Rank.TWO, Rank.FIVE, Rank.TEN)) {
+            val leftoverPotion = Card(Suit.HEARTS, rank)
+            val game =
+                GameState.newGame().copy(
+                    deck = emptyDeck,
+                    currentRoom = listOf(leftoverPotion),
+                    health = 20,
+                )
+
+            val expectedScore = 20 + rank.value
+            assertEquals(
+                expectedScore,
+                game.calculateScore(),
+                "Potion bonus should be 20 + ${rank.value} = $expectedScore",
             )
-
-        // Use a potion to reach 20
-        val potion = Card(Suit.HEARTS, Rank.TEN) // 10♥
-        game = game.usePotion(potion)
-        assertEquals(20, game.health)
-
-        // Then equip a weapon (last card is now a weapon)
-        val weapon = Card(Suit.DIAMONDS, Rank.FIVE) // 5♦
-        game = game.equipWeapon(weapon)
-
-        // Score should be just 20, not 30, because last card was weapon
-        val score = game.calculateScore()
-        assertEquals(20, score, "Score should be 20 because last card was weapon, not potion")
-    }
-
-    @Test
-    fun `BUG FIX - second potion in same turn should not affect scoring`() {
-        val emptyDeck = Deck(emptyList())
-        var game =
-            GameState.newGame().copy(
-                deck = emptyDeck,
-                health = 15,
-            )
-
-        // Use first potion to reach 20
-        val potion1 = Card(Suit.HEARTS, Rank.FIVE) // 5♥
-        game = game.usePotion(potion1)
-        assertEquals(20, game.health)
-
-        // Use second potion in SAME turn (should be discarded, no effect)
-        val potion2 = Card(Suit.HEARTS, Rank.SEVEN) // 7♥
-        game = game.usePotion(potion2)
-        assertEquals(20, game.health)
-
-        // Score should be 20 + 5 = 25 (first potion), NOT 20 + 7 = 27 (second potion)
-        val score = game.calculateScore()
-        assertEquals(
-            25,
-            score,
-            "Score should use first potion value (5), not discarded second potion (7)",
-        )
+        }
     }
 }
