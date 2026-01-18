@@ -207,15 +207,15 @@ class GameFlowTest {
     }
 
     @Test
-    fun helpButton_showsRules() {
+    fun helpButton_showsTutorial() {
         // Click help button
         composeTestRule.openHelp()
 
-        // Verify help content is displayed
-        composeTestRule.onNodeWithText("How to Play", substring = true).assertIsDisplayed()
+        // Verify tutorial content is displayed (first slide shows Goal)
+        composeTestRule.onNodeWithText("Goal", substring = true).assertIsDisplayed()
 
-        // Verify some rule content is visible
-        composeTestRule.onNodeWithText("Monster", substring = true).assertIsDisplayed()
+        // Verify tutorial slide content is visible
+        composeTestRule.onNodeWithText("Survive the dungeon", substring = true).assertIsDisplayed()
     }
 
     @Test
