@@ -8,14 +8,16 @@ import kotlin.test.assertTrue
  * Tests for scoring mechanics.
  *
  * Scoring rules:
- * - **Win**: Survive entire dungeon → score = remaining health
- * - **Win with full health**:
- *   - health = 20 without last card being a potion → score = 20
- *   - health = 20 AND last card was a potion → score = 20 + potion value (special case)
- * - **Lose**: Health reaches 0 → score = 0 - sum of remaining monsters (negative)
+ * - **During play** (health > 0): score = health - remaining monster damage
+ *   - This shows the projected loss score, giving real-time feedback during gameplay
+ *   - Can be negative when remaining monsters outweigh health
+ * - **Win** (deck empty, health > 0): score = health - 0 = health
+ * - **Win with full health and last potion** (deck empty, health = 20, last card was potion):
+ *   score = 20 + potion value (special case)
+ * - **Lose** (health = 0): score = 0 - sum of remaining monsters (negative)
  *
- * Important: The special case ONLY applies if the very last card processed in the game
- * was a health potion. Using a potion earlier in the game does not count.
+ * Important: The potion bonus ONLY applies at game end (deck empty), with health = 20,
+ * and the very last card processed was a health potion.
  */
 class ScoringTest {
     @Test
@@ -151,13 +153,13 @@ class ScoringTest {
     }
 
     @Test
-    fun `can calculate score at any time`() {
+    fun `mid-game score is health minus remaining monsters`() {
         // Mid-game score
         val partialDeck =
             Deck(
                 listOf(
-                    Card(Suit.SPADES, Rank.FIVE),
-                    Card(Suit.CLUBS, Rank.SEVEN),
+                    Card(Suit.SPADES, Rank.FIVE), // 5 damage
+                    Card(Suit.CLUBS, Rank.SEVEN), // 7 damage
                 ),
             )
         val game =
@@ -169,9 +171,53 @@ class ScoringTest {
         // Can calculate score even if game isn't over
         val score = game.calculateScore()
 
-        // If we stopped here and won: score = 10
-        // But deck isn't empty, so this is a hypothetical win score
-        assertEquals(10, score, "Score calculation works mid-game")
+        // Score = health - remaining monsters = 10 - (5 + 7) = -2
+        assertEquals(-2, score, "Mid-game score = health - remaining monster damage")
+    }
+
+    @Test
+    fun `mid-game score can be negative`() {
+        // Many monsters remaining
+        val monsterHeavyDeck =
+            Deck(
+                listOf(
+                    Card(Suit.SPADES, Rank.KING), // 13
+                    Card(Suit.CLUBS, Rank.QUEEN), // 12
+                    Card(Suit.SPADES, Rank.JACK), // 11
+                ),
+            )
+        val game =
+            GameState.newGame().copy(
+                deck = monsterHeavyDeck,
+                health = 15,
+            )
+
+        val score = game.calculateScore()
+
+        // Score = 15 - (13 + 12 + 11) = 15 - 36 = -21
+        assertEquals(-21, score, "Mid-game score can be negative when monsters outweigh health")
+    }
+
+    @Test
+    fun `mid-game score ignores non-monster cards`() {
+        val mixedDeck =
+            Deck(
+                listOf(
+                    Card(Suit.SPADES, Rank.TEN), // 10 (monster)
+                    Card(Suit.DIAMONDS, Rank.FIVE), // 5 (weapon - ignored)
+                    Card(Suit.HEARTS, Rank.THREE), // 3 (potion - ignored)
+                ),
+            )
+        val game =
+            GameState.newGame().copy(
+                deck = mixedDeck,
+                health = 15,
+            )
+
+        val score = game.calculateScore()
+
+        // Score = 15 - 10 = 5 (only monster counts)
+        assertEquals(5, score, "Mid-game score only considers monsters")
     }
 
     @Test
