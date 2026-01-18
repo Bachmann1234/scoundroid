@@ -60,6 +60,7 @@ fun TutorialContent(
     val isLastPage = pagerState.currentPage == TOTAL_PAGES - 1
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val isTablet = configuration.smallestScreenWidthDp >= 600
 
     Column(
         modifier =
@@ -102,15 +103,15 @@ fun TutorialContent(
                     .fillMaxWidth(),
         ) { page ->
             when (page) {
-                0 -> GoalSlide(isLandscape)
-                1 -> CardTypesSlide(isLandscape)
-                2 -> RoomsSlide(isLandscape)
-                3 -> AvoidRoomSlide(isLandscape)
-                4 -> PotionsSlide(isLandscape)
-                5 -> WeaponsSlide(isLandscape)
-                6 -> CombatSlide(isLandscape)
-                7 -> WeaponDegradationSlide(isLandscape)
-                8 -> ScoringSlide(isLandscape)
+                0 -> GoalSlide(isLandscape, isTablet)
+                1 -> CardTypesSlide(isLandscape, isTablet)
+                2 -> RoomsSlide(isLandscape, isTablet)
+                3 -> AvoidRoomSlide(isLandscape, isTablet)
+                4 -> PotionsSlide(isLandscape, isTablet)
+                5 -> WeaponsSlide(isLandscape, isTablet)
+                6 -> CombatSlide(isLandscape, isTablet)
+                7 -> WeaponDegradationSlide(isLandscape, isTablet)
+                8 -> ScoringSlide(isLandscape, isTablet)
             }
         }
 
@@ -180,7 +181,14 @@ fun TutorialContent(
  * Slide 1: Goal - Survive the dungeon
  */
 @Composable
-private fun GoalSlide(isLandscape: Boolean) {
+private fun GoalSlide(
+    isLandscape: Boolean,
+    isTablet: Boolean,
+) {
+    val cardWidth = if (isTablet) 90.dp else 60.dp
+    val cardHeight = if (isTablet) 126.dp else 84.dp
+    val cardOverlap = if (isTablet) (-45).dp else (-30).dp
+
     if (isLandscape) {
         Row(
             modifier = Modifier.fillMaxSize(),
@@ -251,12 +259,17 @@ private fun GoalSlide(isLandscape: Boolean) {
         ) {
             Text(
                 text = "Goal",
-                style = MaterialTheme.typography.headlineMedium,
+                style =
+                    if (isTablet) {
+                        MaterialTheme.typography.displaySmall
+                    } else {
+                        MaterialTheme.typography.headlineMedium
+                    },
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(if (isTablet) 32.dp else 24.dp))
 
             Text(
                 text = "20",
@@ -266,43 +279,68 @@ private fun GoalSlide(isLandscape: Boolean) {
             )
             Text(
                 text = "Health",
-                style = MaterialTheme.typography.titleMedium,
+                style =
+                    if (isTablet) {
+                        MaterialTheme.typography.titleLarge
+                    } else {
+                        MaterialTheme.typography.titleMedium
+                    },
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(if (isTablet) 32.dp else 24.dp))
 
-            Row(horizontalArrangement = Arrangement.spacedBy((-30).dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(cardOverlap)) {
                 repeat(3) {
-                    PlaceholderCardView(cardWidth = 60.dp, cardHeight = 84.dp)
+                    PlaceholderCardView(cardWidth = cardWidth, cardHeight = cardHeight)
                 }
             }
             Text(
                 text = "44 Cards",
-                style = MaterialTheme.typography.titleMedium,
+                style =
+                    if (isTablet) {
+                        MaterialTheme.typography.titleLarge
+                    } else {
+                        MaterialTheme.typography.titleMedium
+                    },
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 8.dp),
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(if (isTablet) 32.dp else 24.dp))
 
             Text(
                 text = "Survive the dungeon",
-                style = MaterialTheme.typography.titleLarge,
+                style =
+                    if (isTablet) {
+                        MaterialTheme.typography.headlineMedium
+                    } else {
+                        MaterialTheme.typography.titleLarge
+                    },
                 fontWeight = FontWeight.SemiBold,
                 textAlign = TextAlign.Center,
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(if (isTablet) 32.dp else 24.dp))
 
             Text(
                 text = "Based on Scoundrel",
-                style = MaterialTheme.typography.bodySmall,
+                style =
+                    if (isTablet) {
+                        MaterialTheme.typography.bodyLarge
+                    } else {
+                        MaterialTheme.typography.bodySmall
+                    },
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
                 text = "by Zach Gage & Kurt Bieg",
-                style = MaterialTheme.typography.bodySmall,
+                style =
+                    if (isTablet) {
+                        MaterialTheme.typography.bodyLarge
+                    } else {
+                        MaterialTheme.typography.bodySmall
+                    },
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
@@ -313,8 +351,16 @@ private fun GoalSlide(isLandscape: Boolean) {
  * Slide 2: Card Types - Monster, Weapon, Potion
  */
 @Composable
-private fun CardTypesSlide(isLandscape: Boolean) {
-    val cardSize = if (isLandscape) 50.dp to 70.dp else 70.dp to 98.dp
+private fun CardTypesSlide(
+    isLandscape: Boolean,
+    isTablet: Boolean,
+) {
+    val cardSize =
+        when {
+            isLandscape -> 50.dp to 70.dp
+            isTablet -> 100.dp to 140.dp
+            else -> 70.dp to 98.dp
+        }
 
     Row(
         modifier = Modifier.fillMaxSize(),
@@ -329,12 +375,17 @@ private fun CardTypesSlide(isLandscape: Boolean) {
             ) {
                 Text(
                     text = "Card Types",
-                    style = MaterialTheme.typography.headlineMedium,
+                    style =
+                        if (isTablet) {
+                            MaterialTheme.typography.displaySmall
+                        } else {
+                            MaterialTheme.typography.headlineMedium
+                        },
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,
                 )
-                Spacer(modifier = Modifier.height(24.dp))
-                CardTypesRow(cardSize.first, cardSize.second)
+                Spacer(modifier = Modifier.height(if (isTablet) 32.dp else 24.dp))
+                CardTypesRow(cardSize.first, cardSize.second, isTablet)
             }
         } else {
             Text(
@@ -344,7 +395,7 @@ private fun CardTypesSlide(isLandscape: Boolean) {
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(end = 24.dp),
             )
-            CardTypesRow(cardSize.first, cardSize.second)
+            CardTypesRow(cardSize.first, cardSize.second, isTablet = false)
         }
     }
 }
@@ -353,53 +404,54 @@ private fun CardTypesSlide(isLandscape: Boolean) {
 private fun CardTypesRow(
     cardWidth: androidx.compose.ui.unit.Dp,
     cardHeight: androidx.compose.ui.unit.Dp,
+    isTablet: Boolean,
 ) {
     Row(
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(if (isTablet) 24.dp else 16.dp),
         verticalAlignment = Alignment.Top,
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             CardView(card = Card(Suit.SPADES, Rank.KING), cardWidth = cardWidth, cardHeight = cardHeight)
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(if (isTablet) 8.dp else 4.dp))
             Text(
                 "Monster",
-                style = MaterialTheme.typography.labelLarge,
+                style = if (isTablet) MaterialTheme.typography.titleMedium else MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.SemiBold,
                 color = Color(0xFFE57373),
             )
             Text(
                 "Deals damage",
-                style = MaterialTheme.typography.bodySmall,
+                style = if (isTablet) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             CardView(card = Card(Suit.DIAMONDS, Rank.SEVEN), cardWidth = cardWidth, cardHeight = cardHeight)
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(if (isTablet) 8.dp else 4.dp))
             Text(
                 "Weapon",
-                style = MaterialTheme.typography.labelLarge,
+                style = if (isTablet) MaterialTheme.typography.titleMedium else MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.SemiBold,
                 color = Color(0xFF64B5F6),
             )
             Text(
                 "Blocks damage",
-                style = MaterialTheme.typography.bodySmall,
+                style = if (isTablet) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             CardView(card = Card(Suit.HEARTS, Rank.FIVE), cardWidth = cardWidth, cardHeight = cardHeight)
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(if (isTablet) 8.dp else 4.dp))
             Text(
                 "Potion",
-                style = MaterialTheme.typography.labelLarge,
+                style = if (isTablet) MaterialTheme.typography.titleMedium else MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.SemiBold,
                 color = Color(0xFF81C784),
             )
             Text(
                 "Heals you",
-                style = MaterialTheme.typography.bodySmall,
+                style = if (isTablet) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
@@ -410,8 +462,16 @@ private fun CardTypesRow(
  * Slide 3: Rooms - Draw 4, choose 3
  */
 @Composable
-private fun RoomsSlide(isLandscape: Boolean) {
-    val cardSize = if (isLandscape) 45.dp to 63.dp else 60.dp to 84.dp
+private fun RoomsSlide(
+    isLandscape: Boolean,
+    isTablet: Boolean,
+) {
+    val cardSize =
+        when {
+            isLandscape -> 45.dp to 63.dp
+            isTablet -> 90.dp to 126.dp
+            else -> 60.dp to 84.dp
+        }
 
     if (isLandscape) {
         Row(
@@ -472,12 +532,17 @@ private fun RoomsSlide(isLandscape: Boolean) {
         ) {
             Text(
                 text = "Rooms",
-                style = MaterialTheme.typography.headlineMedium,
+                style =
+                    if (isTablet) {
+                        MaterialTheme.typography.displaySmall
+                    } else {
+                        MaterialTheme.typography.headlineMedium
+                    },
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
             )
-            Spacer(modifier = Modifier.height(24.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Spacer(modifier = Modifier.height(if (isTablet) 32.dp else 24.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(if (isTablet) 12.dp else 8.dp)) {
                 CardView(
                     card = Card(Suit.CLUBS, Rank.EIGHT),
                     cardWidth = cardSize.first,
@@ -501,17 +566,36 @@ private fun RoomsSlide(isLandscape: Boolean) {
                 )
                 CardView(card = Card(Suit.SPADES, Rank.JACK), cardWidth = cardSize.first, cardHeight = cardSize.second)
             }
-            Spacer(modifier = Modifier.height(24.dp))
-            Text("Draw 4 cards", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+            Spacer(modifier = Modifier.height(if (isTablet) 32.dp else 24.dp))
+            Text(
+                "Draw 4 cards",
+                style =
+                    if (isTablet) {
+                        MaterialTheme.typography.headlineSmall
+                    } else {
+                        MaterialTheme.typography.titleLarge
+                    },
+                fontWeight = FontWeight.SemiBold,
+            )
             Text(
                 "Choose 3 to process",
-                style = MaterialTheme.typography.titleMedium,
+                style =
+                    if (isTablet) {
+                        MaterialTheme.typography.titleLarge
+                    } else {
+                        MaterialTheme.typography.titleMedium
+                    },
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 "The 4th stays for next room",
-                style = MaterialTheme.typography.bodyMedium,
+                style =
+                    if (isTablet) {
+                        MaterialTheme.typography.bodyLarge
+                    } else {
+                        MaterialTheme.typography.bodyMedium
+                    },
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
@@ -522,8 +606,16 @@ private fun RoomsSlide(isLandscape: Boolean) {
  * Slide 4: Avoid Room - Skip a room, but not twice in a row
  */
 @Composable
-private fun AvoidRoomSlide(isLandscape: Boolean) {
-    val cardSize = if (isLandscape) 40.dp to 56.dp else 50.dp to 70.dp
+private fun AvoidRoomSlide(
+    isLandscape: Boolean,
+    isTablet: Boolean,
+) {
+    val cardSize =
+        when {
+            isLandscape -> 40.dp to 56.dp
+            isTablet -> 75.dp to 105.dp
+            else -> 50.dp to 70.dp
+        }
 
     if (isLandscape) {
         Row(
@@ -602,52 +694,82 @@ private fun AvoidRoomSlide(isLandscape: Boolean) {
         ) {
             Text(
                 "Avoid Room",
-                style = MaterialTheme.typography.headlineMedium,
+                style =
+                    if (isTablet) {
+                        MaterialTheme.typography.displaySmall
+                    } else {
+                        MaterialTheme.typography.headlineMedium
+                    },
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
             )
-            Spacer(modifier = Modifier.height(24.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            Spacer(modifier = Modifier.height(if (isTablet) 32.dp else 24.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(if (isTablet) 8.dp else 4.dp)) {
                 CardView(card = Card(Suit.CLUBS, Rank.ACE), cardWidth = cardSize.first, cardHeight = cardSize.second)
                 CardView(card = Card(Suit.SPADES, Rank.KING), cardWidth = cardSize.first, cardHeight = cardSize.second)
                 CardView(card = Card(Suit.CLUBS, Rank.QUEEN), cardWidth = cardSize.first, cardHeight = cardSize.second)
                 CardView(card = Card(Suit.SPADES, Rank.JACK), cardWidth = cardSize.first, cardHeight = cardSize.second)
             }
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(if (isTablet) 12.dp else 8.dp))
             Text(
                 "\u2193",
-                style = MaterialTheme.typography.headlineLarge,
+                style =
+                    if (isTablet) {
+                        MaterialTheme.typography.displaySmall
+                    } else {
+                        MaterialTheme.typography.headlineLarge
+                    },
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
             )
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy((-30).dp)) {
+            Spacer(modifier = Modifier.height(if (isTablet) 12.dp else 8.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(if (isTablet) (-45).dp else (-30).dp)) {
                 repeat(3) { PlaceholderCardView(cardWidth = cardSize.first, cardHeight = cardSize.second) }
             }
             Text(
                 "Bottom of deck",
-                style = MaterialTheme.typography.labelMedium,
+                style =
+                    if (isTablet) {
+                        MaterialTheme.typography.titleMedium
+                    } else {
+                        MaterialTheme.typography.labelMedium
+                    },
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 4.dp),
+                modifier = Modifier.padding(top = if (isTablet) 8.dp else 4.dp),
             )
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(if (isTablet) 32.dp else 24.dp))
             Text(
                 "Skip a bad room",
-                style = MaterialTheme.typography.titleMedium,
+                style =
+                    if (isTablet) {
+                        MaterialTheme.typography.titleLarge
+                    } else {
+                        MaterialTheme.typography.titleMedium
+                    },
                 fontWeight = FontWeight.SemiBold,
                 textAlign = TextAlign.Center,
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 "All 4 cards go to bottom of deck",
-                style = MaterialTheme.typography.bodyMedium,
+                style =
+                    if (isTablet) {
+                        MaterialTheme.typography.bodyLarge
+                    } else {
+                        MaterialTheme.typography.bodyMedium
+                    },
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
             )
             Spacer(modifier = Modifier.height(12.dp))
             Text(
                 "Cannot skip twice in a row!",
-                style = MaterialTheme.typography.titleSmall,
+                style =
+                    if (isTablet) {
+                        MaterialTheme.typography.titleMedium
+                    } else {
+                        MaterialTheme.typography.titleSmall
+                    },
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.error,
                 textAlign = TextAlign.Center,
@@ -660,8 +782,16 @@ private fun AvoidRoomSlide(isLandscape: Boolean) {
  * Slide 5: Potions - Only 1 per room, max health 20
  */
 @Composable
-private fun PotionsSlide(isLandscape: Boolean) {
-    val cardSize = if (isLandscape) 50.dp to 70.dp else 70.dp to 98.dp
+private fun PotionsSlide(
+    isLandscape: Boolean,
+    isTablet: Boolean,
+) {
+    val cardSize =
+        when {
+            isLandscape -> 50.dp to 70.dp
+            isTablet -> 100.dp to 140.dp
+            else -> 70.dp to 98.dp
+        }
 
     if (isLandscape) {
         Row(
@@ -726,22 +856,35 @@ private fun PotionsSlide(isLandscape: Boolean) {
         ) {
             Text(
                 "Potions",
-                style = MaterialTheme.typography.headlineMedium,
+                style =
+                    if (isTablet) {
+                        MaterialTheme.typography.displaySmall
+                    } else {
+                        MaterialTheme.typography.headlineMedium
+                    },
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
             )
-            Spacer(modifier = Modifier.height(24.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(24.dp), verticalAlignment = Alignment.CenterVertically) {
+            Spacer(modifier = Modifier.height(if (isTablet) 32.dp else 24.dp))
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(if (isTablet) 40.dp else 24.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     CardView(
                         card = Card(Suit.HEARTS, Rank.SEVEN),
                         cardWidth = cardSize.first,
                         cardHeight = cardSize.second,
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(if (isTablet) 8.dp else 4.dp))
                     Text(
                         "+7 health",
-                        style = MaterialTheme.typography.labelLarge,
+                        style =
+                            if (isTablet) {
+                                MaterialTheme.typography.titleMedium
+                            } else {
+                                MaterialTheme.typography.labelLarge
+                            },
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF81C784),
                     )
@@ -752,27 +895,42 @@ private fun PotionsSlide(isLandscape: Boolean) {
                         cardWidth = cardSize.first,
                         cardHeight = cardSize.second,
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(if (isTablet) 8.dp else 4.dp))
                     Text(
                         "No effect",
-                        style = MaterialTheme.typography.labelLarge,
+                        style =
+                            if (isTablet) {
+                                MaterialTheme.typography.titleMedium
+                            } else {
+                                MaterialTheme.typography.labelLarge
+                            },
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textDecoration = TextDecoration.LineThrough,
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(if (isTablet) 32.dp else 24.dp))
             Text(
                 "Only 1 potion works per room",
-                style = MaterialTheme.typography.titleMedium,
+                style =
+                    if (isTablet) {
+                        MaterialTheme.typography.titleLarge
+                    } else {
+                        MaterialTheme.typography.titleMedium
+                    },
                 fontWeight = FontWeight.SemiBold,
                 textAlign = TextAlign.Center,
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 "Max health is 20",
-                style = MaterialTheme.typography.bodyMedium,
+                style =
+                    if (isTablet) {
+                        MaterialTheme.typography.bodyLarge
+                    } else {
+                        MaterialTheme.typography.bodyMedium
+                    },
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
             )
@@ -784,9 +942,22 @@ private fun PotionsSlide(isLandscape: Boolean) {
  * Slide 6: Weapons - Must equip, replaces old weapon
  */
 @Composable
-private fun WeaponsSlide(isLandscape: Boolean) {
-    val cardSize = if (isLandscape) 45.dp to 63.dp else 60.dp to 84.dp
-    val newCardSize = if (isLandscape) 50.dp to 70.dp else 70.dp to 98.dp
+private fun WeaponsSlide(
+    isLandscape: Boolean,
+    isTablet: Boolean,
+) {
+    val cardSize =
+        when {
+            isLandscape -> 45.dp to 63.dp
+            isTablet -> 90.dp to 126.dp
+            else -> 60.dp to 84.dp
+        }
+    val newCardSize =
+        when {
+            isLandscape -> 50.dp to 70.dp
+            isTablet -> 100.dp to 140.dp
+            else -> 70.dp to 98.dp
+        }
 
     if (isLandscape) {
         Row(
@@ -856,29 +1027,47 @@ private fun WeaponsSlide(isLandscape: Boolean) {
         ) {
             Text(
                 "Weapons",
-                style = MaterialTheme.typography.headlineMedium,
+                style =
+                    if (isTablet) {
+                        MaterialTheme.typography.displaySmall
+                    } else {
+                        MaterialTheme.typography.headlineMedium
+                    },
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
             )
-            Spacer(modifier = Modifier.height(24.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Spacer(modifier = Modifier.height(if (isTablet) 32.dp else 24.dp))
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(if (isTablet) 24.dp else 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     CardView(
                         card = Card(Suit.DIAMONDS, Rank.THREE),
                         cardWidth = cardSize.first,
                         cardHeight = cardSize.second,
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(if (isTablet) 8.dp else 4.dp))
                     Text(
                         "Old",
-                        style = MaterialTheme.typography.labelMedium,
+                        style =
+                            if (isTablet) {
+                                MaterialTheme.typography.titleSmall
+                            } else {
+                                MaterialTheme.typography.labelMedium
+                            },
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textDecoration = TextDecoration.LineThrough,
                     )
                 }
                 Text(
                     "\u2192",
-                    style = MaterialTheme.typography.headlineMedium,
+                    style =
+                        if (isTablet) {
+                            MaterialTheme.typography.displaySmall
+                        } else {
+                            MaterialTheme.typography.headlineMedium
+                        },
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,
                 )
@@ -888,26 +1077,41 @@ private fun WeaponsSlide(isLandscape: Boolean) {
                         cardWidth = newCardSize.first,
                         cardHeight = newCardSize.second,
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(if (isTablet) 8.dp else 4.dp))
                     Text(
                         "Equipped!",
-                        style = MaterialTheme.typography.labelLarge,
+                        style =
+                            if (isTablet) {
+                                MaterialTheme.typography.titleMedium
+                            } else {
+                                MaterialTheme.typography.labelLarge
+                            },
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF64B5F6),
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(if (isTablet) 32.dp else 24.dp))
             Text(
                 "Must equip new weapons",
-                style = MaterialTheme.typography.titleMedium,
+                style =
+                    if (isTablet) {
+                        MaterialTheme.typography.titleLarge
+                    } else {
+                        MaterialTheme.typography.titleMedium
+                    },
                 fontWeight = FontWeight.SemiBold,
                 textAlign = TextAlign.Center,
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 "Replaces your current weapon",
-                style = MaterialTheme.typography.bodyMedium,
+                style =
+                    if (isTablet) {
+                        MaterialTheme.typography.bodyLarge
+                    } else {
+                        MaterialTheme.typography.bodyMedium
+                    },
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
             )
@@ -919,8 +1123,16 @@ private fun WeaponsSlide(isLandscape: Boolean) {
  * Slide 7: Combat - Weapon reduces damage
  */
 @Composable
-private fun CombatSlide(isLandscape: Boolean) {
-    val cardSize = if (isLandscape) 45.dp to 63.dp else 70.dp to 98.dp
+private fun CombatSlide(
+    isLandscape: Boolean,
+    isTablet: Boolean,
+) {
+    val cardSize =
+        when {
+            isLandscape -> 45.dp to 63.dp
+            isTablet -> 100.dp to 140.dp
+            else -> 70.dp to 98.dp
+        }
 
     if (isLandscape) {
         Row(
@@ -989,12 +1201,20 @@ private fun CombatSlide(isLandscape: Boolean) {
         ) {
             Text(
                 "Combat",
-                style = MaterialTheme.typography.headlineMedium,
+                style =
+                    if (isTablet) {
+                        MaterialTheme.typography.displaySmall
+                    } else {
+                        MaterialTheme.typography.headlineMedium
+                    },
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
             )
-            Spacer(modifier = Modifier.height(24.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Spacer(modifier = Modifier.height(if (isTablet) 32.dp else 24.dp))
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(if (isTablet) 24.dp else 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     CardView(
                         card = Card(Suit.CLUBS, Rank.QUEEN),
@@ -1003,12 +1223,26 @@ private fun CombatSlide(isLandscape: Boolean) {
                     )
                     Text(
                         "12 damage",
-                        style = MaterialTheme.typography.labelLarge,
+                        style =
+                            if (isTablet) {
+                                MaterialTheme.typography.titleMedium
+                            } else {
+                                MaterialTheme.typography.labelLarge
+                            },
                         color = Color(0xFFE57373),
-                        modifier = Modifier.padding(top = 4.dp),
+                        modifier = Modifier.padding(top = if (isTablet) 8.dp else 4.dp),
                     )
                 }
-                Text("-", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                Text(
+                    "-",
+                    style =
+                        if (isTablet) {
+                            MaterialTheme.typography.displaySmall
+                        } else {
+                            MaterialTheme.typography.headlineMedium
+                        },
+                    fontWeight = FontWeight.Bold,
+                )
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     CardView(
                         card = Card(Suit.DIAMONDS, Rank.SEVEN),
@@ -1017,36 +1251,70 @@ private fun CombatSlide(isLandscape: Boolean) {
                     )
                     Text(
                         "7 blocked",
-                        style = MaterialTheme.typography.labelLarge,
+                        style =
+                            if (isTablet) {
+                                MaterialTheme.typography.titleMedium
+                            } else {
+                                MaterialTheme.typography.labelLarge
+                            },
                         color = Color(0xFF64B5F6),
-                        modifier = Modifier.padding(top = 4.dp),
+                        modifier = Modifier.padding(top = if (isTablet) 8.dp else 4.dp),
                     )
                 }
-                Text("=", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                Text(
+                    "=",
+                    style =
+                        if (isTablet) {
+                            MaterialTheme.typography.displaySmall
+                        } else {
+                            MaterialTheme.typography.headlineMedium
+                        },
+                    fontWeight = FontWeight.Bold,
+                )
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         "5",
-                        style = MaterialTheme.typography.displayMedium,
+                        style =
+                            if (isTablet) {
+                                MaterialTheme.typography.displayLarge
+                            } else {
+                                MaterialTheme.typography.displayMedium
+                            },
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFFE57373),
                     )
                     Text(
                         "damage",
-                        style = MaterialTheme.typography.labelLarge,
+                        style =
+                            if (isTablet) {
+                                MaterialTheme.typography.titleMedium
+                            } else {
+                                MaterialTheme.typography.labelLarge
+                            },
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(if (isTablet) 32.dp else 24.dp))
             Text(
                 "Weapon blocks monster damage",
-                style = MaterialTheme.typography.titleMedium,
+                style =
+                    if (isTablet) {
+                        MaterialTheme.typography.titleLarge
+                    } else {
+                        MaterialTheme.typography.titleMedium
+                    },
                 textAlign = TextAlign.Center,
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 "Or fight barehanded (full damage)",
-                style = MaterialTheme.typography.bodyMedium,
+                style =
+                    if (isTablet) {
+                        MaterialTheme.typography.bodyLarge
+                    } else {
+                        MaterialTheme.typography.bodyMedium
+                    },
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
             )
@@ -1058,9 +1326,22 @@ private fun CombatSlide(isLandscape: Boolean) {
  * Slide 8: Weapon Degradation - Can only fight weaker monsters
  */
 @Composable
-private fun WeaponDegradationSlide(isLandscape: Boolean) {
-    val cardSize = if (isLandscape) 40.dp to 56.dp else 55.dp to 77.dp
-    val smallCardSize = if (isLandscape) 35.dp to 49.dp else 50.dp to 70.dp
+private fun WeaponDegradationSlide(
+    isLandscape: Boolean,
+    isTablet: Boolean,
+) {
+    val cardSize =
+        when {
+            isLandscape -> 40.dp to 56.dp
+            isTablet -> 80.dp to 112.dp
+            else -> 55.dp to 77.dp
+        }
+    val smallCardSize =
+        when {
+            isLandscape -> 35.dp to 49.dp
+            isTablet -> 75.dp to 105.dp
+            else -> 50.dp to 70.dp
+        }
 
     if (isLandscape) {
         Row(
@@ -1157,23 +1438,45 @@ private fun WeaponDegradationSlide(isLandscape: Boolean) {
         ) {
             Text(
                 "Weapon Wear",
-                style = MaterialTheme.typography.headlineMedium,
+                style =
+                    if (isTablet) {
+                        MaterialTheme.typography.displaySmall
+                    } else {
+                        MaterialTheme.typography.headlineMedium
+                    },
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
             )
-            Spacer(modifier = Modifier.height(16.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Spacer(modifier = Modifier.height(if (isTablet) 24.dp else 16.dp))
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(if (isTablet) 16.dp else 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     CardView(
                         card = Card(Suit.DIAMONDS, Rank.SEVEN),
                         cardWidth = cardSize.first,
                         cardHeight = cardSize.second,
                     )
-                    Text("7", style = MaterialTheme.typography.labelMedium, color = Color(0xFF64B5F6))
+                    Text(
+                        "7",
+                        style =
+                            if (isTablet) {
+                                MaterialTheme.typography.titleMedium
+                            } else {
+                                MaterialTheme.typography.labelMedium
+                            },
+                        color = Color(0xFF64B5F6),
+                    )
                 }
                 Text(
                     "vs",
-                    style = MaterialTheme.typography.titleMedium,
+                    style =
+                        if (isTablet) {
+                            MaterialTheme.typography.titleLarge
+                        } else {
+                            MaterialTheme.typography.titleMedium
+                        },
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -1182,28 +1485,50 @@ private fun WeaponDegradationSlide(isLandscape: Boolean) {
                         cardWidth = cardSize.first,
                         cardHeight = cardSize.second,
                     )
-                    Text("12", style = MaterialTheme.typography.labelMedium, color = Color(0xFFE57373))
+                    Text(
+                        "12",
+                        style =
+                            if (isTablet) {
+                                MaterialTheme.typography.titleMedium
+                            } else {
+                                MaterialTheme.typography.labelMedium
+                            },
+                        color = Color(0xFFE57373),
+                    )
                 }
             }
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(if (isTablet) 16.dp else 12.dp))
             Text(
                 "After defeating Q, weapon limit = 12",
-                style = MaterialTheme.typography.bodyMedium,
+                style =
+                    if (isTablet) {
+                        MaterialTheme.typography.bodyLarge
+                    } else {
+                        MaterialTheme.typography.bodyMedium
+                    },
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface,
             )
-            Spacer(modifier = Modifier.height(16.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(24.dp), verticalAlignment = Alignment.Top) {
+            Spacer(modifier = Modifier.height(if (isTablet) 24.dp else 16.dp))
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(if (isTablet) 40.dp else 24.dp),
+                verticalAlignment = Alignment.Top,
+            ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     CardView(
                         card = Card(Suit.SPADES, Rank.SIX),
                         cardWidth = smallCardSize.first,
                         cardHeight = smallCardSize.second,
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(if (isTablet) 8.dp else 4.dp))
                     Text(
                         "Can use",
-                        style = MaterialTheme.typography.labelSmall,
+                        style =
+                            if (isTablet) {
+                                MaterialTheme.typography.labelLarge
+                            } else {
+                                MaterialTheme.typography.labelSmall
+                            },
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF81C784),
                     )
@@ -1214,25 +1539,40 @@ private fun WeaponDegradationSlide(isLandscape: Boolean) {
                         cardWidth = smallCardSize.first,
                         cardHeight = smallCardSize.second,
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(if (isTablet) 8.dp else 4.dp))
                     Text(
                         "Barehanded",
-                        style = MaterialTheme.typography.labelSmall,
+                        style =
+                            if (isTablet) {
+                                MaterialTheme.typography.labelLarge
+                            } else {
+                                MaterialTheme.typography.labelSmall
+                            },
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFFE57373),
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(if (isTablet) 24.dp else 16.dp))
             Text(
                 "Weapons can only fight monsters",
-                style = MaterialTheme.typography.titleSmall,
+                style =
+                    if (isTablet) {
+                        MaterialTheme.typography.titleMedium
+                    } else {
+                        MaterialTheme.typography.titleSmall
+                    },
                 fontWeight = FontWeight.SemiBold,
                 textAlign = TextAlign.Center,
             )
             Text(
                 "equal or weaker than the last defeated",
-                style = MaterialTheme.typography.titleSmall,
+                style =
+                    if (isTablet) {
+                        MaterialTheme.typography.titleMedium
+                    } else {
+                        MaterialTheme.typography.titleSmall
+                    },
                 fontWeight = FontWeight.SemiBold,
                 textAlign = TextAlign.Center,
             )
@@ -1244,7 +1584,10 @@ private fun WeaponDegradationSlide(isLandscape: Boolean) {
  * Slide 9: Scoring - Win/Lose conditions
  */
 @Composable
-private fun ScoringSlide(isLandscape: Boolean) {
+private fun ScoringSlide(
+    isLandscape: Boolean,
+    isTablet: Boolean,
+) {
     if (isLandscape) {
         Row(
             modifier = Modifier.fillMaxSize(),
@@ -1328,11 +1671,16 @@ private fun ScoringSlide(isLandscape: Boolean) {
         ) {
             Text(
                 "Scoring",
-                style = MaterialTheme.typography.headlineMedium,
+                style =
+                    if (isTablet) {
+                        MaterialTheme.typography.displaySmall
+                    } else {
+                        MaterialTheme.typography.headlineMedium
+                    },
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
             )
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(if (isTablet) 24.dp else 16.dp))
 
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -1341,24 +1689,42 @@ private fun ScoringSlide(isLandscape: Boolean) {
                         .background(
                             color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
                             shape = MaterialTheme.shapes.medium,
-                        ).padding(12.dp),
+                        ).padding(if (isTablet) 16.dp else 12.dp),
             ) {
                 Text(
                     "Victory",
-                    style = MaterialTheme.typography.titleMedium,
+                    style =
+                        if (isTablet) {
+                            MaterialTheme.typography.titleLarge
+                        } else {
+                            MaterialTheme.typography.titleMedium
+                        },
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,
                 )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text("Score = Health remaining", style = MaterialTheme.typography.bodyMedium)
+                Spacer(modifier = Modifier.height(if (isTablet) 8.dp else 4.dp))
+                Text(
+                    "Score = Health remaining",
+                    style =
+                        if (isTablet) {
+                            MaterialTheme.typography.bodyLarge
+                        } else {
+                            MaterialTheme.typography.bodyMedium
+                        },
+                )
                 Text(
                     "Example: 15 health = 15 points",
-                    style = MaterialTheme.typography.bodySmall,
+                    style =
+                        if (isTablet) {
+                            MaterialTheme.typography.bodyMedium
+                        } else {
+                            MaterialTheme.typography.bodySmall
+                        },
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(if (isTablet) 16.dp else 12.dp))
 
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -1367,24 +1733,42 @@ private fun ScoringSlide(isLandscape: Boolean) {
                         .background(
                             color = Color(0xFF81C784).copy(alpha = 0.2f),
                             shape = MaterialTheme.shapes.medium,
-                        ).padding(12.dp),
+                        ).padding(if (isTablet) 16.dp else 12.dp),
             ) {
                 Text(
                     "Bonus",
-                    style = MaterialTheme.typography.titleMedium,
+                    style =
+                        if (isTablet) {
+                            MaterialTheme.typography.titleLarge
+                        } else {
+                            MaterialTheme.typography.titleMedium
+                        },
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF388E3C),
                 )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text("20 health + last card potion?", style = MaterialTheme.typography.bodyMedium)
+                Spacer(modifier = Modifier.height(if (isTablet) 8.dp else 4.dp))
+                Text(
+                    "20 health + last card potion?",
+                    style =
+                        if (isTablet) {
+                            MaterialTheme.typography.bodyLarge
+                        } else {
+                            MaterialTheme.typography.bodyMedium
+                        },
+                )
                 Text(
                     "Score = 20 + potion value",
-                    style = MaterialTheme.typography.bodySmall,
+                    style =
+                        if (isTablet) {
+                            MaterialTheme.typography.bodyMedium
+                        } else {
+                            MaterialTheme.typography.bodySmall
+                        },
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(if (isTablet) 16.dp else 12.dp))
 
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -1393,19 +1777,37 @@ private fun ScoringSlide(isLandscape: Boolean) {
                         .background(
                             color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f),
                             shape = MaterialTheme.shapes.medium,
-                        ).padding(12.dp),
+                        ).padding(if (isTablet) 16.dp else 12.dp),
             ) {
                 Text(
                     "Defeat",
-                    style = MaterialTheme.typography.titleMedium,
+                    style =
+                        if (isTablet) {
+                            MaterialTheme.typography.titleLarge
+                        } else {
+                            MaterialTheme.typography.titleMedium
+                        },
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.error,
                 )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text("Score = Negative", style = MaterialTheme.typography.bodyMedium)
+                Spacer(modifier = Modifier.height(if (isTablet) 8.dp else 4.dp))
+                Text(
+                    "Score = Negative",
+                    style =
+                        if (isTablet) {
+                            MaterialTheme.typography.bodyLarge
+                        } else {
+                            MaterialTheme.typography.bodyMedium
+                        },
+                )
                 Text(
                     "(Sum of remaining monsters)",
-                    style = MaterialTheme.typography.bodySmall,
+                    style =
+                        if (isTablet) {
+                            MaterialTheme.typography.bodyMedium
+                        } else {
+                            MaterialTheme.typography.bodySmall
+                        },
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
