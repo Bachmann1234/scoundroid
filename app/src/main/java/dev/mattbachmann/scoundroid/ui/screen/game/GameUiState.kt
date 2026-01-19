@@ -33,7 +33,7 @@ data class GameUiState(
     val highestScore: Int? = null,
     /** Whether the current score is a new high score */
     val isNewHighScore: Boolean = false,
-    /** Whether to show the help/rules screen */
+    /** Whether to show the help/tutorial screen */
     val showHelp: Boolean = false,
     /** The action log entries */
     val actionLog: List<LogEntry> = emptyList(),
@@ -44,6 +44,75 @@ data class GameUiState(
     /** The seed used for this game's deck shuffle */
     val gameSeed: Long = 0L,
 )
+
+/**
+ * Represents what the game screen should display.
+ * This is the single source of truth for display logic, ensuring
+ * both compact and expanded layouts show consistent content.
+ *
+ * Priority order (highest to lowest):
+ * 1. GameOver - player died
+ * 2. GameWon - player survived the dungeon
+ * 3. CombatChoice - player must choose weapon vs barehanded
+ * 4. ActiveGame - normal gameplay (room selection)
+ */
+sealed class GameDisplayMode {
+    data class GameOver(
+        val score: Int,
+        val highestScore: Int?,
+        val isNewHighScore: Boolean,
+        val gameSeed: Long,
+    ) : GameDisplayMode()
+
+    data class GameWon(
+        val score: Int,
+        val highestScore: Int?,
+        val isNewHighScore: Boolean,
+        val gameSeed: Long,
+    ) : GameDisplayMode()
+
+    data class CombatChoice(
+        val choice: PendingCombatChoice,
+    ) : GameDisplayMode()
+
+    data class ActiveGame(
+        val currentRoom: List<Card>?,
+        val canAvoidRoom: Boolean,
+    ) : GameDisplayMode()
+}
+
+/**
+ * Computes the display mode based on game state.
+ * This centralizes the priority logic so all UI components
+ * render consistently.
+ */
+val GameUiState.displayMode: GameDisplayMode
+    get() =
+        when {
+            isGameOver ->
+                GameDisplayMode.GameOver(
+                    score = score,
+                    highestScore = highestScore,
+                    isNewHighScore = isNewHighScore,
+                    gameSeed = gameSeed,
+                )
+            isGameWon ->
+                GameDisplayMode.GameWon(
+                    score = score,
+                    highestScore = highestScore,
+                    isNewHighScore = isNewHighScore,
+                    gameSeed = gameSeed,
+                )
+            pendingCombatChoice != null ->
+                GameDisplayMode.CombatChoice(
+                    choice = pendingCombatChoice,
+                )
+            else ->
+                GameDisplayMode.ActiveGame(
+                    currentRoom = currentRoom,
+                    canAvoidRoom = canAvoidRoom,
+                )
+        }
 
 /**
  * Represents a pending combat choice when the player has a weapon

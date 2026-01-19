@@ -31,8 +31,10 @@ import dev.mattbachmann.scoundroid.data.model.LogEntry
 // Fixed heights for preview panel to prevent layout jumping during gameplay.
 // Compact: fits title + 3 preview entries with small text (small phones/cover screen)
 // Expanded: fits title + 3 preview entries with medium text (inner screen)
+// Tablet: fits title + 3 preview entries with larger text (tablets, two-column layout)
 private val PREVIEW_PANEL_HEIGHT_COMPACT = 100.dp
 private val PREVIEW_PANEL_HEIGHT_EXPANDED = 140.dp
+private val PREVIEW_PANEL_HEIGHT_TABLET = 200.dp
 
 /**
  * Displays a preview of what will happen when processing the selected cards.
@@ -44,9 +46,15 @@ fun PreviewPanel(
     modifier: Modifier = Modifier,
     placeholderText: String = "Select cards to see preview",
     isCompact: Boolean = false,
+    isTablet: Boolean = false,
 ) {
-    // Use fixed height in both modes to prevent layout jumping
-    val panelHeight = if (isCompact) PREVIEW_PANEL_HEIGHT_COMPACT else PREVIEW_PANEL_HEIGHT_EXPANDED
+    // Use fixed height based on screen size to prevent layout jumping
+    val panelHeight =
+        when {
+            isTablet -> PREVIEW_PANEL_HEIGHT_TABLET
+            isCompact -> PREVIEW_PANEL_HEIGHT_COMPACT
+            else -> PREVIEW_PANEL_HEIGHT_EXPANDED
+        }
     Card(
         modifier =
             modifier

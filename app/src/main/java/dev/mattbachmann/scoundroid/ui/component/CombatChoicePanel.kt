@@ -41,44 +41,77 @@ fun CombatChoicePanel(
     screenSizeClass: ScreenSizeClass = ScreenSizeClass.MEDIUM,
     showButtons: Boolean = true,
 ) {
-    val isExpanded = screenSizeClass == ScreenSizeClass.EXPANDED
-    val cardWidth = if (isExpanded) 140.dp else 90.dp
-    val cardHeight = if (isExpanded) 196.dp else 126.dp
-    val padding = if (isExpanded) 24.dp else 16.dp
-    val cardSpacing = if (isExpanded) 24.dp else 12.dp
-    val labelSpacing = if (isExpanded) 8.dp else 4.dp
-    val buttonSpacing = if (isExpanded) 24.dp else 16.dp
+    val isTablet = screenSizeClass == ScreenSizeClass.TABLET || screenSizeClass == ScreenSizeClass.TABLET_PORTRAIT
+    val isLandscape = screenSizeClass == ScreenSizeClass.LANDSCAPE
+
+    // Card sizing based on screen class
+    val cardWidth =
+        when {
+            isTablet -> 120.dp
+            isLandscape -> 100.dp
+            else -> 90.dp
+        }
+    val cardHeight =
+        when {
+            isTablet -> 168.dp
+            isLandscape -> 140.dp
+            else -> 126.dp
+        }
+    val padding =
+        when {
+            isTablet -> 24.dp
+            isLandscape -> 20.dp
+            else -> 16.dp
+        }
+    val cardSpacing =
+        when {
+            isTablet -> 20.dp
+            isLandscape -> 16.dp
+            else -> 12.dp
+        }
+    val labelSpacing =
+        when {
+            isTablet -> 8.dp
+            isLandscape -> 6.dp
+            else -> 4.dp
+        }
+    val buttonSpacing =
+        when {
+            isTablet -> 24.dp
+            isLandscape -> 20.dp
+            else -> 16.dp
+        }
 
     // Typography styles
     val titleStyle =
-        if (isExpanded) {
-            MaterialTheme.typography.headlineMedium
-        } else {
-            MaterialTheme.typography.titleLarge
+        when {
+            isTablet -> MaterialTheme.typography.headlineMedium
+            isLandscape -> MaterialTheme.typography.headlineSmall
+            else -> MaterialTheme.typography.titleLarge
         }
     val labelStyle =
-        if (isExpanded) {
-            MaterialTheme.typography.titleMedium
-        } else {
-            MaterialTheme.typography.labelMedium
+        when {
+            isTablet -> MaterialTheme.typography.titleMedium
+            isLandscape -> MaterialTheme.typography.titleSmall
+            else -> MaterialTheme.typography.labelMedium
         }
     val vsStyle =
-        if (isExpanded) {
-            MaterialTheme.typography.headlineSmall
-        } else {
-            MaterialTheme.typography.titleMedium
+        when {
+            isTablet -> MaterialTheme.typography.headlineSmall
+            isLandscape -> MaterialTheme.typography.titleLarge
+            else -> MaterialTheme.typography.titleMedium
         }
     val buttonTitleStyle =
-        if (isExpanded) {
-            MaterialTheme.typography.titleMedium
-        } else {
-            MaterialTheme.typography.bodyMedium
+        when {
+            isTablet -> MaterialTheme.typography.titleMedium
+            isLandscape -> MaterialTheme.typography.titleSmall
+            else -> MaterialTheme.typography.bodyMedium
         }
     val buttonBodyStyle =
-        if (isExpanded) {
-            MaterialTheme.typography.bodyMedium
-        } else {
-            MaterialTheme.typography.bodySmall
+        when {
+            isTablet -> MaterialTheme.typography.bodyMedium
+            isLandscape -> MaterialTheme.typography.bodySmall
+            else -> MaterialTheme.typography.bodySmall
         }
 
     Card(
@@ -262,19 +295,18 @@ fun CombatChoicePanelMediumPreview() {
 
 @Preview(
     showBackground = true,
-    name = "Tablet/Unfolded (EXPANDED) - Cards Only",
+    name = "Tablet/Unfolded (TABLET)",
     device = "spec:width=600dp,height=900dp,dpi=420",
 )
 @Composable
-fun CombatChoicePanelExpandedPreview() {
+fun CombatChoicePanelTabletPreview() {
     ScoundroidTheme {
         CombatChoicePanel(
             choice = previewCombatChoice,
             onUseWeapon = {},
             onFightBarehanded = {},
             modifier = Modifier.padding(16.dp),
-            screenSizeClass = ScreenSizeClass.EXPANDED,
-            showButtons = false,
+            screenSizeClass = ScreenSizeClass.TABLET,
         )
     }
 }

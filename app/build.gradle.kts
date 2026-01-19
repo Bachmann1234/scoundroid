@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.ksp)
     alias(libs.plugins.ktlint)
+    alias(libs.plugins.paparazzi)
     jacoco
 }
 
@@ -15,8 +16,8 @@ android {
         applicationId = "dev.mattbachmann.scoundroid"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 10
+        versionName = "1.0.9"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

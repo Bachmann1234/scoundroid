@@ -40,10 +40,12 @@ class MainActivity : ComponentActivity() {
 }
 
 /**
- * Determines the screen size class based on screen dimensions.
- * - COMPACT: Small phones (height < 700dp) - aggressive space saving
- * - MEDIUM: Fold cover screens, regular phones (height >= 700dp, width < 600dp)
- * - EXPANDED: Tablets, unfolded foldables (width >= 600dp)
+ * Determines the screen size class based on screen dimensions and orientation.
+ * - COMPACT: Small phones (height < 780dp) - aggressive space saving
+ * - MEDIUM: Fold cover screens, regular phones (height >= 780dp, width < height)
+ * - LANDSCAPE: Phones in landscape (width > height, height < 500dp) - compact horizontal layout
+ * - TABLET: Unfolded foldables (nearly-square screens), tablets in landscape - spacious two-column layout
+ * - TABLET_PORTRAIT: Tablets in portrait (non-square) - vertical layout with large elements
  */
 @Composable
 private fun getScreenSizeClass(): ScreenSizeClass {
@@ -52,9 +54,34 @@ private fun getScreenSizeClass(): ScreenSizeClass {
     val containerSize = windowInfo.containerSize
     val widthDp = with(density) { containerSize.width.toDp() }
     val heightDp = with(density) { containerSize.height.toDp() }
+
+    val minDimension = minOf(widthDp.value, heightDp.value)
+    val maxDimension = maxOf(widthDp.value, heightDp.value)
+    val isLargeScreen = minDimension >= 550 && maxDimension >= 800
+    val aspectRatio = maxDimension / minDimension
+    val isNearlySquare = aspectRatio < 1.1f // Less than 10% difference between dimensions
+
     return when {
-        widthDp.value >= 600 -> ScreenSizeClass.EXPANDED
-        heightDp.value < 700 -> ScreenSizeClass.COMPACT
+        // Landscape phones (wider than tall with limited height - includes folded phone landscape)
+        // Must check this BEFORE tablet to catch folded landscape correctly
+        widthDp.value > heightDp.value && heightDp.value < 500 -> ScreenSizeClass.LANDSCAPE
+
+        // Nearly-square large screens (like foldable inner displays) - use TABLET layout regardless of orientation
+        isLargeScreen && isNearlySquare -> ScreenSizeClass.TABLET
+
+        // Large screens in landscape (tablets, unfolded foldables)
+        isLargeScreen && widthDp.value > heightDp.value -> ScreenSizeClass.TABLET
+
+        // Large screens in portrait (tablets, unfolded foldables)
+        isLargeScreen && heightDp.value >= widthDp.value -> ScreenSizeClass.TABLET_PORTRAIT
+
+        // Landscape phones (wider than tall, moderate height)
+        widthDp.value > heightDp.value -> ScreenSizeClass.LANDSCAPE
+
+        // Small portrait phones (includes budget phones like Galaxy A01 at ~760dp)
+        heightDp.value < 780 -> ScreenSizeClass.COMPACT
+
+        // Regular portrait phones
         else -> ScreenSizeClass.MEDIUM
     }
 }
