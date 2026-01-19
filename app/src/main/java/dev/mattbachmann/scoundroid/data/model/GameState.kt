@@ -226,47 +226,50 @@ data class GameState(
      * Calculates the current score.
      *
      * Scoring rules:
-     * - **During play/Winning** (health > 0): score = health - remaining monster damage
+     * - **During play** (health > 0, deck not empty): score = health - remaining monster damage
      *   - Remaining monsters includes both deck AND current room (unprocessed cards)
      *   - This shows projected loss score during gameplay (can be negative)
-     *   - At game end (empty deck): score = health (since no monsters remain)
-     * - **Special case**: If health = 20, deck empty, AND the leftover card is a potion,
+     * - **Win** (health > 0, deck empty): score = health
+     *   - The leftover card does NOT affect win score
+     * - **Win with potion bonus**: If health = 20, deck empty, AND the leftover card is a potion,
      *   score = 20 + potion value
-     * - **Losing** (health = 0): score = 0 - remaining monster damage
+     * - **Lose** (health = 0): score = 0 - remaining monsters in deck only
      *
      * @return The current score
      */
     fun calculateScore(): Int {
-        // Include monsters in both the deck AND the current room (not yet processed)
         val deckMonsterDamage =
             deck.cards
                 .filter { it.type == CardType.MONSTER }
                 .sumOf { it.value }
-        val roomMonsterDamage =
-            currentRoom
-                ?.filter { it.type == CardType.MONSTER }
-                ?.sumOf { it.value }
-                ?: 0
-        val remainingMonsterDamage = deckMonsterDamage + roomMonsterDamage
 
         // Check if the leftover card (the one not selected from the final room) is a potion
         val leftoverCard = currentRoom?.singleOrNull()
 
         return if (health > 0) {
-            val baseScore = health - remainingMonsterDamage
-            // Potion bonus: at game end (deck empty) with max health and leftover card is a potion
-            if (health == MAX_HEALTH &&
-                deck.isEmpty &&
-                leftoverCard != null &&
-                leftoverCard.type == CardType.POTION
-            ) {
-                baseScore + leftoverCard.value // = 20 + potion value when deck empty
+            if (deck.isEmpty) {
+                // Game won: score = health, plus potion bonus if applicable
+                val baseScore = health
+                if (health == MAX_HEALTH &&
+                    leftoverCard != null &&
+                    leftoverCard.type == CardType.POTION
+                ) {
+                    baseScore + leftoverCard.value
+                } else {
+                    baseScore
+                }
             } else {
-                baseScore
+                // During play: show projected score (health minus all remaining monsters)
+                val roomMonsterDamage =
+                    currentRoom
+                        ?.filter { it.type == CardType.MONSTER }
+                        ?.sumOf { it.value }
+                        ?: 0
+                health - deckMonsterDamage - roomMonsterDamage
             }
         } else {
-            // Losing: score = negative sum of remaining monsters
-            -remainingMonsterDamage
+            // Losing: score = negative sum of remaining monsters in deck only
+            -deckMonsterDamage
         }
     }
 

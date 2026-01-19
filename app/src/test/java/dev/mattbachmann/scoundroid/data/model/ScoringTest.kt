@@ -324,7 +324,10 @@ class ScoringTest {
     }
 
     @Test
-    fun `potion bonus does not apply when leftover card is a monster`() {
+    fun `win score with leftover monster is just remaining health`() {
+        // Per docs/rules.md: "If you win: Score = remaining health"
+        // The leftover card (unselected from final room) does NOT affect win score
+        // unless it's a potion with full health (bonus case)
         val emptyDeck = Deck(emptyList())
         val leftoverMonster = Card(Suit.SPADES, Rank.FIVE) // 5♠ monster left over
         val game =
@@ -335,8 +338,8 @@ class ScoringTest {
             )
 
         val score = game.calculateScore()
-        // Score = 20 - 5 = 15 (health minus remaining monster damage, no potion bonus)
-        assertEquals(15, score, "No potion bonus when leftover card is a monster")
+        // Win score = remaining health = 20 (leftover monster does NOT reduce score)
+        assertEquals(20, score, "Win score should be remaining health, not reduced by leftover monster")
     }
 
     @Test
