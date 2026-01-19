@@ -9,11 +9,13 @@ from typing import List, Optional, Tuple
 from scoundrel_env import ScoundrelEnv, Card, CardType, WeaponState
 
 
-# Evolved constants from genetic algorithm
-WEAPON_PRESERVATION_THRESHOLD = 9
-SKIP_DAMAGE_HEALTH_BUFFER = 5
-SKIP_WITHOUT_WEAPON_FRACTION = 0.444
-EQUIP_FRESH_IF_DEGRADED_BELOW = 10
+# Evolved constants from genetic algorithm (matching Kotlin ParameterizedPlayer defaults)
+WEAPON_PRESERVATION_THRESHOLD = 10  # Only use fresh weapon on monsters >= this
+SKIP_DAMAGE_HEALTH_BUFFER = 5  # Skip if damage >= health - this
+SKIP_WITHOUT_WEAPON_FRACTION = 0.444  # Skip without weapon if damage > this fraction
+SKIP_DAMAGE_HEALTH_FRACTION = 0.4  # Skip if damage > 40% of health (aggressive skip)
+EQUIP_FRESH_IF_DEGRADED_BELOW = 10  # Equip fresh weapon if degraded below this
+ALWAYS_SWAP_TO_FRESH_IF_DEGRADED_BELOW = 8  # Always swap to any fresh if degraded below this
 
 
 class HeuristicPlayer:
@@ -57,8 +59,12 @@ class HeuristicPlayer:
         cards_to_process = [c for i, c in enumerate(room) if i != card_to_leave]
         net_damage = self._simulate_net_damage(env, cards_to_process)
 
-        # Would this kill us?
+        # Would this kill us or leave us near death?
         if net_damage >= env.health - SKIP_DAMAGE_HEALTH_BUFFER:
+            return True
+
+        # Skip if damage exceeds threshold fraction of health (aggressive skip)
+        if net_damage > env.health * SKIP_DAMAGE_HEALTH_FRACTION:
             return True
 
         # Check if we have weapon help
@@ -67,6 +73,7 @@ class HeuristicPlayer:
         if env.weapon:
             current_weapon_useful = any(env.weapon.can_defeat(m.value) for m in monsters)
 
+        # More aggressive skip without weapon
         if not current_weapon_useful and not has_weapon_in_room:
             if net_damage > env.health * SKIP_WITHOUT_WEAPON_FRACTION:
                 return True
@@ -89,7 +96,12 @@ class HeuristicPlayer:
         return best_idx
 
     def _simulate_net_damage(self, env: ScoundrelEnv, cards: List[Card]) -> int:
-        """Simulate processing cards and return net damage."""
+        """Simulate processing cards and return net damage.
+
+        Important: This simulates the actual combat order where death can occur
+        before potions are used. Monsters are fought big-to-small, and if health
+        drops to 0 or below, potions never get applied.
+        """
         monsters = sorted([c for c in cards if c.card_type == CardType.MONSTER],
                          key=lambda c: -c.value)  # Big first
         weapons = [c for c in cards if c.card_type == CardType.WEAPON]
@@ -109,8 +121,8 @@ class HeuristicPlayer:
             effective_weapon_value = 0
             weapon_is_fresh = False
 
-        # Calculate damage
-        total_damage = 0
+        # Simulate combat step by step, tracking health
+        simulated_health = env.health
         weapon_max_monster = None if weapon_is_fresh else (current_weapon.max_monster if current_weapon else None)
 
         for monster in monsters:
@@ -122,20 +134,25 @@ class HeuristicPlayer:
 
                 if should_use:
                     damage = max(0, monster.value - effective_weapon_value)
-                    total_damage += damage
+                    simulated_health -= damage
                     weapon_max_monster = monster.value
                     weapon_is_fresh = False
                 else:
-                    total_damage += monster.value  # Barehanded to preserve
+                    simulated_health -= monster.value  # Barehanded to preserve
             else:
-                total_damage += monster.value  # Barehanded
+                simulated_health -= monster.value  # Barehanded
 
-        # Calculate effective healing
-        health_deficit = 20 - env.health + total_damage
-        total_potion = sum(p.value for p in potions)
-        effective_healing = min(total_potion, max(0, health_deficit))
+            # Check for death - if we die here, potions never get used
+            if simulated_health <= 0:
+                return env.health - simulated_health  # Return total damage taken
 
-        return total_damage - effective_healing
+        # Survived all monsters - now apply potions (only one per room)
+        if potions:
+            best_potion = max(potions, key=lambda c: c.value)
+            heal_amount = min(best_potion.value, 20 - simulated_health)  # Cap at max health
+            simulated_health += heal_amount
+
+        return env.health - simulated_health
 
     def _evaluate_leave_choice(self, env: ScoundrelEnv, card_to_leave: Card,
                                cards_to_process: List[Card]) -> int:

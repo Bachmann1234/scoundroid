@@ -208,8 +208,14 @@ class ScoundrelEnv:
         return self._get_observation(), 0.0, False, {}
 
     def _process_cards(self, cards: List[Card]):
-        """Process a list of cards (monsters, weapons, potions)."""
-        # Sort: weapons first, then monsters (big first), then potions
+        """Process a list of cards (monsters, weapons, potions).
+
+        Processing order matches the Kotlin HeuristicPlayer for optimal play:
+        1. Equip best weapon first
+        2. If health is critical, use a potion before combat
+        3. Fight monsters (big first - preserves weapon utility)
+        4. Use remaining potions after combat
+        """
         weapons = sorted([c for c in cards if c.card_type == CardType.WEAPON],
                         key=lambda c: -c.value)
         monsters = sorted([c for c in cards if c.card_type == CardType.MONSTER],
@@ -217,32 +223,89 @@ class ScoundrelEnv:
         potions = sorted([c for c in cards if c.card_type == CardType.POTION],
                         key=lambda c: -c.value)
 
-        # Equip best weapon if better than current
+        # 1. Equip best weapon using smart logic (considering degradation)
+        # Thresholds from evolved genome
+        EQUIP_FRESH_IF_DEGRADED_BELOW = 10
+        ALWAYS_SWAP_TO_FRESH_IF_DEGRADED_BELOW = 8
+
         for weapon in weapons:
-            if self.weapon is None or weapon.value > self.weapon.value:
+            should_equip = False
+
+            if self.weapon is None:
+                should_equip = True
+            elif weapon.value > self.weapon.value:
+                # New weapon has higher value - definitely equip
+                should_equip = True
+            elif self.weapon.max_monster is not None:
+                # Current weapon is degraded - check swap conditions
+                if self.weapon.max_monster < ALWAYS_SWAP_TO_FRESH_IF_DEGRADED_BELOW:
+                    # Severely degraded - swap to ANY fresh weapon
+                    should_equip = True
+                elif self.weapon.max_monster < EQUIP_FRESH_IF_DEGRADED_BELOW:
+                    # Moderately degraded - swap if fresh weapon can hit more
+                    should_equip = weapon.value >= self.weapon.max_monster
+
+            if should_equip:
                 self.weapon = WeaponState(value=weapon.value)
 
-        # Fight monsters
+        # 2. Estimate damage to decide if we need to heal first
+        estimated_damage = 0
+        for monster in monsters:
+            if self.weapon and self.weapon.can_defeat(monster.value):
+                estimated_damage += max(0, monster.value - self.weapon.value)
+            else:
+                estimated_damage += monster.value
+
+        # If we would die without healing first, use a potion now
+        needs_healing_first = self.health <= estimated_damage // 2 and potions
+        potion_used_first = False
+
+        if needs_healing_first and not self.used_potion_this_turn:
+            best_potion = potions[0]  # Already sorted by value descending
+            self.health = min(self.MAX_HEALTH, self.health + best_potion.value)
+            self.used_potion_this_turn = True
+            potion_used_first = True
+
+        # 3. Fight monsters (big first)
         for monster in monsters:
             self._fight_monster(monster)
             if self.health <= 0:
                 return
 
-        # Use potions
-        for potion in potions:
+        # 4. Use remaining potions after combat
+        for i, potion in enumerate(potions):
+            # Skip first potion if already used
+            if i == 0 and potion_used_first:
+                continue
             if not self.used_potion_this_turn:
                 self.health = min(self.MAX_HEALTH, self.health + potion.value)
                 self.used_potion_this_turn = True
 
+    # Weapon preservation threshold - only use fresh weapon on monsters >= this value
+    # Evolved via genetic algorithm in Kotlin version
+    WEAPON_PRESERVATION_THRESHOLD = 10
+
     def _fight_monster(self, monster: Card):
-        """Fight a monster."""
+        """Fight a monster with intelligent weapon preservation.
+
+        Key insight: Using a fresh weapon on small monsters degrades it permanently,
+        making it useless against big monsters later. We preserve fresh weapons for
+        monsters >= WEAPON_PRESERVATION_THRESHOLD (9).
+        """
         if self.weapon and self.weapon.can_defeat(monster.value):
-            # Use weapon
-            damage = max(0, monster.value - self.weapon.value)
-            self.health -= damage
-            self.weapon.max_monster = monster.value
+            # Check if we should preserve the weapon
+            weapon_is_fresh = self.weapon.max_monster is None
+
+            if weapon_is_fresh and monster.value < self.WEAPON_PRESERVATION_THRESHOLD:
+                # Fight barehanded to preserve fresh weapon for bigger monsters
+                self.health -= monster.value
+            else:
+                # Use weapon (either already degraded, or monster is big enough)
+                damage = max(0, monster.value - self.weapon.value)
+                self.health -= damage
+                self.weapon.max_monster = monster.value
         else:
-            # Fight barehanded
+            # Fight barehanded (no weapon or can't hit this monster)
             self.health -= monster.value
 
     def _check_game_over(self) -> bool:
