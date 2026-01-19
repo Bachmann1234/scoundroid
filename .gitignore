@@ -84,3 +84,9 @@ vcs.xml
 .venv
 venv
 __pycache__
+
+# ML artifacts
+ml/*.pt
+ml/*.checkpoint
+ml/*.pkl
+ml/*_output.txt
