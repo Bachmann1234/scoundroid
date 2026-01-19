@@ -156,10 +156,11 @@ class ScoringTest {
     fun `losing score includes monsters in current room`() {
         // When you die mid-game, monsters in the room count against you
         val deckMonsters = listOf(Card(Suit.SPADES, Rank.FIVE)) // 5 in deck
-        val roomMonsters = listOf(
-            Card(Suit.CLUBS, Rank.SEVEN), // 7 in room
-            Card(Suit.SPADES, Rank.TEN), // 10 in room
-        )
+        val roomMonsters =
+            listOf(
+                Card(Suit.CLUBS, Rank.SEVEN), // 7 in room
+                Card(Suit.SPADES, Rank.TEN), // 10 in room
+            )
         val game =
             GameState.newGame().copy(
                 deck = Deck(deckMonsters),
