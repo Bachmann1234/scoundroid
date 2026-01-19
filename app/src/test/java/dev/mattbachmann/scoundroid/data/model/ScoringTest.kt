@@ -153,6 +153,27 @@ class ScoringTest {
     }
 
     @Test
+    fun `losing score includes monsters in current room`() {
+        // When you die mid-game, monsters in the room count against you
+        val deckMonsters = listOf(Card(Suit.SPADES, Rank.FIVE)) // 5 in deck
+        val roomMonsters = listOf(
+            Card(Suit.CLUBS, Rank.SEVEN), // 7 in room
+            Card(Suit.SPADES, Rank.TEN), // 10 in room
+        )
+        val game =
+            GameState.newGame().copy(
+                deck = Deck(deckMonsters),
+                currentRoom = roomMonsters,
+                health = 0,
+            )
+
+        val score = game.calculateScore()
+
+        // Score = 0 - (5 + 7 + 10) = -22 (all remaining monsters count)
+        assertEquals(-22, score, "Losing score should include monsters from both deck and room")
+    }
+
+    @Test
     fun `mid-game score is health minus remaining monsters`() {
         // Mid-game score
         val partialDeck =

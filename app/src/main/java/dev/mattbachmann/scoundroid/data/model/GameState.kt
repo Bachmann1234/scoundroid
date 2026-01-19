@@ -233,7 +233,7 @@ data class GameState(
      *   - The leftover card does NOT affect win score
      * - **Win with potion bonus**: If health = 20, deck empty, AND the leftover card is a potion,
      *   score = 20 + potion value
-     * - **Lose** (health = 0): score = 0 - remaining monsters in deck only
+     * - **Lose** (health = 0): score = 0 - all remaining monsters (deck + room)
      *
      * @return The current score
      */
@@ -242,6 +242,11 @@ data class GameState(
             deck.cards
                 .filter { it.type == CardType.MONSTER }
                 .sumOf { it.value }
+        val roomMonsterDamage =
+            currentRoom
+                ?.filter { it.type == CardType.MONSTER }
+                ?.sumOf { it.value }
+                ?: 0
 
         // Check if the leftover card (the one not selected from the final room) is a potion
         val leftoverCard = currentRoom?.singleOrNull()
@@ -249,6 +254,7 @@ data class GameState(
         return if (health > 0) {
             if (deck.isEmpty) {
                 // Game won: score = health, plus potion bonus if applicable
+                // The leftover card does NOT affect win score (unless potion bonus)
                 val baseScore = health
                 if (health == MAX_HEALTH &&
                     leftoverCard != null &&
@@ -260,16 +266,11 @@ data class GameState(
                 }
             } else {
                 // During play: show projected score (health minus all remaining monsters)
-                val roomMonsterDamage =
-                    currentRoom
-                        ?.filter { it.type == CardType.MONSTER }
-                        ?.sumOf { it.value }
-                        ?: 0
                 health - deckMonsterDamage - roomMonsterDamage
             }
         } else {
-            // Losing: score = negative sum of remaining monsters in deck only
-            -deckMonsterDamage
+            // Losing: score = negative sum of all remaining monsters (deck + room)
+            -(deckMonsterDamage + roomMonsterDamage)
         }
     }
 
