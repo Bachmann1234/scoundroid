@@ -153,6 +153,28 @@ class ScoringTest {
     }
 
     @Test
+    fun `losing score includes monsters in current room`() {
+        // When you die mid-game, monsters in the room count against you
+        val deckMonsters = listOf(Card(Suit.SPADES, Rank.FIVE)) // 5 in deck
+        val roomMonsters =
+            listOf(
+                Card(Suit.CLUBS, Rank.SEVEN), // 7 in room
+                Card(Suit.SPADES, Rank.TEN), // 10 in room
+            )
+        val game =
+            GameState.newGame().copy(
+                deck = Deck(deckMonsters),
+                currentRoom = roomMonsters,
+                health = 0,
+            )
+
+        val score = game.calculateScore()
+
+        // Score = 0 - (5 + 7 + 10) = -22 (all remaining monsters count)
+        assertEquals(-22, score, "Losing score should include monsters from both deck and room")
+    }
+
+    @Test
     fun `mid-game score is health minus remaining monsters`() {
         // Mid-game score
         val partialDeck =
@@ -324,7 +346,10 @@ class ScoringTest {
     }
 
     @Test
-    fun `potion bonus does not apply when leftover card is a monster`() {
+    fun `win score with leftover monster is just remaining health`() {
+        // Per docs/rules.md: "If you win: Score = remaining health"
+        // The leftover card (unselected from final room) does NOT affect win score
+        // unless it's a potion with full health (bonus case)
         val emptyDeck = Deck(emptyList())
         val leftoverMonster = Card(Suit.SPADES, Rank.FIVE) // 5♠ monster left over
         val game =
@@ -335,8 +360,8 @@ class ScoringTest {
             )
 
         val score = game.calculateScore()
-        // Score = 20 - 5 = 15 (health minus remaining monster damage, no potion bonus)
-        assertEquals(15, score, "No potion bonus when leftover card is a monster")
+        // Win score = remaining health = 20 (leftover monster does NOT reduce score)
+        assertEquals(20, score, "Win score should be remaining health, not reduced by leftover monster")
     }
 
     @Test
